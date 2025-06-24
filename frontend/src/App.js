@@ -380,19 +380,6 @@ function App() {
             >
               Test API Connection
             </button>
-            
-            {/* Manual Chat View Test */}
-            <button
-              onClick={() => {
-                console.log('Manually switching to chat view...');
-                setUser({ user_id: 'test', username: 'Test User', email: 'test@test.com' });
-                setToken('test-token');
-                setCurrentView('chat');
-              }}
-              className="w-full mt-2 bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition duration-200"
-            >
-              Test Chat View (Debug)
-            </button>
           </div>
         </div>
       </div>
