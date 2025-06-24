@@ -823,6 +823,522 @@ def test_enhanced_user_profile():
     logger.info("Enhanced user profile tests passed")
     return True
 
+def test_encryption_key_generation():
+    """Test encryption key generation for new users"""
+    logger.info("Testing encryption key generation...")
+    
+    # Register a new test user with a unique email
+    unique_id = str(uuid.uuid4())[:8]
+    test_user = {
+        "username": f"security_test_user_{unique_id}",
+        "email": f"security_test_{unique_id}@example.com",
+        "password": "SecureTestPass123!",
+        "phone": f"+1555{unique_id}"
+    }
+    
+    response = requests.post(f"{API_URL}/register", json=test_user)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to register test user for encryption key test: {response.text}")
+        return False
+    
+    # Verify encryption key is included in response
+    user_data = response.json()
+    if "encryption_key" not in user_data["user"]:
+        logger.error("Encryption key not included in user registration response")
+        return False
+    
+    encryption_key = user_data["user"]["encryption_key"]
+    if not encryption_key or len(encryption_key) < 10:  # Basic validation
+        logger.error(f"Invalid encryption key: {encryption_key}")
+        return False
+    
+    logger.info(f"Successfully verified encryption key generation: {encryption_key[:10]}...")
+    
+    # Also verify key is included in login response
+    login_response = requests.post(f"{API_URL}/login", json={
+        "email": test_user["email"],
+        "password": test_user["password"]
+    })
+    
+    if login_response.status_code != 200:
+        logger.error(f"Failed to login test user for encryption key test: {login_response.text}")
+        return False
+    
+    login_data = login_response.json()
+    if "encryption_key" not in login_data["user"]:
+        logger.error("Encryption key not included in user login response")
+        return False
+    
+    if login_data["user"]["encryption_key"] != encryption_key:
+        logger.error("Encryption key in login response doesn't match registration key")
+        return False
+    
+    logger.info("Encryption key generation tests passed")
+    return True
+
+def test_message_encryption():
+    """Test message encryption and decryption"""
+    logger.info("Testing message encryption and decryption...")
+    
+    # Create two test users with encryption keys
+    unique_id1 = str(uuid.uuid4())[:8]
+    unique_id2 = str(uuid.uuid4())[:8]
+    
+    test_user1 = {
+        "username": f"encrypt_test_user1_{unique_id1}",
+        "email": f"encrypt_test1_{unique_id1}@example.com",
+        "password": "EncryptPass123!",
+        "phone": f"+1666{unique_id1}"
+    }
+    
+    test_user2 = {
+        "username": f"encrypt_test_user2_{unique_id2}",
+        "email": f"encrypt_test2_{unique_id2}@example.com",
+        "password": "EncryptPass456!",
+        "phone": f"+1666{unique_id2}"
+    }
+    
+    # Register users
+    response1 = requests.post(f"{API_URL}/register", json=test_user1)
+    if response1.status_code != 200:
+        logger.error(f"Failed to register first test user for encryption test: {response1.text}")
+        return False
+    
+    response2 = requests.post(f"{API_URL}/register", json=test_user2)
+    if response2.status_code != 200:
+        logger.error(f"Failed to register second test user for encryption test: {response2.text}")
+        return False
+    
+    user1_data = response1.json()
+    user2_data = response2.json()
+    
+    user1_token = user1_data["access_token"]
+    user1_id = user1_data["user"]["user_id"]
+    user1_key = user1_data["user"]["encryption_key"]
+    
+    user2_token = user2_data["access_token"]
+    user2_id = user2_data["user"]["user_id"]
+    
+    # Create a direct chat between the two users
+    headers1 = {"Authorization": f"Bearer {user1_token}"}
+    chat_response = requests.post(
+        f"{API_URL}/chats",
+        json={"chat_type": "direct", "other_user_id": user2_id},
+        headers=headers1
+    )
+    
+    if chat_response.status_code != 200:
+        logger.error(f"Failed to create chat for encryption test: {chat_response.text}")
+        return False
+    
+    test_chat_id = chat_response.json()["chat_id"]
+    
+    # Send an encrypted message
+    test_message = "This is a secret encrypted message for testing!"
+    message_response = requests.post(
+        f"{API_URL}/chats/{test_chat_id}/messages",
+        json={"content": test_message},
+        headers=headers1
+    )
+    
+    if message_response.status_code != 200:
+        logger.error(f"Failed to send encrypted message: {message_response.text}")
+        return False
+    
+    # Verify message is marked as encrypted
+    if not message_response.json().get("is_encrypted", False):
+        logger.error("Message not marked as encrypted")
+        return False
+    
+    # Get messages as user1 (sender)
+    messages_response1 = requests.get(
+        f"{API_URL}/chats/{test_chat_id}/messages",
+        headers=headers1
+    )
+    
+    if messages_response1.status_code != 200:
+        logger.error(f"Failed to get messages as sender: {messages_response1.text}")
+        return False
+    
+    # Get messages as user2 (recipient)
+    headers2 = {"Authorization": f"Bearer {user2_token}"}
+    messages_response2 = requests.get(
+        f"{API_URL}/chats/{test_chat_id}/messages",
+        headers=headers2
+    )
+    
+    if messages_response2.status_code != 200:
+        logger.error(f"Failed to get messages as recipient: {messages_response2.text}")
+        return False
+    
+    # Verify both users can see the decrypted content
+    messages1 = messages_response1.json()
+    messages2 = messages_response2.json()
+    
+    if not messages1 or not messages2:
+        logger.error("No messages found in chat")
+        return False
+    
+    # Check if the message content is correctly decrypted for both users
+    if messages1[0]["content"] != test_message:
+        logger.error(f"Sender sees incorrect message content: {messages1[0]['content']}")
+        return False
+    
+    if messages2[0]["content"] != test_message:
+        logger.error(f"Recipient sees incorrect message content: {messages2[0]['content']}")
+        return False
+    
+    # Verify encrypted_content field exists but is different from original content
+    if "encrypted_content" not in messages1[0]:
+        logger.error("Message doesn't have encrypted_content field")
+        return False
+    
+    if messages1[0]["encrypted_content"] == test_message:
+        logger.error("encrypted_content is not actually encrypted")
+        return False
+    
+    logger.info("Message encryption and decryption tests passed")
+    return True
+
+def test_encrypted_file_sharing():
+    """Test encrypted file sharing"""
+    logger.info("Testing encrypted file sharing...")
+    
+    # Use the first user from the regular test users
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    
+    # Upload a test file
+    small_png_data = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=")
+    files = {"file": ("encrypted_test.png", BytesIO(small_png_data), "image/png")}
+    
+    upload_response = requests.post(f"{API_URL}/upload", headers=headers, files=files)
+    
+    if upload_response.status_code != 200:
+        logger.error(f"Failed to upload file for encryption test: {upload_response.text}")
+        return False
+    
+    file_data = upload_response.json()
+    
+    # Send encrypted file message
+    message_data = {
+        "content": "This is an encrypted file attachment",
+        "message_type": "image",
+        "file_name": file_data["file_name"],
+        "file_size": file_data["file_size"],
+        "file_data": file_data["file_data"]
+    }
+    
+    message_response = requests.post(
+        f"{API_URL}/chats/{chat_ids['direct_chat']}/messages",
+        json=message_data,
+        headers=headers
+    )
+    
+    if message_response.status_code != 200:
+        logger.error(f"Failed to send encrypted file message: {message_response.text}")
+        return False
+    
+    # Verify message is marked as encrypted
+    if not message_response.json().get("is_encrypted", False):
+        logger.error("File message not marked as encrypted")
+        return False
+    
+    encrypted_file_message_id = message_response.json()["message_id"]
+    
+    # Get messages to verify file is properly stored and can be decrypted
+    messages_response = requests.get(
+        f"{API_URL}/chats/{chat_ids['direct_chat']}/messages",
+        headers=headers
+    )
+    
+    if messages_response.status_code != 200:
+        logger.error(f"Failed to get messages to verify encrypted file: {messages_response.text}")
+        return False
+    
+    messages = messages_response.json()
+    file_message = next((m for m in messages if m.get("message_id") == encrypted_file_message_id), None)
+    
+    if not file_message:
+        logger.error("Could not find encrypted file message")
+        return False
+    
+    # Verify file data is present
+    if (file_message.get("message_type") != "image" or 
+        not file_message.get("file_name") or 
+        not file_message.get("file_data")):
+        logger.error(f"Encrypted file message missing attachment data: {file_message}")
+        return False
+    
+    logger.info("Encrypted file sharing tests passed")
+    return True
+
+def test_block_user():
+    """Test blocking a user"""
+    logger.info("Testing block user functionality...")
+    
+    # User1 blocks User3
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    block_data = {
+        "user_id": user_ids['user3'],
+        "reason": "Testing block functionality"
+    }
+    
+    response = requests.post(f"{API_URL}/users/block", json=block_data, headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to block user: {response.text}")
+        return False
+    
+    logger.info(f"Successfully blocked user3")
+    
+    # Verify user is in blocked list
+    response = requests.get(f"{API_URL}/users/blocked", headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get blocked users list: {response.text}")
+        return False
+    
+    blocked_users = response.json()
+    if not blocked_users or not any(b.get("blocked_id") == user_ids['user3'] for b in blocked_users):
+        logger.error(f"User3 not found in blocked users list: {blocked_users}")
+        return False
+    
+    # Verify blocked user info is populated
+    if not any("blocked_user" in b for b in blocked_users):
+        logger.error("Blocked user information not populated in response")
+        return False
+    
+    logger.info("Block user tests passed")
+    return True
+
+def test_unblock_user():
+    """Test unblocking a user"""
+    logger.info("Testing unblock user functionality...")
+    
+    # User1 unblocks User3
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    
+    response = requests.delete(f"{API_URL}/users/block/{user_ids['user3']}", headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to unblock user: {response.text}")
+        return False
+    
+    logger.info(f"Successfully unblocked user3")
+    
+    # Verify user is no longer in blocked list
+    response = requests.get(f"{API_URL}/users/blocked", headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get blocked users list after unblock: {response.text}")
+        return False
+    
+    blocked_users = response.json()
+    if any(b.get("blocked_id") == user_ids['user3'] for b in blocked_users):
+        logger.error(f"User3 still found in blocked users list after unblock: {blocked_users}")
+        return False
+    
+    logger.info("Unblock user tests passed")
+    return True
+
+def test_block_enforcement():
+    """Test that blocked users cannot communicate"""
+    logger.info("Testing block enforcement...")
+    
+    # First, User1 blocks User3 again
+    headers1 = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    block_data = {
+        "user_id": user_ids['user3'],
+        "reason": "Testing block enforcement"
+    }
+    
+    response = requests.post(f"{API_URL}/users/block", json=block_data, headers=headers1)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to block user for enforcement test: {response.text}")
+        return False
+    
+    # Test 1: User3 tries to create a direct chat with User1 (should fail)
+    headers3 = {"Authorization": f"Bearer {user_tokens['user3']}"}
+    chat_data = {
+        "chat_type": "direct",
+        "other_user_id": user_ids['user1']
+    }
+    
+    response = requests.post(f"{API_URL}/chats", json=chat_data, headers=headers3)
+    
+    if response.status_code != 403:
+        logger.error(f"Blocked user was able to create chat: {response.status_code} - {response.text}")
+        return False
+    
+    logger.info("Successfully prevented blocked user from creating chat")
+    
+    # Test 2: User3 tries to add User1 as contact (should fail)
+    contact_data = {
+        "email": test_users[0]["email"]
+    }
+    
+    response = requests.post(f"{API_URL}/contacts", json=contact_data, headers=headers3)
+    
+    if response.status_code != 403:
+        logger.error(f"Blocked user was able to add contact: {response.status_code} - {response.text}")
+        return False
+    
+    logger.info("Successfully prevented blocked user from adding contact")
+    
+    # Test 3: Try to send message between blocked users
+    # First create a chat between User1 and User3 before blocking
+    # (We'll unblock first, create chat, then block again)
+    
+    # Unblock temporarily
+    response = requests.delete(f"{API_URL}/users/block/{user_ids['user3']}", headers=headers1)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to temporarily unblock user: {response.text}")
+        return False
+    
+    # Create chat
+    chat_data = {
+        "chat_type": "direct",
+        "other_user_id": user_ids['user3']
+    }
+    
+    response = requests.post(f"{API_URL}/chats", json=chat_data, headers=headers1)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to create test chat for block enforcement: {response.text}")
+        return False
+    
+    test_chat_id = response.json()["chat_id"]
+    
+    # Block again
+    response = requests.post(f"{API_URL}/users/block", json=block_data, headers=headers1)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to re-block user for enforcement test: {response.text}")
+        return False
+    
+    # Now User3 tries to send message to the chat (should fail)
+    message_data = {
+        "content": "This message should be blocked"
+    }
+    
+    response = requests.post(
+        f"{API_URL}/chats/{test_chat_id}/messages",
+        json=message_data,
+        headers=headers3
+    )
+    
+    if response.status_code != 403:
+        logger.error(f"Blocked user was able to send message: {response.status_code} - {response.text}")
+        return False
+    
+    logger.info("Successfully prevented blocked user from sending message")
+    
+    # Clean up - unblock User3
+    response = requests.delete(f"{API_URL}/users/block/{user_ids['user3']}", headers=headers1)
+    
+    logger.info("Block enforcement tests passed")
+    return True
+
+def test_report_user():
+    """Test reporting a user"""
+    logger.info("Testing report user functionality...")
+    
+    # User1 reports User3
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    report_data = {
+        "user_id": user_ids['user3'],
+        "reason": "inappropriate_content",
+        "description": "Testing the report functionality"
+    }
+    
+    response = requests.post(f"{API_URL}/users/report", json=report_data, headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to report user: {response.text}")
+        return False
+    
+    logger.info(f"Successfully reported user3")
+    
+    # Test reporting with message context
+    # First send a message
+    chat_data = {
+        "chat_type": "direct",
+        "other_user_id": user_ids['user3']
+    }
+    
+    chat_response = requests.post(f"{API_URL}/chats", json=chat_data, headers=headers)
+    
+    if chat_response.status_code != 200:
+        logger.error(f"Failed to create chat for report test: {chat_response.text}")
+        return False
+    
+    test_chat_id = chat_response.json()["chat_id"]
+    
+    message_data = {
+        "content": "This is a test message for reporting"
+    }
+    
+    message_response = requests.post(
+        f"{API_URL}/chats/{test_chat_id}/messages",
+        json=message_data,
+        headers=headers
+    )
+    
+    if message_response.status_code != 200:
+        logger.error(f"Failed to send message for report test: {message_response.text}")
+        return False
+    
+    test_message_id = message_response.json()["message_id"]
+    
+    # Now report with message context
+    report_data = {
+        "user_id": user_ids['user3'],
+        "reason": "harassment",
+        "description": "Testing report with message context",
+        "message_id": test_message_id,
+        "chat_id": test_chat_id
+    }
+    
+    response = requests.post(f"{API_URL}/users/report", json=report_data, headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to report user with message context: {response.text}")
+        return False
+    
+    logger.info("Successfully reported user with message context")
+    
+    logger.info("Report user tests passed")
+    return True
+
+def test_admin_reports():
+    """Test admin report management"""
+    logger.info("Testing admin report management...")
+    
+    # Get pending reports (using user1 as admin for testing)
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    
+    response = requests.get(f"{API_URL}/admin/reports", headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get admin reports: {response.text}")
+        return False
+    
+    reports = response.json()
+    
+    # Verify reports include reporter and reported user info
+    for report in reports:
+        if "reporter" not in report or "reported_user" not in report:
+            logger.error(f"Report missing user information: {report}")
+            return False
+    
+    logger.info(f"Successfully retrieved {len(reports)} admin reports")
+    
+    logger.info("Admin reports tests passed")
+    return True
+
 def run_all_tests():
     """Run all tests and return results"""
     test_results = {
@@ -860,6 +1376,20 @@ def run_all_tests():
         },
         "Enhanced User Profile": {
             "profile_updates": test_enhanced_user_profile()
+        },
+        "Message Encryption": {
+            "key_generation": test_encryption_key_generation(),
+            "message_encryption": test_message_encryption(),
+            "encrypted_file_sharing": test_encrypted_file_sharing()
+        },
+        "User Blocking": {
+            "block_user": test_block_user(),
+            "unblock_user": test_unblock_user(),
+            "block_enforcement": test_block_enforcement()
+        },
+        "User Reporting": {
+            "report_user": test_report_user(),
+            "admin_reports": test_admin_reports()
         }
     }
     
