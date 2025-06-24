@@ -248,3 +248,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Built complete WhatsApp-like chat system with authentication, real-time messaging, contact management. Backend uses FastAPI with WebSockets, MongoDB storage. Frontend uses React with real-time WebSocket connection. Ready for comprehensive testing of all core features."
+  - agent: "testing"
+    message: "Completed comprehensive testing of all backend features. Fixed an issue with MongoDB ObjectId serialization that was causing errors in chat creation and retrieval. All backend API endpoints are now working correctly, including user authentication, WebSocket connections, chat management, contact management, and message storage/retrieval. The backend is fully functional and ready for frontend integration."
