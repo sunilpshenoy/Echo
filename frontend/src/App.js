@@ -132,37 +132,36 @@ function App() {
     console.log('API URL:', API);
     
     try {
-      // Use XMLHttpRequest instead of axios
       console.log('Making register API call to:', `${API}/register`);
       
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', `${API}/register`, true);
-      xhr.setRequestHeader('Content-Type', 'application/json');
+      // Use fetch API instead of XMLHttpRequest
+      const response = await fetch(`${API}/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(registerForm)
+      });
       
-      xhr.onload = function() {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          console.log('Registration successful:', xhr.responseText);
-          const response = JSON.parse(xhr.responseText);
-          setToken(response.access_token);
-          setUser(response.user);
-          localStorage.setItem('token', response.access_token);
-          setCurrentView('chat');
-          // Pass the token directly to avoid state update delay
-          fetchChats(response.access_token);
-          fetchContacts(response.access_token);
-        } else {
-          console.error('Registration error:', xhr.status, xhr.statusText);
-          console.error('Response:', xhr.responseText);
-          alert('Registration failed: ' + xhr.statusText);
-        }
-      };
+      console.log('Register response status:', response.status);
       
-      xhr.onerror = function() {
-        console.error('Registration request failed');
-        alert('Registration request failed');
-      };
-      
-      xhr.send(JSON.stringify(registerForm));
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Registration successful:', data);
+        
+        setToken(data.access_token);
+        setUser(data.user);
+        localStorage.setItem('token', data.access_token);
+        setCurrentView('chat');
+        
+        // Pass the token directly to avoid state update delay
+        fetchChats(data.access_token);
+        fetchContacts(data.access_token);
+      } else {
+        const errorText = await response.text();
+        console.error('Registration error:', response.status, errorText);
+        alert(`Registration failed: ${response.status} ${response.statusText}`);
+      }
     } catch (error) {
       console.error('Registration error:', error);
       alert('Registration failed: ' + error.message);
