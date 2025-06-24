@@ -83,7 +83,7 @@ function App() {
 
   // Authentication functions
   const login = async (e) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default form submission
     console.log('Login form submitted:', loginForm);
     console.log('Backend URL:', BACKEND_URL);
     console.log('API URL:', API);
