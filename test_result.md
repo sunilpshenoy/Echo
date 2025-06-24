@@ -183,9 +183,9 @@ backend:
 frontend:
   - task: "User Authentication UI"
     implemented: true
-    working: false
+    working: true
     file: "App.js"
-    stuck_count: 2
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
@@ -201,6 +201,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Added debug logging to the frontend. Environment variables are correctly loaded (REACT_APP_BACKEND_URL is set properly), but API calls from the frontend to the backend are not being made. Tried different approaches including XMLHttpRequest instead of axios, but the issue persists. This appears to be a CORS or network connectivity issue between the frontend and backend."
+      - working: true
+        agent: "testing"
+        comment: "Fixed the authentication issues by adding name attributes to form fields and setting the correct form action and method. Also updated the login and register functions to use fetch API instead of XMLHttpRequest. The authentication now works correctly, and users can register and login successfully."
 
   - task: "Real-time Chat Interface"
     implemented: true
