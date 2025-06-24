@@ -356,13 +356,13 @@ async def send_message(chat_id: str, message_data: dict, current_user = Depends(
     await manager.broadcast_to_chat(
         json.dumps({
             "type": "new_message",
-            "data": message_dict
+            "data": serialize_mongo_doc(message_dict)
         }),
         chat_id,
         current_user["user_id"]
     )
     
-    return message_dict
+    return serialize_mongo_doc(message_dict)
 
 # Contacts routes
 @api_router.get("/contacts")
