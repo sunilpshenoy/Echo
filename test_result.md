@@ -107,15 +107,18 @@ user_problem_statement: "Build a comprehensive chat app with WhatsApp-like capab
 backend:
   - task: "User Authentication System"
     implemented: true
-    working: "NA"
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented JWT-based authentication with register/login endpoints, password hashing using bcrypt"
+      - working: true
+        agent: "testing"
+        comment: "User registration and login endpoints are working correctly. Successfully tested user creation, login with JWT token generation, and duplicate registration prevention."
 
   - task: "WebSocket Real-time Communication"
     implemented: true
