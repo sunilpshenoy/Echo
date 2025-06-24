@@ -1383,6 +1383,375 @@ async def add_contact(contact_data: dict, current_user = Depends(get_current_use
     
     return serialize_mongo_doc(contact)
 
+# User Blocking Management
+@api_router.get("/users/blocked")
+async def get_blocked_users(current_user = Depends(get_current_user)):
+    """Get all blocked users for the current user"""
+    blocked = await db.blocked_users.find({
+        "user_id": current_user["user_id"]
+    }).to_list(100)
+    
+    # Get blocked user details
+    for block in blocked:
+        user = await db.users.find_one({"user_id": block["blocked_user_id"]})
+        if user:
+            block["blocked_user"] = {
+                "user_id": user["user_id"],
+                "username": user["username"],
+                "display_name": user.get("display_name"),
+                "avatar": user.get("avatar")
+            }
+    
+    return serialize_mongo_doc(blocked)
+
+@api_router.post("/users/{user_id}/block")
+async def block_user(user_id: str, current_user = Depends(get_current_user)):
+    """Block a user"""
+    if user_id == current_user["user_id"]:
+        raise HTTPException(status_code=400, detail="Cannot block yourself")
+    
+    # Check if user exists
+    user = await db.users.find_one({"user_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Check if already blocked
+    existing = await db.blocked_users.find_one({
+        "user_id": current_user["user_id"],
+        "blocked_user_id": user_id
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="User already blocked")
+    
+    # Create block record
+    block = {
+        "block_id": str(uuid.uuid4()),
+        "user_id": current_user["user_id"],
+        "blocked_user_id": user_id,
+        "blocked_at": datetime.utcnow()
+    }
+    
+    await db.blocked_users.insert_one(block)
+    
+    # Remove from contacts if exists
+    await db.contacts.delete_one({
+        "user_id": current_user["user_id"],
+        "contact_user_id": user_id
+    })
+    
+    return {"message": "User blocked successfully"}
+
+@api_router.delete("/users/{user_id}/block")
+async def unblock_user(user_id: str, current_user = Depends(get_current_user)):
+    """Unblock a user"""
+    result = await db.blocked_users.delete_one({
+        "user_id": current_user["user_id"],
+        "blocked_user_id": user_id
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not blocked")
+    
+    return {"message": "User unblocked successfully"}
+
+# User Reporting
+@api_router.post("/users/{user_id}/report")
+async def report_user(user_id: str, report_data: dict, current_user = Depends(get_current_user)):
+    """Report a user"""
+    if user_id == current_user["user_id"]:
+        raise HTTPException(status_code=400, detail="Cannot report yourself")
+    
+    # Check if user exists
+    user = await db.users.find_one({"user_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Create report
+    report = {
+        "report_id": str(uuid.uuid4()),
+        "reporter_id": current_user["user_id"],
+        "reported_user_id": user_id,
+        "reason": report_data.get("reason", "other"),
+        "description": report_data.get("description", ""),
+        "message_id": report_data.get("message_id"),
+        "chat_id": report_data.get("chat_id"),
+        "status": "pending",
+        "reported_at": datetime.utcnow()
+    }
+    
+    await db.user_reports.insert_one(report)
+    
+    return {"message": "User reported successfully"}
+
+# Stories Management
+@api_router.get("/stories")
+async def get_stories(current_user = Depends(get_current_user)):
+    """Get stories from contacts and followed users"""
+    # Get user's contacts
+    contacts = await db.contacts.find({
+        "user_id": current_user["user_id"]
+    }).to_list(100)
+    
+    contact_ids = [contact["contact_user_id"] for contact in contacts]
+    contact_ids.append(current_user["user_id"])  # Include own stories
+    
+    # Get non-expired stories
+    now = datetime.utcnow()
+    stories = await db.stories.find({
+        "user_id": {"$in": contact_ids},
+        "expires_at": {"$gt": now}
+    }).sort("created_at", -1).to_list(100)
+    
+    # Get story owner details
+    for story in stories:
+        user = await db.users.find_one({"user_id": story["user_id"]})
+        if user:
+            story["user"] = {
+                "user_id": user["user_id"],
+                "username": user["username"],
+                "display_name": user.get("display_name"),
+                "avatar": user.get("avatar")
+            }
+    
+    return serialize_mongo_doc(stories)
+
+@api_router.post("/stories")
+async def create_story(story_data: dict, current_user = Depends(get_current_user)):
+    """Create a new story"""
+    story = {
+        "story_id": str(uuid.uuid4()),
+        "user_id": current_user["user_id"],
+        "content": story_data.get("content", ""),
+        "media_type": story_data.get("media_type", "text"),
+        "media_data": story_data.get("media_data"),
+        "background_color": story_data.get("background_color", "#000000"),
+        "text_color": story_data.get("text_color", "#ffffff"),
+        "privacy": story_data.get("privacy", "all"),
+        "viewers": [],
+        "created_at": datetime.utcnow(),
+        "expires_at": datetime.utcnow() + timedelta(hours=24)
+    }
+    
+    await db.stories.insert_one(story)
+    
+    return serialize_mongo_doc(story)
+
+@api_router.put("/stories/{story_id}/view")
+async def view_story(story_id: str, current_user = Depends(get_current_user)):
+    """Mark a story as viewed"""
+    story = await db.stories.find_one({"story_id": story_id})
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
+    
+    # Check if story is expired
+    if story["expires_at"] < datetime.utcnow():
+        raise HTTPException(status_code=404, detail="Story expired")
+    
+    # Add viewer if not already viewed
+    if current_user["user_id"] not in story.get("viewers", []):
+        await db.stories.update_one(
+            {"story_id": story_id},
+            {"$push": {"viewers": current_user["user_id"]}}
+        )
+    
+    return {"message": "Story viewed"}
+
+# Channels Management  
+@api_router.get("/channels")
+async def get_channels(current_user = Depends(get_current_user)):
+    """Get channels the user has subscribed to"""
+    channels = await db.channels.find({
+        "subscribers": current_user["user_id"]
+    }).to_list(100)
+    
+    # Get channel owner details
+    for channel in channels:
+        owner = await db.users.find_one({"user_id": channel["owner_id"]})
+        if owner:
+            channel["owner"] = {
+                "user_id": owner["user_id"],
+                "username": owner["username"],
+                "display_name": owner.get("display_name"),
+                "avatar": owner.get("avatar")
+            }
+    
+    return serialize_mongo_doc(channels)
+
+@api_router.post("/channels")
+async def create_channel(channel_data: dict, current_user = Depends(get_current_user)):
+    """Create a new channel"""
+    channel = {
+        "channel_id": str(uuid.uuid4()),
+        "name": channel_data.get("name", "New Channel"),
+        "description": channel_data.get("description", ""),
+        "owner_id": current_user["user_id"],
+        "admins": [current_user["user_id"]],
+        "subscribers": [current_user["user_id"]],
+        "is_public": channel_data.get("is_public", True),
+        "category": channel_data.get("category", "general"),
+        "created_at": datetime.utcnow()
+    }
+    
+    await db.channels.insert_one(channel)
+    
+    return serialize_mongo_doc(channel)
+
+@api_router.post("/channels/{channel_id}/subscribe")
+async def subscribe_to_channel(channel_id: str, current_user = Depends(get_current_user)):
+    """Subscribe to a channel"""
+    channel = await db.channels.find_one({"channel_id": channel_id})
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    
+    if current_user["user_id"] not in channel.get("subscribers", []):
+        await db.channels.update_one(
+            {"channel_id": channel_id},
+            {"$push": {"subscribers": current_user["user_id"]}}
+        )
+    
+    return {"message": "Subscribed to channel"}
+
+# Message Management
+@api_router.put("/messages/{message_id}/react")
+async def react_to_message(message_id: str, reaction_data: dict, current_user = Depends(get_current_user)):
+    """Add or remove reaction from a message"""
+    message = await db.messages.find_one({"message_id": message_id})
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    # Verify user has access to the chat
+    chat = await db.chats.find_one({"chat_id": message["chat_id"]})
+    if not chat or current_user["user_id"] not in chat["members"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    emoji = reaction_data.get("emoji")
+    if not emoji:
+        raise HTTPException(status_code=400, detail="Emoji required")
+    
+    # Get current reactions
+    reactions = message.get("reactions", {})
+    
+    # Toggle reaction
+    if emoji in reactions:
+        if current_user["user_id"] in reactions[emoji]:
+            reactions[emoji].remove(current_user["user_id"])
+            if not reactions[emoji]:
+                del reactions[emoji]
+        else:
+            reactions[emoji].append(current_user["user_id"])
+    else:
+        reactions[emoji] = [current_user["user_id"]]
+    
+    await db.messages.update_one(
+        {"message_id": message_id},
+        {"$set": {"reactions": reactions}}
+    )
+    
+    # Broadcast reaction update
+    for member_id in chat["members"]:
+        await manager.send_personal_message(
+            json.dumps({
+                "type": "message_reaction",
+                "data": {
+                    "message_id": message_id,
+                    "reactions": reactions,
+                    "user_id": current_user["user_id"],
+                    "emoji": emoji
+                }
+            }),
+            member_id
+        )
+    
+    return {"message": "Reaction updated"}
+
+@api_router.put("/messages/{message_id}/edit")
+async def edit_message(message_id: str, edit_data: dict, current_user = Depends(get_current_user)):
+    """Edit a message"""
+    message = await db.messages.find_one({"message_id": message_id})
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    if message["sender_id"] != current_user["user_id"]:
+        raise HTTPException(status_code=403, detail="Can only edit your own messages")
+    
+    new_content = edit_data.get("content", "")
+    if not new_content.strip():
+        raise HTTPException(status_code=400, detail="Content cannot be empty")
+    
+    # Update message
+    await db.messages.update_one(
+        {"message_id": message_id},
+        {"$set": {
+            "content": new_content,
+            "edited_at": datetime.utcnow()
+        }}
+    )
+    
+    # Broadcast edit
+    chat = await db.chats.find_one({"chat_id": message["chat_id"]})
+    if chat:
+        for member_id in chat["members"]:
+            await manager.send_personal_message(
+                json.dumps({
+                    "type": "message_edit",
+                    "data": {
+                        "message_id": message_id,
+                        "content": new_content,
+                        "edited_at": datetime.utcnow().isoformat()
+                    }
+                }),
+                member_id
+            )
+    
+    return {"message": "Message edited"}
+
+@api_router.delete("/messages/{message_id}")
+async def delete_message(message_id: str, current_user = Depends(get_current_user)):
+    """Delete a message"""
+    message = await db.messages.find_one({"message_id": message_id})
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    if message["sender_id"] != current_user["user_id"]:
+        raise HTTPException(status_code=403, detail="Can only delete your own messages")
+    
+    # Soft delete
+    await db.messages.update_one(
+        {"message_id": message_id},
+        {"$set": {"is_deleted": True}}
+    )
+    
+    # Broadcast deletion
+    chat = await db.chats.find_one({"chat_id": message["chat_id"]})
+    if chat:
+        for member_id in chat["members"]:
+            await manager.send_personal_message(
+                json.dumps({
+                    "type": "message_delete",
+                    "data": {"message_id": message_id}
+                }),
+                member_id
+            )
+    
+    return {"message": "Message deleted"}
+
+# File Upload
+@api_router.post("/upload")
+async def upload_file(file: UploadFile = File(...), current_user = Depends(get_current_user)):
+    """Upload a file and return base64 data"""
+    if file.size > 10 * 1024 * 1024:  # 10MB limit
+        raise HTTPException(status_code=413, detail="File too large")
+    
+    file_content = await file.read()
+    file_base64 = base64.b64encode(file_content).decode()
+    
+    return {
+        "file_name": file.filename,
+        "file_size": file.size,
+        "file_type": file.content_type,
+        "file_data": file_base64
+    }
+
 # User Search and Discovery
 @api_router.get("/users/search")
 async def search_users(query: str, current_user = Depends(get_current_user)):
