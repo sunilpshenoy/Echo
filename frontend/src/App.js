@@ -76,6 +76,16 @@ function App() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+  
+  // Debug effect to monitor view changes
+  useEffect(() => {
+    console.log('Current view changed to:', currentView);
+    
+    if (currentView === 'chat') {
+      console.log('Loading chat view with token:', token);
+      console.log('User data:', user);
+    }
+  }, [currentView, token, user]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
