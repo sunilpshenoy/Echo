@@ -183,15 +183,18 @@ backend:
 frontend:
   - task: "User Authentication UI"
     implemented: true
-    working: "NA"
+    working: false
     file: "App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented login/register forms, token management, user state management"
+      - working: false
+        agent: "testing"
+        comment: "User registration and login forms are implemented correctly, but authentication is failing. Backend logs show 401 Unauthorized errors for login attempts and 400 Bad Request for registration attempts. There appears to be an issue with the bcrypt module in the backend."
 
   - task: "Real-time Chat Interface"
     implemented: true
