@@ -845,6 +845,21 @@ def run_all_tests():
             "add_contacts": test_add_contacts(),
             "get_contacts": test_get_contacts(),
             "search_users": test_search_users()
+        },
+        "File Upload API": {
+            "upload": test_file_upload()
+        },
+        "Enhanced Message API": {
+            "send_with_attachment": test_send_message_with_attachment()
+        },
+        "Read Receipts API": {
+            "mark_as_read": test_read_receipts()
+        },
+        "Enhanced Group Chat API": {
+            "group_management": test_enhanced_group_chat()
+        },
+        "Enhanced User Profile": {
+            "profile_updates": test_enhanced_user_profile()
         }
     }
     
