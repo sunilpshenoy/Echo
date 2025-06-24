@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Depends
+from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Depends, File, UploadFile
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -16,6 +16,8 @@ from passlib.context import CryptContext
 import asyncio
 from bson import ObjectId
 from fastapi.encoders import jsonable_encoder
+import base64
+import mimetypes
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -110,13 +112,14 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
-# Models
+# Enhanced Models
 class User(BaseModel):
     user_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     username: str
     email: str
     phone: Optional[str] = None
     avatar: Optional[str] = None
+    status_message: str = "Available"
     is_online: bool = False
     last_seen: datetime = Field(default_factory=datetime.utcnow)
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -137,16 +140,23 @@ class Message(BaseModel):
     sender_id: str
     content: str
     message_type: str = "text"  # text, image, file
+    file_name: Optional[str] = None
+    file_size: Optional[int] = None
+    file_data: Optional[str] = None  # base64 encoded for images
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     is_read: bool = False
+    read_by: List[Dict[str, Any]] = Field(default_factory=list)  # [{user_id, read_at}]
     reply_to: Optional[str] = None
 
 class Chat(BaseModel):
     chat_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     chat_type: str  # direct, group
     name: Optional[str] = None  # For group chats
+    description: Optional[str] = None  # For group chats
+    avatar: Optional[str] = None  # For group chats
     members: List[str]
-    admin: Optional[str] = None  # For group chats
+    admins: List[str] = Field(default_factory=list)  # For group chats
+    created_by: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     last_message: Optional[dict] = None
 
@@ -156,6 +166,14 @@ class Contact(BaseModel):
     contact_user_id: str
     contact_name: str
     added_at: datetime = Field(default_factory=datetime.utcnow)
+
+class GroupChatCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    members: List[str]  # List of user_ids
+
+class MessageReadUpdate(BaseModel):
+    message_ids: List[str]
 
 # Helper functions
 def create_access_token(data: dict):
@@ -213,7 +231,8 @@ async def register(user_data: UserCreate):
             "username": user.username,
             "email": user.email,
             "phone": user.phone,
-            "avatar": user.avatar
+            "avatar": user.avatar,
+            "status_message": user.status_message
         }
     }
 
@@ -242,11 +261,64 @@ async def login(login_data: UserLogin):
             "username": user["username"],
             "email": user["email"],
             "phone": user.get("phone"),
-            "avatar": user.get("avatar")
+            "avatar": user.get("avatar"),
+            "status_message": user.get("status_message", "Available")
         }
     }
 
-# Chat routes
+# User profile routes
+@api_router.put("/profile")
+async def update_profile(profile_data: dict, current_user = Depends(get_current_user)):
+    allowed_fields = ["username", "status_message", "avatar"]
+    update_data = {k: v for k, v in profile_data.items() if k in allowed_fields}
+    
+    if update_data:
+        await db.users.update_one(
+            {"user_id": current_user["user_id"]},
+            {"$set": update_data}
+        )
+    
+    updated_user = await db.users.find_one({"user_id": current_user["user_id"]})
+    return serialize_mongo_doc({
+        "user_id": updated_user["user_id"],
+        "username": updated_user["username"],
+        "email": updated_user["email"],
+        "phone": updated_user.get("phone"),
+        "avatar": updated_user.get("avatar"),
+        "status_message": updated_user.get("status_message", "Available")
+    })
+
+# File upload route
+@api_router.post("/upload")
+async def upload_file(file: UploadFile = File(...), current_user = Depends(get_current_user)):
+    # Check file size (10MB limit)
+    MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+    
+    content = await file.read()
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="File too large. Maximum size is 10MB.")
+    
+    # Check file type
+    allowed_types = [
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+        'application/pdf', 'text/plain', 'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ]
+    
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="File type not supported")
+    
+    # Convert to base64
+    file_data = base64.b64encode(content).decode('utf-8')
+    
+    return {
+        "file_name": file.filename,
+        "file_size": len(content),
+        "file_type": file.content_type,
+        "file_data": file_data
+    }
+
+# Enhanced Chat routes
 @api_router.get("/chats")
 async def get_user_chats(current_user = Depends(get_current_user)):
     chats = await db.chats.find({"members": current_user["user_id"]}).to_list(100)
@@ -268,8 +340,23 @@ async def get_user_chats(current_user = Depends(get_current_user)):
                     "user_id": other_user["user_id"],
                     "username": other_user["username"],
                     "avatar": other_user.get("avatar"),
+                    "status_message": other_user.get("status_message", "Available"),
                     "is_online": other_user.get("is_online", False)
                 }
+        
+        # For group chats, get member info
+        elif chat["chat_type"] == "group":
+            members_info = []
+            for member_id in chat["members"]:
+                member = await db.users.find_one({"user_id": member_id})
+                if member:
+                    members_info.append({
+                        "user_id": member["user_id"],
+                        "username": member["username"],
+                        "avatar": member.get("avatar"),
+                        "is_online": member.get("is_online", False)
+                    })
+            chat["members_info"] = members_info
     
     return serialize_mongo_doc(chats)
 
@@ -294,13 +381,83 @@ async def create_chat(chat_data: dict, current_user = Depends(get_current_user))
         chat = Chat(
             chat_type="group",
             name=chat_data["name"],
+            description=chat_data.get("description"),
             members=[current_user["user_id"]] + chat_data["members"],
-            admin=current_user["user_id"]
+            admins=[current_user["user_id"]],
+            created_by=current_user["user_id"]
         )
     
     chat_dict = chat.dict()
     await db.chats.insert_one(chat_dict)
     return serialize_mongo_doc(chat_dict)
+
+@api_router.post("/chats/group")
+async def create_group_chat(group_data: GroupChatCreate, current_user = Depends(get_current_user)):
+    # Verify all members exist
+    for member_id in group_data.members:
+        member = await db.users.find_one({"user_id": member_id})
+        if not member:
+            raise HTTPException(status_code=404, detail=f"User {member_id} not found")
+    
+    # Create group chat
+    chat = Chat(
+        chat_type="group",
+        name=group_data.name,
+        description=group_data.description,
+        members=[current_user["user_id"]] + group_data.members,
+        admins=[current_user["user_id"]],
+        created_by=current_user["user_id"]
+    )
+    
+    chat_dict = chat.dict()
+    await db.chats.insert_one(chat_dict)
+    
+    # Populate member info
+    members_info = []
+    for member_id in chat_dict["members"]:
+        member = await db.users.find_one({"user_id": member_id})
+        if member:
+            members_info.append({
+                "user_id": member["user_id"],
+                "username": member["username"],
+                "avatar": member.get("avatar"),
+                "is_online": member.get("is_online", False)
+            })
+    chat_dict["members_info"] = members_info
+    
+    return serialize_mongo_doc(chat_dict)
+
+@api_router.put("/chats/{chat_id}/members")
+async def manage_group_members(chat_id: str, action_data: dict, current_user = Depends(get_current_user)):
+    # Verify user is admin of the group
+    chat = await db.chats.find_one({"chat_id": chat_id, "chat_type": "group"})
+    if not chat:
+        raise HTTPException(status_code=404, detail="Group chat not found")
+    
+    if current_user["user_id"] not in chat.get("admins", []):
+        raise HTTPException(status_code=403, detail="Only admins can manage members")
+    
+    action = action_data["action"]  # "add" or "remove"
+    user_id = action_data["user_id"]
+    
+    if action == "add":
+        # Add member
+        if user_id not in chat["members"]:
+            await db.chats.update_one(
+                {"chat_id": chat_id},
+                {"$push": {"members": user_id}}
+            )
+    elif action == "remove":
+        # Remove member
+        if user_id in chat["members"] and user_id != chat["created_by"]:
+            await db.chats.update_one(
+                {"chat_id": chat_id},
+                {"$pull": {"members": user_id, "admins": user_id}}
+            )
+    
+    # Return updated chat
+    updated_chat = await db.chats.find_one({"chat_id": chat_id})
+    return serialize_mongo_doc(updated_chat)
 
 @api_router.get("/chats/{chat_id}/messages")
 async def get_chat_messages(chat_id: str, current_user = Depends(get_current_user)):
@@ -311,12 +468,23 @@ async def get_chat_messages(chat_id: str, current_user = Depends(get_current_use
     
     messages = await db.messages.find({"chat_id": chat_id}).sort("timestamp", 1).to_list(1000)
     
-    # Populate sender info
+    # Populate sender info and read status
     for message in messages:
         sender = await db.users.find_one({"user_id": message["sender_id"]})
         if sender:
             message["sender_name"] = sender["username"]
             message["sender_avatar"] = sender.get("avatar")
+        
+        # Determine read status for current user
+        if message["sender_id"] == current_user["user_id"]:
+            # For sender, show if others have read
+            read_count = len([r for r in message.get("read_by", []) if r["user_id"] != current_user["user_id"]])
+            total_recipients = len(chat["members"]) - 1
+            message["read_status"] = "read" if read_count == total_recipients else "delivered"
+        else:
+            # For recipient, check if they've read it
+            user_read = any(r["user_id"] == current_user["user_id"] for r in message.get("read_by", []))
+            message["read_status"] = "read" if user_read else "unread"
     
     return serialize_mongo_doc(messages)
 
@@ -332,20 +500,28 @@ async def send_message(chat_id: str, message_data: dict, current_user = Depends(
         chat_id=chat_id,
         sender_id=current_user["user_id"],
         content=message_data["content"],
-        message_type=message_data.get("message_type", "text")
+        message_type=message_data.get("message_type", "text"),
+        file_name=message_data.get("file_name"),
+        file_size=message_data.get("file_size"),
+        file_data=message_data.get("file_data")
     )
     
     message_dict = message.dict()
     await db.messages.insert_one(message_dict)
     
     # Update chat's last message
+    last_message_content = message.content
+    if message.message_type != "text":
+        last_message_content = f"📎 {message.file_name}" if message.file_name else "📎 File"
+    
     await db.chats.update_one(
         {"chat_id": chat_id},
         {"$set": {
             "last_message": {
-                "content": message.content,
+                "content": last_message_content,
                 "sender_id": message.sender_id,
-                "timestamp": message.timestamp
+                "timestamp": message.timestamp,
+                "message_type": message.message_type
             }
         }}
     )
@@ -364,6 +540,41 @@ async def send_message(chat_id: str, message_data: dict, current_user = Depends(
     
     return serialize_mongo_doc(message_dict)
 
+@api_router.post("/messages/read")
+async def mark_messages_read(read_data: MessageReadUpdate, current_user = Depends(get_current_user)):
+    # Mark messages as read
+    read_entry = {
+        "user_id": current_user["user_id"],
+        "read_at": datetime.utcnow()
+    }
+    
+    await db.messages.update_many(
+        {
+            "message_id": {"$in": read_data.message_ids},
+            "sender_id": {"$ne": current_user["user_id"]},
+            "read_by.user_id": {"$ne": current_user["user_id"]}
+        },
+        {"$push": {"read_by": read_entry}}
+    )
+    
+    # Broadcast read receipts to other users
+    for message_id in read_data.message_ids:
+        message = await db.messages.find_one({"message_id": message_id})
+        if message:
+            await manager.send_personal_message(
+                json.dumps({
+                    "type": "message_read",
+                    "data": {
+                        "message_id": message_id,
+                        "read_by": current_user["user_id"],
+                        "read_at": read_entry["read_at"].isoformat()
+                    }
+                }),
+                message["sender_id"]
+            )
+    
+    return {"status": "success"}
+
 # Contacts routes
 @api_router.get("/contacts")
 async def get_contacts(current_user = Depends(get_current_user)):
@@ -379,6 +590,7 @@ async def get_contacts(current_user = Depends(get_current_user)):
                 "email": contact_user["email"],
                 "phone": contact_user.get("phone"),
                 "avatar": contact_user.get("avatar"),
+                "status_message": contact_user.get("status_message", "Available"),
                 "is_online": contact_user.get("is_online", False)
             }
     

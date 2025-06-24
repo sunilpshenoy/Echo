@@ -24,6 +24,7 @@ function App() {
   const [websocket, setWebsocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   // Auth state
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
@@ -32,6 +33,15 @@ function App() {
   const [searchResults, setSearchResults] = useState([]);
   const [showAddContact, setShowAddContact] = useState(false);
   const [contactForm, setContactForm] = useState({ email: '', contact_name: '' });
+  
+  // Group chat state
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [groupForm, setGroupForm] = useState({ name: '', description: '', members: [] });
+  const [selectedMembers, setSelectedMembers] = useState([]);
+  
+  // File upload state
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
 
   // Initialize WebSocket connection
   useEffect(() => {
@@ -50,6 +60,13 @@ function App() {
           setMessages(prev => [...prev, data.data]);
           // Update chat list
           fetchChats();
+        } else if (data.type === 'message_read') {
+          // Update read status
+          setMessages(prev => prev.map(msg => 
+            msg.message_id === data.data.message_id 
+              ? { ...msg, read_status: 'read' }
+              : msg
+          ));
         }
       };
       
@@ -212,11 +229,30 @@ function App() {
       const response = await axios.get(`${API}/chats/${chatId}/messages`, getAuthHeaders());
       console.log('Messages fetched successfully:', response.data);
       setMessages(response.data);
+      
+      // Mark messages as read
+      const unreadMessages = response.data.filter(msg => 
+        msg.sender_id !== user.user_id && msg.read_status === 'unread'
+      );
+      
+      if (unreadMessages.length > 0) {
+        markMessagesRead(unreadMessages.map(msg => msg.message_id));
+      }
     } catch (error) {
       console.error('Error fetching messages:', error);
       if (error.response?.status === 401) {
         console.error('Unauthorized - token might be invalid');
       }
+    }
+  };
+
+  const markMessagesRead = async (messageIds) => {
+    try {
+      await axios.post(`${API}/messages/read`, {
+        message_ids: messageIds
+      }, getAuthHeaders());
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
     }
   };
 
@@ -260,6 +296,31 @@ function App() {
     }
   };
 
+  const createGroupChat = async (e) => {
+    e.preventDefault();
+    if (!groupForm.name.trim() || selectedMembers.length === 0) {
+      alert('Please enter a group name and select at least one member');
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${API}/chats/group`, {
+        name: groupForm.name,
+        description: groupForm.description,
+        members: selectedMembers.map(m => m.user_id)
+      }, getAuthHeaders());
+      
+      setGroupForm({ name: '', description: '', members: [] });
+      setSelectedMembers([]);
+      setShowCreateGroup(false);
+      fetchChats();
+      selectChat(response.data);
+    } catch (error) {
+      console.error('Error creating group:', error);
+      alert('Error creating group: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
   const searchUsers = async (query) => {
     if (!query.trim()) {
       setSearchResults([]);
@@ -287,6 +348,60 @@ function App() {
     }
   };
 
+  // File upload functions
+  const handleFileSelect = async (file) => {
+    if (!file || !activeChat) return;
+
+    setUploadingFile(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const uploadResponse = await axios.post(`${API}/upload`, formData, {
+        ...getAuthHeaders(),
+        headers: {
+          ...getAuthHeaders().headers,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      // Send message with file
+      await axios.post(`${API}/chats/${activeChat.chat_id}/messages`, {
+        content: file.name,
+        message_type: file.type.startsWith('image/') ? 'image' : 'file',
+        file_name: uploadResponse.data.file_name,
+        file_size: uploadResponse.data.file_size,
+        file_data: uploadResponse.data.file_data
+      }, getAuthHeaders());
+
+      console.log('File sent successfully');
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('Error uploading file: ' + (error.response?.data?.detail || error.message));
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleFileSelect(files[0]);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setDragOver(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+  };
+
   // Format timestamp
   const formatTime = (timestamp) => {
     return new Date(timestamp).toLocaleTimeString('en-US', {
@@ -295,13 +410,54 @@ function App() {
     });
   };
 
+  // Render message status icon
+  const renderMessageStatus = (message) => {
+    if (message.sender_id !== user.user_id) return null;
+    
+    if (message.read_status === 'read') {
+      return <span className="text-blue-400 ml-1">✓✓</span>;
+    } else {
+      return <span className="text-gray-400 ml-1">✓✓</span>;
+    }
+  };
+
+  // Render file message
+  const renderFileMessage = (message) => {
+    if (message.message_type === 'image' && message.file_data) {
+      return (
+        <div>
+          <img 
+            src={`data:image/jpeg;base64,${message.file_data}`}
+            alt={message.file_name}
+            className="max-w-xs max-h-64 rounded-lg cursor-pointer"
+            onClick={() => window.open(`data:image/jpeg;base64,${message.file_data}`, '_blank')}
+          />
+          <p className="text-sm mt-1">{message.file_name}</p>
+        </div>
+      );
+    } else if (message.message_type === 'file') {
+      return (
+        <div className="flex items-center bg-gray-100 p-2 rounded">
+          <span className="text-2xl mr-2">📎</span>
+          <div>
+            <p className="font-medium">{message.file_name}</p>
+            <p className="text-sm text-gray-500">
+              {message.file_size ? `${(message.file_size / 1024).toFixed(1)} KB` : 'File'}
+            </p>
+          </div>
+        </div>
+      );
+    }
+    return <p>{message.content}</p>;
+  };
+
   // Login View
   if (currentView === 'login') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">ChatApp</h1>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">ChatApp Pro</h1>
             <p className="text-gray-600">Connect with anyone, anywhere</p>
           </div>
           
@@ -392,7 +548,7 @@ function App() {
       <div className="min-h-screen bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">ChatApp</h1>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">ChatApp Pro</h1>
             <p className="text-gray-600">Create your account</p>
           </div>
           
@@ -523,18 +679,38 @@ function App() {
               {searchResults.map(searchUser => (
                 <div
                   key={searchUser.user_id}
-                  className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-                  onClick={() => createDirectChat(searchUser.user_id)}
+                  className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex items-center justify-between"
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center" onClick={() => createDirectChat(searchUser.user_id)}>
                     <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
                       <span className="text-white text-sm">{searchUser.username.charAt(0).toUpperCase()}</span>
                     </div>
                     <div className="ml-2">
                       <p className="font-medium text-sm">{searchUser.username}</p>
                       <p className="text-xs text-gray-500">{searchUser.email}</p>
+                      <p className="text-xs text-blue-500">{searchUser.status_message}</p>
                     </div>
                   </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedMembers(prev => {
+                        const exists = prev.find(m => m.user_id === searchUser.user_id);
+                        if (exists) {
+                          return prev.filter(m => m.user_id !== searchUser.user_id);
+                        } else {
+                          return [...prev, searchUser];
+                        }
+                      });
+                    }}
+                    className={`ml-2 px-2 py-1 rounded text-xs ${
+                      selectedMembers.find(m => m.user_id === searchUser.user_id)
+                        ? 'bg-green-500 text-white'
+                        : 'bg-gray-200 text-gray-700'
+                    }`}
+                  >
+                    {selectedMembers.find(m => m.user_id === searchUser.user_id) ? 'Added' : 'Add'}
+                  </button>
                 </div>
               ))}
             </div>
@@ -548,6 +724,12 @@ function App() {
             className="flex-1 bg-green-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-green-700"
           >
             Add Contact
+          </button>
+          <button
+            onClick={() => setShowCreateGroup(!showCreateGroup)}
+            className="flex-1 bg-purple-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-purple-700"
+          >
+            Create Group
           </button>
         </div>
 
@@ -580,6 +762,67 @@ function App() {
                 <button
                   type="button"
                   onClick={() => setShowAddContact(false)}
+                  className="flex-1 bg-gray-400 text-white py-1 px-2 rounded text-sm hover:bg-gray-500"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Create Group Form */}
+        {showCreateGroup && (
+          <div className="mx-3 mb-3 p-3 bg-purple-50 rounded-lg">
+            <form onSubmit={createGroupChat}>
+              <input
+                type="text"
+                placeholder="Group Name"
+                className="w-full p-2 mb-2 border border-gray-300 rounded text-sm"
+                value={groupForm.name}
+                onChange={(e) => setGroupForm({...groupForm, name: e.target.value})}
+                required
+              />
+              <input
+                type="text"
+                placeholder="Group Description (optional)"
+                className="w-full p-2 mb-2 border border-gray-300 rounded text-sm"
+                value={groupForm.description}
+                onChange={(e) => setGroupForm({...groupForm, description: e.target.value})}
+              />
+              {selectedMembers.length > 0 && (
+                <div className="mb-2">
+                  <p className="text-xs text-gray-600 mb-1">Selected Members:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {selectedMembers.map(member => (
+                      <span key={member.user_id} className="bg-purple-200 text-purple-800 px-2 py-1 rounded text-xs">
+                        {member.username}
+                        <button
+                          onClick={() => setSelectedMembers(prev => prev.filter(m => m.user_id !== member.user_id))}
+                          className="ml-1 text-purple-600 hover:text-purple-800"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="flex space-x-2">
+                <button
+                  type="submit"
+                  className="flex-1 bg-purple-600 text-white py-1 px-2 rounded text-sm hover:bg-purple-700"
+                  disabled={selectedMembers.length === 0}
+                >
+                  Create
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateGroup(false);
+                    setSelectedMembers([]);
+                    setGroupForm({ name: '', description: '', members: [] });
+                  }}
                   className="flex-1 bg-gray-400 text-white py-1 px-2 rounded text-sm hover:bg-gray-500"
                 >
                   Cancel
@@ -636,6 +879,11 @@ function App() {
                     {chat.chat_type === 'direct' && chat.other_user?.is_online && (
                       <span className="text-xs text-green-500">Online</span>
                     )}
+                    {chat.chat_type === 'group' && (
+                      <span className="text-xs text-gray-500">
+                        {chat.members?.length || 0} members
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -650,33 +898,88 @@ function App() {
           <>
             {/* Chat Header */}
             <div className="p-4 bg-white border-b border-gray-200">
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center">
-                  <span className="text-white font-medium">
-                    {activeChat.chat_type === 'direct' 
-                      ? activeChat.other_user?.username?.charAt(0).toUpperCase() || '?'
-                      : activeChat.name?.charAt(0).toUpperCase() || 'G'
-                    }
-                  </span>
-                </div>
-                <div className="ml-3">
-                  <p className="font-medium">
-                    {activeChat.chat_type === 'direct' 
-                      ? activeChat.other_user?.username || 'Unknown User'
-                      : activeChat.name
-                    }
-                  </p>
-                  {activeChat.chat_type === 'direct' && (
-                    <p className="text-sm text-gray-500">
-                      {activeChat.other_user?.is_online ? 'Online' : 'Offline'}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center">
+                    <span className="text-white font-medium">
+                      {activeChat.chat_type === 'direct' 
+                        ? activeChat.other_user?.username?.charAt(0).toUpperCase() || '?'
+                        : activeChat.name?.charAt(0).toUpperCase() || 'G'
+                      }
+                    </span>
+                  </div>
+                  <div className="ml-3">
+                    <p className="font-medium">
+                      {activeChat.chat_type === 'direct' 
+                        ? activeChat.other_user?.username || 'Unknown User'
+                        : activeChat.name
+                      }
                     </p>
-                  )}
+                    {activeChat.chat_type === 'direct' && (
+                      <p className="text-sm text-gray-500">
+                        {activeChat.other_user?.status_message || 'Available'}
+                        {activeChat.other_user?.is_online && (
+                          <span className="text-green-500 ml-2">● Online</span>
+                        )}
+                      </p>
+                    )}
+                    {activeChat.chat_type === 'group' && (
+                      <p className="text-sm text-gray-500">
+                        {activeChat.members?.length || 0} members
+                      </p>
+                    )}
+                  </div>
+                </div>
+                
+                {/* File upload button */}
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                    disabled={uploadingFile}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                    </svg>
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    hidden
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        handleFileSelect(e.target.files[0]);
+                      }
+                    }}
+                  />
                 </div>
               </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div 
+              className={`flex-1 overflow-y-auto p-4 space-y-4 ${dragOver ? 'bg-blue-50 border-2 border-dashed border-blue-300' : ''}`}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+            >
+              {dragOver && (
+                <div className="absolute inset-0 flex items-center justify-center bg-blue-50 bg-opacity-90 z-10">
+                  <div className="text-center">
+                    <svg className="w-16 h-16 text-blue-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <p className="text-blue-600 font-medium">Drop file here to send</p>
+                  </div>
+                </div>
+              )}
+              
+              {uploadingFile && (
+                <div className="text-center text-gray-500">
+                  <p>Uploading file...</p>
+                </div>
+              )}
+              
               {messages.map(message => (
                 <div
                   key={message.message_id}
@@ -689,15 +992,18 @@ function App() {
                         : 'bg-gray-200 text-gray-800'
                     }`}
                   >
-                    {message.sender_id !== user.user_id && (
+                    {message.sender_id !== user.user_id && activeChat.chat_type === 'group' && (
                       <p className="text-xs font-medium mb-1">{message.sender_name}</p>
                     )}
-                    <p>{message.content}</p>
-                    <p className={`text-xs mt-1 ${
-                      message.sender_id === user.user_id ? 'text-blue-200' : 'text-gray-500'
-                    }`}>
-                      {formatTime(message.timestamp)}
-                    </p>
+                    {renderFileMessage(message)}
+                    <div className="flex items-center justify-between mt-1">
+                      <p className={`text-xs ${
+                        message.sender_id === user.user_id ? 'text-blue-200' : 'text-gray-500'
+                      }`}>
+                        {formatTime(message.timestamp)}
+                      </p>
+                      {renderMessageStatus(message)}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -717,6 +1023,7 @@ function App() {
                 <button
                   type="submit"
                   className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200"
+                  disabled={uploadingFile}
                 >
                   Send
                 </button>
@@ -731,8 +1038,11 @@ function App() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-medium text-gray-800 mb-2">Welcome to ChatApp</h3>
+              <h3 className="text-xl font-medium text-gray-800 mb-2">Welcome to ChatApp Pro</h3>
               <p className="text-gray-600">Select a chat to start messaging</p>
+              <p className="text-sm text-gray-500 mt-2">
+                ✨ Now with file sharing, read receipts, and group chat features!
+              </p>
             </div>
           </div>
         )}
