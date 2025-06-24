@@ -695,13 +695,24 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Enhanced Message System"
-    - "Disappearing Messages"
-    - "Voice/Video Calls"
-    - "Stories Feature"
-    - "Channels Feature"
+    - "Advanced Voice/Video Calls"
+    - "Voice Rooms (Discord-style)"
+    - "Screen Sharing & Streaming"
+    - "Safety Number Verification"
+    - "Advanced Backup/Restore"
+    - "Enhanced Privacy Controls"
+    - "Public User Discovery"
+    - "Username System"
     - "Enhanced WebSocket Features"
-  stuck_tasks: []
+  stuck_tasks:
+    - "Advanced Voice/Video Calls"
+    - "Voice Rooms (Discord-style)"
+    - "Screen Sharing & Streaming"
+    - "Safety Number Verification"
+    - "Advanced Backup/Restore"
+    - "Enhanced Privacy Controls"
+    - "Public User Discovery"
+    - "Username System"
   test_all: true
   test_priority: "high_first"
 
