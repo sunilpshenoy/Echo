@@ -703,7 +703,6 @@ test_plan:
     - "Enhanced Privacy Controls"
     - "Public User Discovery"
     - "Username System"
-    - "Enhanced WebSocket Features"
   stuck_tasks:
     - "Advanced Voice/Video Calls"
     - "Voice Rooms (Discord-style)"
