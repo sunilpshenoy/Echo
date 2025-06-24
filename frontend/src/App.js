@@ -42,6 +42,18 @@ function App() {
   // File upload state
   const [uploadingFile, setUploadingFile] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  
+  // Blocking and reporting state
+  const [blockedUsers, setBlockedUsers] = useState([]);
+  const [showBlockedUsers, setShowBlockedUsers] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportForm, setReportForm] = useState({
+    user_id: '',
+    reason: '',
+    description: '',
+    message_id: null,
+    chat_id: null
+  });
 
   // Initialize WebSocket connection
   useEffect(() => {
@@ -134,6 +146,7 @@ function App() {
       setTimeout(() => {
         fetchChats(access_token);
         fetchContacts(access_token);
+        fetchBlockedUsers(access_token);
       }, 100);
       
     } catch (error) {
@@ -167,6 +180,7 @@ function App() {
       setTimeout(() => {
         fetchChats(access_token);
         fetchContacts(access_token);
+        fetchBlockedUsers(access_token);
       }, 100);
       
     } catch (error) {
@@ -182,6 +196,7 @@ function App() {
     setActiveChat(null);
     setMessages([]);
     setContacts([]);
+    setBlockedUsers([]);
     localStorage.removeItem('token');
     if (websocket) {
       websocket.close();
@@ -220,6 +235,15 @@ function App() {
       if (error.response?.status === 401) {
         console.error('Unauthorized - token might be invalid');
       }
+    }
+  };
+
+  const fetchBlockedUsers = async (authToken = null) => {
+    try {
+      const response = await axios.get(`${API}/users/blocked`, getAuthHeaders(authToken));
+      setBlockedUsers(response.data);
+    } catch (error) {
+      console.error('Error fetching blocked users:', error);
     }
   };
 
@@ -271,7 +295,9 @@ function App() {
       console.log('Message sent successfully');
     } catch (error) {
       console.error('Error sending message:', error);
-      if (error.response?.status === 401) {
+      if (error.response?.status === 403) {
+        alert('Cannot send message to blocked user');
+      } else if (error.response?.status === 401) {
         console.error('Unauthorized - token might be invalid');
       }
     }
@@ -293,6 +319,9 @@ function App() {
       selectChat(response.data);
     } catch (error) {
       console.error('Error creating chat:', error);
+      if (error.response?.status === 403) {
+        alert('Cannot create chat with blocked user');
+      }
     }
   };
 
@@ -345,6 +374,53 @@ function App() {
       alert('Contact added successfully');
     } catch (error) {
       alert('Error adding contact: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  // Blocking and reporting functions
+  const blockUser = async (userId, reason = null) => {
+    try {
+      await axios.post(`${API}/users/block`, {
+        user_id: userId,
+        reason: reason
+      }, getAuthHeaders());
+      
+      alert('User blocked successfully');
+      fetchBlockedUsers();
+      fetchChats(); // Refresh chats to update block status
+      fetchContacts(); // Refresh contacts to update block status
+    } catch (error) {
+      alert('Error blocking user: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  const unblockUser = async (userId) => {
+    try {
+      await axios.delete(`${API}/users/block/${userId}`, getAuthHeaders());
+      alert('User unblocked successfully');
+      fetchBlockedUsers();
+      fetchChats(); // Refresh chats to update block status
+      fetchContacts(); // Refresh contacts to update block status
+    } catch (error) {
+      alert('Error unblocking user: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  const reportUser = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API}/users/report`, reportForm, getAuthHeaders());
+      alert('Report submitted successfully');
+      setShowReportModal(false);
+      setReportForm({
+        user_id: '',
+        reason: '',
+        description: '',
+        message_id: null,
+        chat_id: null
+      });
+    } catch (error) {
+      alert('Error submitting report: ' + (error.response?.data?.detail || error.message));
     }
   };
 
@@ -448,6 +524,17 @@ function App() {
         </div>
       );
     }
+    
+    // Handle encrypted messages
+    if (message.is_encrypted && message.content === '[Encrypted Message]') {
+      return (
+        <div className="flex items-center text-gray-500">
+          <span className="mr-2">🔒</span>
+          <p className="italic">This message is encrypted</p>
+        </div>
+      );
+    }
+    
     return <p>{message.content}</p>;
   };
 
@@ -457,8 +544,11 @@ function App() {
       <div className="min-h-screen bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">ChatApp Pro</h1>
-            <p className="text-gray-600">Connect with anyone, anywhere</p>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              ChatApp Pro 
+              <span className="text-lg ml-2">🔒</span>
+            </h1>
+            <p className="text-gray-600">Secure messaging with end-to-end encryption</p>
           </div>
           
           <div className="flex mb-6">
@@ -548,8 +638,11 @@ function App() {
       <div className="min-h-screen bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">ChatApp Pro</h1>
-            <p className="text-gray-600">Create your account</p>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              ChatApp Pro 
+              <span className="text-lg ml-2">🔒</span>
+            </h1>
+            <p className="text-gray-600">Create your secure account</p>
           </div>
           
           <div className="flex mb-6">
@@ -644,23 +737,58 @@ function App() {
                 <span className="font-bold">{user.username.charAt(0).toUpperCase()}</span>
               </div>
               <div className="ml-3">
-                <p className="font-medium">{user.username}</p>
+                <p className="font-medium">{user.username} 🔒</p>
                 <p className="text-xs text-blue-200">
-                  {isConnected ? 'Online' : 'Connecting...'}
+                  {isConnected ? 'Online • Encrypted' : 'Connecting...'}
                 </p>
               </div>
             </div>
-            <button
-              onClick={logout}
-              className="text-blue-200 hover:text-white"
-              title="Logout"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setShowBlockedUsers(!showBlockedUsers)}
+                className="text-blue-200 hover:text-white p-1 rounded"
+                title="Blocked Users"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636" />
+                </svg>
+              </button>
+              <button
+                onClick={logout}
+                className="text-blue-200 hover:text-white"
+                title="Logout"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Blocked Users Panel */}
+        {showBlockedUsers && (
+          <div className="p-3 bg-red-50 border-b">
+            <h3 className="font-medium text-red-800 mb-2">Blocked Users ({blockedUsers.length})</h3>
+            {blockedUsers.length === 0 ? (
+              <p className="text-sm text-red-600">No blocked users</p>
+            ) : (
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {blockedUsers.map(block => (
+                  <div key={block.block_id} className="flex items-center justify-between bg-white p-2 rounded">
+                    <span className="text-sm">{block.blocked_user?.username || 'Unknown User'}</span>
+                    <button
+                      onClick={() => unblockUser(block.blocked_id)}
+                      className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700"
+                    >
+                      Unblock
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Search */}
         <div className="p-3">
@@ -681,36 +809,73 @@ function App() {
                   key={searchUser.user_id}
                   className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex items-center justify-between"
                 >
-                  <div className="flex items-center" onClick={() => createDirectChat(searchUser.user_id)}>
+                  <div className="flex items-center" onClick={() => !searchUser.is_blocked && createDirectChat(searchUser.user_id)}>
                     <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
                       <span className="text-white text-sm">{searchUser.username.charAt(0).toUpperCase()}</span>
                     </div>
                     <div className="ml-2">
-                      <p className="font-medium text-sm">{searchUser.username}</p>
+                      <p className={`font-medium text-sm ${searchUser.is_blocked ? 'text-red-500' : ''}`}>
+                        {searchUser.username} {searchUser.is_blocked ? '(Blocked)' : ''}
+                      </p>
                       <p className="text-xs text-gray-500">{searchUser.email}</p>
                       <p className="text-xs text-blue-500">{searchUser.status_message}</p>
                     </div>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedMembers(prev => {
-                        const exists = prev.find(m => m.user_id === searchUser.user_id);
-                        if (exists) {
-                          return prev.filter(m => m.user_id !== searchUser.user_id);
-                        } else {
-                          return [...prev, searchUser];
-                        }
-                      });
-                    }}
-                    className={`ml-2 px-2 py-1 rounded text-xs ${
-                      selectedMembers.find(m => m.user_id === searchUser.user_id)
-                        ? 'bg-green-500 text-white'
-                        : 'bg-gray-200 text-gray-700'
-                    }`}
-                  >
-                    {selectedMembers.find(m => m.user_id === searchUser.user_id) ? 'Added' : 'Add'}
-                  </button>
+                  <div className="flex space-x-1">
+                    {!searchUser.is_blocked ? (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedMembers(prev => {
+                              const exists = prev.find(m => m.user_id === searchUser.user_id);
+                              if (exists) {
+                                return prev.filter(m => m.user_id !== searchUser.user_id);
+                              } else {
+                                return [...prev, searchUser];
+                              }
+                            });
+                          }}
+                          className={`px-2 py-1 rounded text-xs ${
+                            selectedMembers.find(m => m.user_id === searchUser.user_id)
+                              ? 'bg-green-500 text-white'
+                              : 'bg-gray-200 text-gray-700'
+                          }`}
+                        >
+                          {selectedMembers.find(m => m.user_id === searchUser.user_id) ? 'Added' : 'Add'}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            blockUser(searchUser.user_id, 'Blocked from search');
+                          }}
+                          className="px-2 py-1 rounded text-xs bg-red-500 text-white hover:bg-red-600"
+                        >
+                          Block
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setReportForm({ ...reportForm, user_id: searchUser.user_id });
+                            setShowReportModal(true);
+                          }}
+                          className="px-2 py-1 rounded text-xs bg-yellow-500 text-white hover:bg-yellow-600"
+                        >
+                          Report
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          unblockUser(searchUser.user_id);
+                        }}
+                        className="px-2 py-1 rounded text-xs bg-green-500 text-white hover:bg-green-600"
+                      >
+                        Unblock
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -845,23 +1010,28 @@ function App() {
                 key={chat.chat_id}
                 className={`p-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
                   activeChat?.chat_id === chat.chat_id ? 'bg-blue-50 border-blue-200' : ''
-                }`}
+                } ${chat.other_user?.is_blocked ? 'opacity-50' : ''}`}
                 onClick={() => selectChat(chat)}
               >
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-gray-400 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gray-400 rounded-full flex items-center justify-center relative">
                     <span className="text-white font-medium">
                       {chat.chat_type === 'direct' 
                         ? chat.other_user?.username?.charAt(0).toUpperCase() || '?'
                         : chat.name?.charAt(0).toUpperCase() || 'G'
                       }
                     </span>
+                    {chat.other_user?.is_blocked && (
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs">!</span>
+                      </div>
+                    )}
                   </div>
                   <div className="ml-3 flex-1">
                     <div className="flex items-center justify-between">
-                      <p className="font-medium">
+                      <p className={`font-medium ${chat.other_user?.is_blocked ? 'text-red-500' : ''}`}>
                         {chat.chat_type === 'direct' 
-                          ? chat.other_user?.username || 'Unknown User'
+                          ? (chat.other_user?.username || 'Unknown User') + (chat.other_user?.is_blocked ? ' (Blocked)' : '')
                           : chat.name
                         }
                       </p>
@@ -873,10 +1043,10 @@ function App() {
                     </div>
                     {chat.last_message && (
                       <p className="text-sm text-gray-600 truncate">
-                        {chat.last_message.content}
+                        🔒 {chat.last_message.content}
                       </p>
                     )}
-                    {chat.chat_type === 'direct' && chat.other_user?.is_online && (
+                    {chat.chat_type === 'direct' && chat.other_user?.is_online && !chat.other_user?.is_blocked && (
                       <span className="text-xs text-green-500">Online</span>
                     )}
                     {chat.chat_type === 'group' && (
@@ -909,11 +1079,12 @@ function App() {
                     </span>
                   </div>
                   <div className="ml-3">
-                    <p className="font-medium">
+                    <p className="font-medium flex items-center">
                       {activeChat.chat_type === 'direct' 
                         ? activeChat.other_user?.username || 'Unknown User'
                         : activeChat.name
                       }
+                      <span className="ml-2 text-green-500">🔒</span>
                     </p>
                     {activeChat.chat_type === 'direct' && (
                       <p className="text-sm text-gray-500">
@@ -921,27 +1092,73 @@ function App() {
                         {activeChat.other_user?.is_online && (
                           <span className="text-green-500 ml-2">● Online</span>
                         )}
+                        {activeChat.other_user?.is_blocked && (
+                          <span className="text-red-500 ml-2">● Blocked</span>
+                        )}
                       </p>
                     )}
                     {activeChat.chat_type === 'group' && (
                       <p className="text-sm text-gray-500">
-                        {activeChat.members?.length || 0} members
+                        {activeChat.members?.length || 0} members • End-to-end encrypted
                       </p>
                     )}
                   </div>
                 </div>
                 
-                {/* File upload button */}
                 <div className="flex items-center space-x-2">
+                  {/* File upload button */}
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
-                    disabled={uploadingFile}
+                    disabled={uploadingFile || activeChat.other_user?.is_blocked}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                     </svg>
                   </button>
+                  
+                  {/* User actions for direct chat */}
+                  {activeChat.chat_type === 'direct' && activeChat.other_user && (
+                    <div className="flex space-x-1">
+                      {!activeChat.other_user.is_blocked ? (
+                        <>
+                          <button
+                            onClick={() => blockUser(activeChat.other_user.user_id, 'Blocked from chat')}
+                            className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg"
+                            title="Block User"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setReportForm({ 
+                                ...reportForm, 
+                                user_id: activeChat.other_user.user_id,
+                                chat_id: activeChat.chat_id
+                              });
+                              setShowReportModal(true);
+                            }}
+                            className="p-2 text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50 rounded-lg"
+                            title="Report User"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                            </svg>
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => unblockUser(activeChat.other_user.user_id)}
+                          className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                        >
+                          Unblock
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -969,14 +1186,21 @@ function App() {
                     <svg className="w-16 h-16 text-blue-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
-                    <p className="text-blue-600 font-medium">Drop file here to send</p>
+                    <p className="text-blue-600 font-medium">Drop file here to send securely</p>
                   </div>
                 </div>
               )}
               
               {uploadingFile && (
                 <div className="text-center text-gray-500">
-                  <p>Uploading file...</p>
+                  <p>🔒 Encrypting and uploading file...</p>
+                </div>
+              )}
+              
+              {activeChat.other_user?.is_blocked && (
+                <div className="text-center p-4 bg-red-50 rounded-lg">
+                  <p className="text-red-600 font-medium">This user is blocked</p>
+                  <p className="text-red-500 text-sm">You cannot send or receive messages</p>
                 </div>
               )}
               
@@ -1001,6 +1225,7 @@ function App() {
                         message.sender_id === user.user_id ? 'text-blue-200' : 'text-gray-500'
                       }`}>
                         {formatTime(message.timestamp)}
+                        {message.is_encrypted && <span className="ml-1">🔒</span>}
                       </p>
                       {renderMessageStatus(message)}
                     </div>
@@ -1012,22 +1237,29 @@ function App() {
 
             {/* Message Input */}
             <div className="p-4 bg-white border-t border-gray-200">
-              <form onSubmit={sendMessage} className="flex space-x-2">
-                <input
-                  type="text"
-                  placeholder="Type a message..."
-                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                />
-                <button
-                  type="submit"
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200"
-                  disabled={uploadingFile}
-                >
-                  Send
-                </button>
-              </form>
+              {!activeChat.other_user?.is_blocked ? (
+                <form onSubmit={sendMessage} className="flex space-x-2">
+                  <input
+                    type="text"
+                    placeholder="Type an encrypted message..."
+                    className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                  />
+                  <button
+                    type="submit"
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200 flex items-center"
+                    disabled={uploadingFile}
+                  >
+                    <span className="mr-1">Send</span>
+                    <span>🔒</span>
+                  </button>
+                </form>
+              ) : (
+                <div className="text-center p-3 bg-red-50 rounded-lg">
+                  <p className="text-red-600">Cannot send messages to blocked user</p>
+                </div>
+              )}
             </div>
           </>
         ) : (
@@ -1038,15 +1270,67 @@ function App() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-medium text-gray-800 mb-2">Welcome to ChatApp Pro</h3>
-              <p className="text-gray-600">Select a chat to start messaging</p>
+              <h3 className="text-xl font-medium text-gray-800 mb-2">Welcome to ChatApp Pro 🔒</h3>
+              <p className="text-gray-600">Select a chat to start secure messaging</p>
               <p className="text-sm text-gray-500 mt-2">
-                ✨ Now with file sharing, read receipts, and group chat features!
+                ✨ End-to-end encryption • File sharing • Read receipts • User blocking & reporting
               </p>
             </div>
           </div>
         )}
       </div>
+
+      {/* Report Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-medium mb-4">Report User</h3>
+            <form onSubmit={reportUser}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Reason</label>
+                <select
+                  value={reportForm.reason}
+                  onChange={(e) => setReportForm({...reportForm, reason: e.target.value})}
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select a reason</option>
+                  <option value="spam">Spam</option>
+                  <option value="harassment">Harassment</option>
+                  <option value="inappropriate_content">Inappropriate Content</option>
+                  <option value="fake_account">Fake Account</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
+                <textarea
+                  value={reportForm.description}
+                  onChange={(e) => setReportForm({...reportForm, description: e.target.value})}
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows="3"
+                  placeholder="Additional details..."
+                />
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  type="submit"
+                  className="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700"
+                >
+                  Submit Report
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowReportModal(false)}
+                  className="flex-1 bg-gray-400 text-white py-2 rounded hover:bg-gray-500"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

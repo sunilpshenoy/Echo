@@ -18,6 +18,10 @@ from bson import ObjectId
 from fastapi.encoders import jsonable_encoder
 import base64
 import mimetypes
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import secrets
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -26,6 +30,47 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ.get('DB_NAME', 'test_database')]
+
+# Encryption utilities
+class MessageEncryption:
+    @staticmethod
+    def generate_key() -> str:
+        """Generate a new encryption key"""
+        return Fernet.generate_key().decode()
+    
+    @staticmethod
+    def derive_key(password: str, salt: bytes) -> bytes:
+        """Derive encryption key from password and salt"""
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=salt,
+            iterations=100000,
+        )
+        return base64.urlsafe_b64encode(kdf.derive(password.encode()))
+    
+    @staticmethod
+    def encrypt_message(message: str, key: str) -> str:
+        """Encrypt a message using the provided key"""
+        try:
+            f = Fernet(key.encode())
+            encrypted = f.encrypt(message.encode())
+            return base64.urlsafe_b64encode(encrypted).decode()
+        except Exception as e:
+            logging.error(f"Encryption error: {e}")
+            return message  # Fallback to plain text
+    
+    @staticmethod
+    def decrypt_message(encrypted_message: str, key: str) -> str:
+        """Decrypt a message using the provided key"""
+        try:
+            f = Fernet(key.encode())
+            encrypted_bytes = base64.urlsafe_b64decode(encrypted_message.encode())
+            decrypted = f.decrypt(encrypted_bytes)
+            return decrypted.decode()
+        except Exception as e:
+            logging.error(f"Decryption error: {e}")
+            return encrypted_message  # Fallback to encrypted text
 
 # Custom JSON encoder for MongoDB ObjectId
 class JSONEncoder(json.JSONEncoder):
@@ -122,6 +167,7 @@ class User(BaseModel):
     status_message: str = "Available"
     is_online: bool = False
     last_seen: datetime = Field(default_factory=datetime.utcnow)
+    encryption_key: str = Field(default_factory=MessageEncryption.generate_key)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class UserCreate(BaseModel):
@@ -139,6 +185,7 @@ class Message(BaseModel):
     chat_id: str
     sender_id: str
     content: str
+    encrypted_content: Optional[str] = None  # Encrypted version of content
     message_type: str = "text"  # text, image, file
     file_name: Optional[str] = None
     file_size: Optional[int] = None
@@ -147,6 +194,7 @@ class Message(BaseModel):
     is_read: bool = False
     read_by: List[Dict[str, Any]] = Field(default_factory=list)  # [{user_id, read_at}]
     reply_to: Optional[str] = None
+    is_encrypted: bool = True
 
 class Chat(BaseModel):
     chat_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -159,6 +207,7 @@ class Chat(BaseModel):
     created_by: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     last_message: Optional[dict] = None
+    encryption_enabled: bool = True
 
 class Contact(BaseModel):
     contact_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -167,6 +216,26 @@ class Contact(BaseModel):
     contact_name: str
     added_at: datetime = Field(default_factory=datetime.utcnow)
 
+class BlockedUser(BaseModel):
+    block_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    blocker_id: str  # User who blocked
+    blocked_id: str  # User who was blocked
+    reason: Optional[str] = None
+    blocked_at: datetime = Field(default_factory=datetime.utcnow)
+
+class UserReport(BaseModel):
+    report_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    reporter_id: str
+    reported_id: str
+    reason: str
+    description: Optional[str] = None
+    message_id: Optional[str] = None  # If reporting a specific message
+    chat_id: Optional[str] = None
+    status: str = "pending"  # pending, reviewed, resolved
+    reported_at: datetime = Field(default_factory=datetime.utcnow)
+    reviewed_at: Optional[datetime] = None
+    reviewed_by: Optional[str] = None
+
 class GroupChatCreate(BaseModel):
     name: str
     description: Optional[str] = None
@@ -174,6 +243,17 @@ class GroupChatCreate(BaseModel):
 
 class MessageReadUpdate(BaseModel):
     message_ids: List[str]
+
+class BlockUserRequest(BaseModel):
+    user_id: str
+    reason: Optional[str] = None
+
+class ReportUserRequest(BaseModel):
+    user_id: str
+    reason: str
+    description: Optional[str] = None
+    message_id: Optional[str] = None
+    chat_id: Optional[str] = None
 
 # Helper functions
 def create_access_token(data: dict):
@@ -199,6 +279,16 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         return user
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+
+async def check_user_blocked(user1_id: str, user2_id: str) -> bool:
+    """Check if user1 has blocked user2 or vice versa"""
+    block = await db.blocked_users.find_one({
+        "$or": [
+            {"blocker_id": user1_id, "blocked_id": user2_id},
+            {"blocker_id": user2_id, "blocked_id": user1_id}
+        ]
+    })
+    return block is not None
 
 # Authentication routes
 @api_router.post("/register")
@@ -232,7 +322,8 @@ async def register(user_data: UserCreate):
             "email": user.email,
             "phone": user.phone,
             "avatar": user.avatar,
-            "status_message": user.status_message
+            "status_message": user.status_message,
+            "encryption_key": user.encryption_key
         }
     }
 
@@ -262,7 +353,8 @@ async def login(login_data: UserLogin):
             "email": user["email"],
             "phone": user.get("phone"),
             "avatar": user.get("avatar"),
-            "status_message": user.get("status_message", "Available")
+            "status_message": user.get("status_message", "Available"),
+            "encryption_key": user.get("encryption_key")
         }
     }
 
@@ -285,7 +377,8 @@ async def update_profile(profile_data: dict, current_user = Depends(get_current_
         "email": updated_user["email"],
         "phone": updated_user.get("phone"),
         "avatar": updated_user.get("avatar"),
-        "status_message": updated_user.get("status_message", "Available")
+        "status_message": updated_user.get("status_message", "Available"),
+        "encryption_key": updated_user.get("encryption_key")
     })
 
 # File upload route
@@ -318,6 +411,111 @@ async def upload_file(file: UploadFile = File(...), current_user = Depends(get_c
         "file_data": file_data
     }
 
+# Blocking and Reporting routes
+@api_router.post("/users/block")
+async def block_user(block_data: BlockUserRequest, current_user = Depends(get_current_user)):
+    # Check if user exists
+    target_user = await db.users.find_one({"user_id": block_data.user_id})
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if block_data.user_id == current_user["user_id"]:
+        raise HTTPException(status_code=400, detail="Cannot block yourself")
+    
+    # Check if already blocked
+    existing_block = await db.blocked_users.find_one({
+        "blocker_id": current_user["user_id"],
+        "blocked_id": block_data.user_id
+    })
+    if existing_block:
+        raise HTTPException(status_code=400, detail="User already blocked")
+    
+    # Create block record
+    block = BlockedUser(
+        blocker_id=current_user["user_id"],
+        blocked_id=block_data.user_id,
+        reason=block_data.reason
+    )
+    
+    await db.blocked_users.insert_one(block.dict())
+    return {"status": "User blocked successfully"}
+
+@api_router.delete("/users/block/{user_id}")
+async def unblock_user(user_id: str, current_user = Depends(get_current_user)):
+    # Remove block record
+    result = await db.blocked_users.delete_one({
+        "blocker_id": current_user["user_id"],
+        "blocked_id": user_id
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Block not found")
+    
+    return {"status": "User unblocked successfully"}
+
+@api_router.get("/users/blocked")
+async def get_blocked_users(current_user = Depends(get_current_user)):
+    blocks = await db.blocked_users.find({"blocker_id": current_user["user_id"]}).to_list(100)
+    
+    # Populate blocked user info
+    for block in blocks:
+        blocked_user = await db.users.find_one({"user_id": block["blocked_id"]})
+        if blocked_user:
+            block["blocked_user"] = {
+                "user_id": blocked_user["user_id"],
+                "username": blocked_user["username"],
+                "avatar": blocked_user.get("avatar")
+            }
+    
+    return serialize_mongo_doc(blocks)
+
+@api_router.post("/users/report")
+async def report_user(report_data: ReportUserRequest, current_user = Depends(get_current_user)):
+    # Check if user exists
+    target_user = await db.users.find_one({"user_id": report_data.user_id})
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if report_data.user_id == current_user["user_id"]:
+        raise HTTPException(status_code=400, detail="Cannot report yourself")
+    
+    # Create report record
+    report = UserReport(
+        reporter_id=current_user["user_id"],
+        reported_id=report_data.user_id,
+        reason=report_data.reason,
+        description=report_data.description,
+        message_id=report_data.message_id,
+        chat_id=report_data.chat_id
+    )
+    
+    await db.user_reports.insert_one(report.dict())
+    return {"status": "Report submitted successfully"}
+
+@api_router.get("/admin/reports")
+async def get_reports(current_user = Depends(get_current_user)):
+    # In a real app, you'd check if user is admin
+    reports = await db.user_reports.find({"status": "pending"}).to_list(100)
+    
+    # Populate user info
+    for report in reports:
+        reporter = await db.users.find_one({"user_id": report["reporter_id"]})
+        reported = await db.users.find_one({"user_id": report["reported_id"]})
+        
+        if reporter:
+            report["reporter"] = {
+                "user_id": reporter["user_id"],
+                "username": reporter["username"]
+            }
+        
+        if reported:
+            report["reported_user"] = {
+                "user_id": reported["user_id"],
+                "username": reported["username"]
+            }
+    
+    return serialize_mongo_doc(reports)
+
 # Enhanced Chat routes
 @api_router.get("/chats")
 async def get_user_chats(current_user = Depends(get_current_user)):
@@ -335,13 +533,18 @@ async def get_user_chats(current_user = Depends(get_current_user)):
         if chat["chat_type"] == "direct":
             other_user_id = [m for m in chat["members"] if m != current_user["user_id"]][0]
             other_user = await db.users.find_one({"user_id": other_user_id})
+            
+            # Check if other user is blocked
+            is_blocked = await check_user_blocked(current_user["user_id"], other_user_id)
+            
             if other_user:
                 chat["other_user"] = {
                     "user_id": other_user["user_id"],
                     "username": other_user["username"],
                     "avatar": other_user.get("avatar"),
                     "status_message": other_user.get("status_message", "Available"),
-                    "is_online": other_user.get("is_online", False)
+                    "is_online": other_user.get("is_online", False),
+                    "is_blocked": is_blocked
                 }
         
         # For group chats, get member info
@@ -363,6 +566,11 @@ async def get_user_chats(current_user = Depends(get_current_user)):
 @api_router.post("/chats")
 async def create_chat(chat_data: dict, current_user = Depends(get_current_user)):
     if chat_data["chat_type"] == "direct":
+        # Check if users are blocked
+        is_blocked = await check_user_blocked(current_user["user_id"], chat_data["other_user_id"])
+        if is_blocked:
+            raise HTTPException(status_code=403, detail="Cannot create chat with blocked user")
+        
         # Check if direct chat already exists
         existing_chat = await db.chats.find_one({
             "chat_type": "direct",
@@ -468,12 +676,25 @@ async def get_chat_messages(chat_id: str, current_user = Depends(get_current_use
     
     messages = await db.messages.find({"chat_id": chat_id}).sort("timestamp", 1).to_list(1000)
     
-    # Populate sender info and read status
+    # Decrypt and populate sender info
+    user_encryption_key = current_user.get("encryption_key")
+    
     for message in messages:
         sender = await db.users.find_one({"user_id": message["sender_id"]})
         if sender:
             message["sender_name"] = sender["username"]
             message["sender_avatar"] = sender.get("avatar")
+        
+        # Decrypt message content if encrypted
+        if message.get("is_encrypted") and message.get("encrypted_content") and user_encryption_key:
+            try:
+                message["content"] = MessageEncryption.decrypt_message(
+                    message["encrypted_content"], 
+                    user_encryption_key
+                )
+            except Exception as e:
+                logging.error(f"Failed to decrypt message: {e}")
+                message["content"] = "[Encrypted Message]"
         
         # Determine read status for current user
         if message["sender_id"] == current_user["user_id"]:
@@ -495,22 +716,43 @@ async def send_message(chat_id: str, message_data: dict, current_user = Depends(
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
     
+    # For direct chats, check if users are blocked
+    if chat["chat_type"] == "direct":
+        other_user_id = [m for m in chat["members"] if m != current_user["user_id"]][0]
+        is_blocked = await check_user_blocked(current_user["user_id"], other_user_id)
+        if is_blocked:
+            raise HTTPException(status_code=403, detail="Cannot send message to blocked user")
+    
+    # Get sender's encryption key
+    user_encryption_key = current_user.get("encryption_key")
+    
+    # Encrypt message content
+    encrypted_content = None
+    if user_encryption_key and chat.get("encryption_enabled", True):
+        encrypted_content = MessageEncryption.encrypt_message(message_data["content"], user_encryption_key)
+    
     # Create message
     message = Message(
         chat_id=chat_id,
         sender_id=current_user["user_id"],
         content=message_data["content"],
+        encrypted_content=encrypted_content,
         message_type=message_data.get("message_type", "text"),
         file_name=message_data.get("file_name"),
         file_size=message_data.get("file_size"),
-        file_data=message_data.get("file_data")
+        file_data=message_data.get("file_data"),
+        is_encrypted=encrypted_content is not None
     )
     
     message_dict = message.dict()
+    # Store encrypted version in database, but remove plain text for storage
+    if encrypted_content:
+        message_dict["content"] = "[Encrypted]"  # Don't store plain text
+    
     await db.messages.insert_one(message_dict)
     
     # Update chat's last message
-    last_message_content = message.content
+    last_message_content = message_data["content"]
     if message.message_type != "text":
         last_message_content = f"📎 {message.file_name}" if message.file_name else "📎 File"
     
@@ -526,7 +768,8 @@ async def send_message(chat_id: str, message_data: dict, current_user = Depends(
         }}
     )
     
-    # Send real-time message to chat members
+    # Send real-time message to chat members (with original content for display)
+    message_dict["content"] = message_data["content"]  # Restore original for broadcast
     message_dict["sender_name"] = current_user["username"]
     message_dict["sender_avatar"] = current_user.get("avatar")
     await manager.broadcast_to_chat(
@@ -584,6 +827,9 @@ async def get_contacts(current_user = Depends(get_current_user)):
     for contact in contacts:
         contact_user = await db.users.find_one({"user_id": contact["contact_user_id"]})
         if contact_user:
+            # Check if contact is blocked
+            is_blocked = await check_user_blocked(current_user["user_id"], contact["contact_user_id"])
+            
             contact["contact_info"] = {
                 "user_id": contact_user["user_id"],
                 "username": contact_user["username"],
@@ -591,7 +837,8 @@ async def get_contacts(current_user = Depends(get_current_user)):
                 "phone": contact_user.get("phone"),
                 "avatar": contact_user.get("avatar"),
                 "status_message": contact_user.get("status_message", "Available"),
-                "is_online": contact_user.get("is_online", False)
+                "is_online": contact_user.get("is_online", False),
+                "is_blocked": is_blocked
             }
     
     return serialize_mongo_doc(contacts)
@@ -613,6 +860,11 @@ async def add_contact(contact_data: dict, current_user = Depends(get_current_use
     
     if contact_user["user_id"] == current_user["user_id"]:
         raise HTTPException(status_code=400, detail="Cannot add yourself as contact")
+    
+    # Check if users are blocked
+    is_blocked = await check_user_blocked(current_user["user_id"], contact_user["user_id"])
+    if is_blocked:
+        raise HTTPException(status_code=403, detail="Cannot add blocked user as contact")
     
     # Check if contact already exists
     existing_contact = await db.contacts.find_one({
@@ -671,10 +923,14 @@ async def search_users(q: str, current_user = Depends(get_current_user)):
         "user_id": {"$ne": current_user["user_id"]}
     }).to_list(20)
     
-    # Remove sensitive info
+    # Remove sensitive info and add block status
     for user in users:
         user.pop("password", None)
         user.pop("_id", None)
+        user.pop("encryption_key", None)
+        
+        # Check if user is blocked
+        user["is_blocked"] = await check_user_blocked(current_user["user_id"], user["user_id"])
     
     return serialize_mongo_doc(users)
 
