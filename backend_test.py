@@ -5,8 +5,10 @@ import websocket
 import threading
 import uuid
 import os
+import base64
 from dotenv import load_dotenv
 import logging
+from io import BytesIO
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
