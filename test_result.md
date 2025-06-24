@@ -137,15 +137,18 @@ backend:
 
   - task: "Chat Management System"
     implemented: true
-    working: "NA"
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented direct and group chat creation, message sending/receiving, chat listing with last message"
+      - working: true
+        agent: "testing"
+        comment: "Chat management system is working correctly. Successfully created direct and group chats, and retrieved user chats with proper metadata. Fixed an issue with MongoDB ObjectId serialization that was causing errors."
 
   - task: "Contact Management"
     implemented: true
