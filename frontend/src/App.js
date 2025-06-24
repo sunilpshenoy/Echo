@@ -148,8 +148,9 @@ function App() {
           setUser(response.user);
           localStorage.setItem('token', response.access_token);
           setCurrentView('chat');
-          fetchChats();
-          fetchContacts();
+          // Pass the token directly to avoid state update delay
+          fetchChats(response.access_token);
+          fetchContacts(response.access_token);
         } else {
           console.error('Registration error:', xhr.status, xhr.statusText);
           console.error('Response:', xhr.responseText);
