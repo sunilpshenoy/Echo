@@ -2,8 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './App.css';
 
+// Debug environment variables
+console.log('Environment variables:', process.env);
+console.log('REACT_APP_BACKEND_URL:', process.env.REACT_APP_BACKEND_URL);
+
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+console.log('BACKEND_URL constant:', BACKEND_URL);
+
 const API = `${BACKEND_URL}/api`;
+console.log('API URL:', API);
 
 function App() {
   const [currentView, setCurrentView] = useState('login');
