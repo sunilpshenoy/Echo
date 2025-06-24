@@ -351,7 +351,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "User Authentication UI"
+    - "File/Image Sharing"
+    - "Message Read Receipts"
+    - "Enhanced Group Chat Features"
+    - "Enhanced UI/UX"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
