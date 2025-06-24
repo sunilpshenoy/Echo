@@ -207,9 +207,9 @@ frontend:
 
   - task: "Real-time Chat Interface"
     implemented: true
-    working: false
+    working: true
     file: "App.js"
-    stuck_count: 2
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
@@ -222,6 +222,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Backend API endpoints for chat creation and message sending are working correctly when tested directly with curl. However, the frontend is not able to authenticate, so WebSocket connections and real-time messaging cannot be tested."
+      - working: true
+        agent: "testing"
+        comment: "After fixing the authentication issues, the WebSocket connection is now established correctly. Real-time messaging works as expected, with messages being sent and received in real-time. The auto-scroll functionality also works correctly."
 
   - task: "Chat Sidebar and Navigation"
     implemented: true
