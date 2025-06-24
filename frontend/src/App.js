@@ -77,8 +77,12 @@ function App() {
   // Authentication functions
   const login = async (e) => {
     e.preventDefault();
+    console.log('Login form submitted:', loginForm);
+    console.log('Backend URL:', BACKEND_URL);
+    console.log('API URL:', API);
     try {
       const response = await axios.post(`${API}/login`, loginForm);
+      console.log('Login successful:', response.data);
       setToken(response.data.access_token);
       setUser(response.data.user);
       localStorage.setItem('token', response.data.access_token);
@@ -86,14 +90,19 @@ function App() {
       fetchChats();
       fetchContacts();
     } catch (error) {
+      console.error('Login error:', error);
       alert('Login failed: ' + (error.response?.data?.detail || error.message));
     }
   };
 
   const register = async (e) => {
     e.preventDefault();
+    console.log('Register form submitted:', registerForm);
+    console.log('Backend URL:', BACKEND_URL);
+    console.log('API URL:', API);
     try {
       const response = await axios.post(`${API}/register`, registerForm);
+      console.log('Registration successful:', response.data);
       setToken(response.data.access_token);
       setUser(response.data.user);
       localStorage.setItem('token', response.data.access_token);
@@ -101,6 +110,7 @@ function App() {
       fetchChats();
       fetchContacts();
     } catch (error) {
+      console.error('Registration error:', error);
       alert('Registration failed: ' + (error.response?.data?.detail || error.message));
     }
   };
