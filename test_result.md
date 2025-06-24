@@ -167,15 +167,18 @@ backend:
 
   - task: "Message Storage and Retrieval"
     implemented: true
-    working: "NA"
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented MongoDB message storage, chat message history retrieval, message metadata"
+      - working: true
+        agent: "testing"
+        comment: "Message storage and retrieval is working correctly. Successfully sent messages to both direct and group chats, and retrieved message history with proper metadata. Real-time message broadcasting via WebSockets is also working."
 
 frontend:
   - task: "User Authentication UI"
