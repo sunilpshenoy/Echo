@@ -273,10 +273,7 @@ test_plan:
     - "User Authentication UI"
     - "Real-time Chat Interface"
     - "Chat Sidebar and Navigation"
-  stuck_tasks:
-    - "User Authentication UI"
-    - "Real-time Chat Interface"
-    - "Chat Sidebar and Navigation"
+  stuck_tasks: []
   test_all: true
   test_priority: "high_first"
 
