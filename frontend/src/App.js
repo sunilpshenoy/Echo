@@ -106,14 +106,18 @@ function App() {
         const data = await response.json();
         console.log('Login successful:', data);
         
+        // Store token and user data
         setToken(data.access_token);
         setUser(data.user);
         localStorage.setItem('token', data.access_token);
-        setCurrentView('chat');
         
-        // Pass the token directly to avoid state update delay
-        fetchChats(data.access_token);
-        fetchContacts(data.access_token);
+        // Fetch chats and contacts before changing view
+        await fetchChats(data.access_token);
+        await fetchContacts(data.access_token);
+        
+        // Change view to chat after data is loaded
+        console.log('Changing view to chat...');
+        setCurrentView('chat');
       } else {
         const errorText = await response.text();
         console.error('Login error:', response.status, errorText);
