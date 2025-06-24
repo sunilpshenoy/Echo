@@ -87,7 +87,9 @@ function App() {
     console.log('Login form submitted:', loginForm);
     console.log('Backend URL:', BACKEND_URL);
     console.log('API URL:', API);
+    
     try {
+      console.log('Making login API call to:', `${API}/login`);
       const response = await axios.post(`${API}/login`, loginForm);
       console.log('Login successful:', response.data);
       setToken(response.data.access_token);
@@ -98,6 +100,14 @@ function App() {
       fetchContacts();
     } catch (error) {
       console.error('Login error:', error);
+      console.error('Login error details:', {
+        message: error.message,
+        response: error.response ? {
+          status: error.response.status,
+          data: error.response.data
+        } : 'No response',
+        request: error.request ? 'Request was made but no response received' : 'No request'
+      });
       alert('Login failed: ' + (error.response?.data?.detail || error.message));
     }
   };
@@ -107,7 +117,9 @@ function App() {
     console.log('Register form submitted:', registerForm);
     console.log('Backend URL:', BACKEND_URL);
     console.log('API URL:', API);
+    
     try {
+      console.log('Making register API call to:', `${API}/register`);
       const response = await axios.post(`${API}/register`, registerForm);
       console.log('Registration successful:', response.data);
       setToken(response.data.access_token);
@@ -118,6 +130,14 @@ function App() {
       fetchContacts();
     } catch (error) {
       console.error('Registration error:', error);
+      console.error('Registration error details:', {
+        message: error.message,
+        response: error.response ? {
+          status: error.response.status,
+          data: error.response.data
+        } : 'No response',
+        request: error.request ? 'Request was made but no response received' : 'No request'
+      });
       alert('Registration failed: ' + (error.response?.data?.detail || error.message));
     }
   };
