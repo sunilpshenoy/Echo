@@ -283,8 +283,7 @@ metadata:
 test_plan:
   current_focus:
     - "User Authentication UI"
-  stuck_tasks:
-    - "User Authentication UI"
+  stuck_tasks: []
   test_all: true
   test_priority: "high_first"
 
