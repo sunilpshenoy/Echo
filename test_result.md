@@ -228,9 +228,9 @@ frontend:
 
   - task: "Chat Sidebar and Navigation"
     implemented: true
-    working: true
+    working: false
     file: "App.js"
-    stuck_count: 0
+    stuck_count: 3
     priority: "high"
     needs_retesting: false
     status_history:
@@ -243,9 +243,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Backend API endpoints for chat and contact retrieval are working correctly when tested directly with curl. However, the frontend is not able to authenticate, so chat sidebar functionality cannot be tested."
-      - working: true
+      - working: false
         agent: "testing"
-        comment: "After fixing the authentication issues, the chat sidebar and navigation now work correctly. Users can search for contacts, add contacts, and select chats. The chat list is populated correctly with the user's chats."
+        comment: "Attempted to fix the authentication issues, but the frontend is still not able to authenticate properly. The chat sidebar and navigation cannot be tested because the user is not being redirected to the chat page after successful registration or login. The backend logs show that the registration and login API calls are successful (200 OK), but the frontend is not properly handling the response."
 
   - task: "Modern UI Design"
     implemented: true
