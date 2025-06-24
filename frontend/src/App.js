@@ -320,6 +320,29 @@ function App() {
               Login
             </button>
           </form>
+          
+          {/* Test API Connection Button */}
+          <div className="mt-4">
+            <button
+              onClick={async () => {
+                console.log('Testing API connection...');
+                try {
+                  console.log('API URL:', `${API}/test-connection`);
+                  const response = await fetch(`${API}/test-connection`);
+                  console.log('Response status:', response.status);
+                  const data = await response.text();
+                  console.log('Response data:', data);
+                  alert(`API Connection Test: ${response.status} ${data}`);
+                } catch (error) {
+                  console.error('API connection test error:', error);
+                  alert(`API Connection Test Error: ${error.message}`);
+                }
+              }}
+              className="w-full mt-2 bg-gray-200 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-300 transition duration-200"
+            >
+              Test API Connection
+            </button>
+          </div>
         </div>
       </div>
     );
