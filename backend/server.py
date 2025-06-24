@@ -464,7 +464,7 @@ async def search_users(q: str, current_user = Depends(get_current_user)):
         user.pop("password", None)
         user.pop("_id", None)
     
-    return users
+    return serialize_mongo_doc(users)
 
 # Include the router in the main app
 app.include_router(api_router)
