@@ -429,7 +429,7 @@ function App() {
             </button>
           </div>
 
-          <form onSubmit={register}>
+          <form onSubmit={register} action="/api/register" method="post">
             <div className="mb-4">
               <input
                 type="text"
