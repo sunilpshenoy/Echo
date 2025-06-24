@@ -184,25 +184,35 @@ function App() {
   };
 
   // API functions
-  const getAuthHeaders = () => ({
-    headers: { Authorization: `Bearer ${token}` }
+  const getAuthHeaders = (authToken = null) => ({
+    headers: { Authorization: `Bearer ${authToken || token}` }
   });
 
-  const fetchChats = async () => {
+  const fetchChats = async (authToken = null) => {
     try {
-      const response = await axios.get(`${API}/chats`, getAuthHeaders());
+      console.log('Fetching chats with token:', authToken || token);
+      const response = await axios.get(`${API}/chats`, getAuthHeaders(authToken));
+      console.log('Chats fetched successfully:', response.data);
       setChats(response.data);
     } catch (error) {
       console.error('Error fetching chats:', error);
+      if (error.response?.status === 401) {
+        console.error('Unauthorized - token might be invalid');
+      }
     }
   };
 
-  const fetchContacts = async () => {
+  const fetchContacts = async (authToken = null) => {
     try {
-      const response = await axios.get(`${API}/contacts`, getAuthHeaders());
+      console.log('Fetching contacts with token:', authToken || token);
+      const response = await axios.get(`${API}/contacts`, getAuthHeaders(authToken));
+      console.log('Contacts fetched successfully:', response.data);
       setContacts(response.data);
     } catch (error) {
       console.error('Error fetching contacts:', error);
+      if (error.response?.status === 401) {
+        console.error('Unauthorized - token might be invalid');
+      }
     }
   };
 
