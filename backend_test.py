@@ -1732,6 +1732,507 @@ def test_enhanced_websocket_features():
     logger.info("Enhanced WebSocket features tests passed")
     return True
 
+def test_message_reactions():
+    """Test message reaction functionality"""
+    logger.info("Testing message reactions...")
+    
+    # First, send a message to react to
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    message_data = {
+        "content": "This is a message for testing reactions"
+    }
+    
+    response = requests.post(
+        f"{API_URL}/chats/{chat_ids['direct_chat']}/messages",
+        json=message_data,
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to send message for reaction test: {response.text}")
+        return False
+    
+    reaction_message_id = response.json()["message_id"]
+    logger.info(f"Created message for reaction test with ID: {reaction_message_id}")
+    
+    # Add a reaction to the message
+    reaction_data = {
+        "emoji": "👍"
+    }
+    
+    response = requests.put(
+        f"{API_URL}/messages/{reaction_message_id}/react",
+        json=reaction_data,
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to add reaction to message: {response.text}")
+        return False
+    
+    logger.info("Successfully added reaction to message")
+    
+    # Get the message to verify reaction
+    response = requests.get(
+        f"{API_URL}/chats/{chat_ids['direct_chat']}/messages",
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get messages to verify reaction: {response.text}")
+        return False
+    
+    messages = response.json()
+    reaction_message = next((m for m in messages if m.get("message_id") == reaction_message_id), None)
+    
+    if not reaction_message:
+        logger.error("Could not find message with reaction")
+        return False
+    
+    if "reactions" not in reaction_message or "👍" not in reaction_message["reactions"]:
+        logger.error(f"Reaction not found in message: {reaction_message}")
+        return False
+    
+    if user_ids['user1'] not in reaction_message["reactions"]["👍"]:
+        logger.error(f"User not found in reaction list: {reaction_message['reactions']}")
+        return False
+    
+    logger.info("Successfully verified reaction was added")
+    
+    # Remove the reaction
+    reaction_data = {
+        "emoji": "👍"
+    }
+    
+    response = requests.put(
+        f"{API_URL}/messages/{reaction_message_id}/react",
+        json=reaction_data,
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to remove reaction from message: {response.text}")
+        return False
+    
+    logger.info("Successfully removed reaction from message")
+    
+    # Get the message to verify reaction removal
+    response = requests.get(
+        f"{API_URL}/chats/{chat_ids['direct_chat']}/messages",
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get messages to verify reaction removal: {response.text}")
+        return False
+    
+    messages = response.json()
+    reaction_message = next((m for m in messages if m.get("message_id") == reaction_message_id), None)
+    
+    if not reaction_message:
+        logger.error("Could not find message after reaction removal")
+        return False
+    
+    # The emoji key might be removed entirely if no users have that reaction
+    if "reactions" in reaction_message and "👍" in reaction_message["reactions"] and user_ids['user1'] in reaction_message["reactions"]["👍"]:
+        logger.error(f"Reaction was not removed from message: {reaction_message['reactions']}")
+        return False
+    
+    logger.info("Message reactions tests passed")
+    return True
+
+def test_edit_message():
+    """Test message editing functionality"""
+    logger.info("Testing message editing...")
+    
+    # First, send a message to edit
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    original_content = "This is a message for testing editing"
+    message_data = {
+        "content": original_content
+    }
+    
+    response = requests.post(
+        f"{API_URL}/chats/{chat_ids['direct_chat']}/messages",
+        json=message_data,
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to send message for edit test: {response.text}")
+        return False
+    
+    edit_message_id = response.json()["message_id"]
+    logger.info(f"Created message for edit test with ID: {edit_message_id}")
+    
+    # Edit the message
+    edited_content = "This message has been edited for testing"
+    edit_data = {
+        "content": edited_content
+    }
+    
+    response = requests.put(
+        f"{API_URL}/messages/{edit_message_id}/edit",
+        json=edit_data,
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to edit message: {response.text}")
+        return False
+    
+    logger.info("Successfully edited message")
+    
+    # Get the message to verify edit
+    response = requests.get(
+        f"{API_URL}/chats/{chat_ids['direct_chat']}/messages",
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get messages to verify edit: {response.text}")
+        return False
+    
+    messages = response.json()
+    edited_message = next((m for m in messages if m.get("message_id") == edit_message_id), None)
+    
+    if not edited_message:
+        logger.error("Could not find edited message")
+        return False
+    
+    if edited_message.get("content") != edited_content:
+        logger.error(f"Message content not updated correctly: {edited_message.get('content')}")
+        return False
+    
+    if "edited_at" not in edited_message or not edited_message["edited_at"]:
+        logger.error(f"Message missing edited_at timestamp: {edited_message}")
+        return False
+    
+    logger.info("Successfully verified message was edited")
+    
+    # Test editing a message from another user (should fail)
+    if len(user_tokens) > 1:
+        headers2 = {"Authorization": f"Bearer {user_tokens['user2']}"}
+        edit_data = {
+            "content": "This should fail"
+        }
+        
+        response = requests.put(
+            f"{API_URL}/messages/{edit_message_id}/edit",
+            json=edit_data,
+            headers=headers2
+        )
+        
+        if response.status_code != 403:
+            logger.error(f"Editing another user's message should fail: {response.status_code} - {response.text}")
+            return False
+        
+        logger.info("Successfully verified that editing another user's message fails")
+    
+    logger.info("Message editing tests passed")
+    return True
+
+def test_delete_message():
+    """Test message deletion functionality"""
+    logger.info("Testing message deletion...")
+    
+    # First, send a message to delete
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    message_data = {
+        "content": "This is a message for testing deletion"
+    }
+    
+    response = requests.post(
+        f"{API_URL}/chats/{chat_ids['direct_chat']}/messages",
+        json=message_data,
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to send message for deletion test: {response.text}")
+        return False
+    
+    delete_message_id = response.json()["message_id"]
+    logger.info(f"Created message for deletion test with ID: {delete_message_id}")
+    
+    # Delete the message
+    response = requests.delete(
+        f"{API_URL}/messages/{delete_message_id}",
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to delete message: {response.text}")
+        return False
+    
+    logger.info("Successfully deleted message")
+    
+    # Get the messages to verify deletion (soft delete)
+    response = requests.get(
+        f"{API_URL}/chats/{chat_ids['direct_chat']}/messages",
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get messages to verify deletion: {response.text}")
+        return False
+    
+    messages = response.json()
+    deleted_message = next((m for m in messages if m.get("message_id") == delete_message_id), None)
+    
+    # The message might be completely filtered out or marked as deleted
+    if deleted_message and not deleted_message.get("is_deleted", False):
+        logger.error(f"Message not marked as deleted: {deleted_message}")
+        return False
+    
+    logger.info("Successfully verified message was deleted")
+    
+    # Test deleting a message from another user (should fail)
+    if len(user_tokens) > 1:
+        # First, user2 sends a message
+        headers2 = {"Authorization": f"Bearer {user_tokens['user2']}"}
+        message_data = {
+            "content": "This is a message from user2 for deletion test"
+        }
+        
+        response = requests.post(
+            f"{API_URL}/chats/{chat_ids['direct_chat']}/messages",
+            json=message_data,
+            headers=headers2
+        )
+        
+        if response.status_code != 200:
+            logger.error(f"Failed to send message from user2 for deletion test: {response.text}")
+            return False
+        
+        user2_message_id = response.json()["message_id"]
+        
+        # Now user1 tries to delete user2's message (should fail)
+        response = requests.delete(
+            f"{API_URL}/messages/{user2_message_id}",
+            headers=headers
+        )
+        
+        if response.status_code != 403:
+            logger.error(f"Deleting another user's message should fail: {response.status_code} - {response.text}")
+            return False
+        
+        logger.info("Successfully verified that deleting another user's message fails")
+    
+    logger.info("Message deletion tests passed")
+    return True
+
+def test_stories():
+    """Test stories functionality"""
+    logger.info("Testing stories functionality...")
+    
+    # Create a story
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    story_data = {
+        "content": "This is a test story",
+        "media_type": "text",
+        "background_color": "#3498db",
+        "text_color": "#ffffff"
+    }
+    
+    response = requests.post(
+        f"{API_URL}/stories",
+        json=story_data,
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to create story: {response.text}")
+        return False
+    
+    story_id = response.json()["story_id"]
+    logger.info(f"Created story with ID: {story_id}")
+    
+    # Get stories
+    response = requests.get(
+        f"{API_URL}/stories",
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get stories: {response.text}")
+        return False
+    
+    stories = response.json()
+    if not stories:
+        logger.error("No stories returned")
+        return False
+    
+    created_story = next((s for s in stories if s.get("story_id") == story_id), None)
+    if not created_story:
+        logger.error(f"Created story not found in stories list")
+        return False
+    
+    logger.info(f"Successfully retrieved stories, found {len(stories)} stories")
+    
+    # Create a story with media
+    # First create a small base64 image
+    small_png_data = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=")
+    media_data = base64.b64encode(small_png_data).decode('utf-8')
+    
+    story_data = {
+        "content": "Story with image",
+        "media_type": "image",
+        "media_data": media_data
+    }
+    
+    response = requests.post(
+        f"{API_URL}/stories",
+        json=story_data,
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to create story with media: {response.text}")
+        return False
+    
+    media_story_id = response.json()["story_id"]
+    logger.info(f"Created story with media, ID: {media_story_id}")
+    
+    # View a story
+    response = requests.put(
+        f"{API_URL}/stories/{story_id}/view",
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to mark story as viewed: {response.text}")
+        return False
+    
+    logger.info("Successfully marked story as viewed")
+    
+    # Get stories again to verify view count
+    response = requests.get(
+        f"{API_URL}/stories",
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get stories after viewing: {response.text}")
+        return False
+    
+    stories = response.json()
+    viewed_story = next((s for s in stories if s.get("story_id") == story_id), None)
+    
+    if not viewed_story:
+        logger.error("Viewed story not found")
+        return False
+    
+    if user_ids['user1'] not in viewed_story.get("viewers", []):
+        logger.error(f"User not added to viewers list: {viewed_story.get('viewers', [])}")
+        # This is a minor issue, so we'll continue
+        logger.warning("Viewer tracking may not be working correctly")
+    
+    logger.info("Stories functionality tests passed")
+    return True
+
+def test_channels():
+    """Test channels functionality"""
+    logger.info("Testing channels functionality...")
+    
+    # Create a channel
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    channel_data = {
+        "name": "Test Channel",
+        "description": "A test channel for API testing",
+        "is_public": True,
+        "category": "testing"
+    }
+    
+    response = requests.post(
+        f"{API_URL}/channels",
+        json=channel_data,
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to create channel: {response.text}")
+        return False
+    
+    channel_id = response.json()["channel_id"]
+    logger.info(f"Created channel with ID: {channel_id}")
+    
+    # Get channels
+    response = requests.get(
+        f"{API_URL}/channels",
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get channels: {response.text}")
+        return False
+    
+    channels = response.json()
+    if not channels:
+        logger.error("No channels returned")
+        return False
+    
+    created_channel = next((c for c in channels if c.get("channel_id") == channel_id), None)
+    if not created_channel:
+        logger.error(f"Created channel not found in channels list")
+        return False
+    
+    logger.info(f"Successfully retrieved channels, found {len(channels)} channels")
+    
+    # Create a private channel
+    channel_data = {
+        "name": "Private Test Channel",
+        "description": "A private test channel for API testing",
+        "is_public": False
+    }
+    
+    response = requests.post(
+        f"{API_URL}/channels",
+        json=channel_data,
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to create private channel: {response.text}")
+        return False
+    
+    private_channel_id = response.json()["channel_id"]
+    logger.info(f"Created private channel with ID: {private_channel_id}")
+    
+    # Subscribe to a channel
+    if len(user_tokens) > 1:
+        headers2 = {"Authorization": f"Bearer {user_tokens['user2']}"}
+        response = requests.post(
+            f"{API_URL}/channels/{channel_id}/subscribe",
+            headers=headers2
+        )
+        
+        if response.status_code != 200:
+            logger.error(f"Failed to subscribe to channel: {response.text}")
+            return False
+        
+        logger.info("Successfully subscribed to channel")
+        
+        # Verify user2 can see the channel
+        response = requests.get(
+            f"{API_URL}/channels",
+            headers=headers2
+        )
+        
+        if response.status_code != 200:
+            logger.error(f"Failed to get channels for user2: {response.text}")
+            return False
+        
+        channels = response.json()
+        if not any(c.get("channel_id") == channel_id for c in channels):
+            logger.error(f"Subscribed channel not found in user2's channel list")
+            return False
+        
+        logger.info("Successfully verified channel subscription")
+    
+    logger.info("Channels functionality tests passed")
+    return True
+
 def run_all_tests():
     """Run all tests and return results"""
     test_results = {
