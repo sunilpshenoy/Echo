@@ -382,7 +382,7 @@ async def get_contacts(current_user = Depends(get_current_user)):
                 "is_online": contact_user.get("is_online", False)
             }
     
-    return contacts
+    return serialize_mongo_doc(contacts)
 
 @api_router.post("/contacts")
 async def add_contact(contact_data: dict, current_user = Depends(get_current_user)):
