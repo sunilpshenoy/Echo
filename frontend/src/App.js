@@ -338,7 +338,7 @@ function App() {
             </button>
           </div>
 
-          <form onSubmit={login} action="/api/login" method="post">
+          <form onSubmit={login}>
             <div className="mb-4">
               <input
                 type="email"
