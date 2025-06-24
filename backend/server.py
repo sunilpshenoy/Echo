@@ -7,7 +7,7 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime
 import json
@@ -15,16 +15,7 @@ import jwt
 from passlib.context import CryptContext
 import asyncio
 from bson import ObjectId
-import json
-
-# Custom JSON encoder to handle MongoDB ObjectId
-class JSONEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, ObjectId):
-            return str(o)
-        if isinstance(o, datetime):
-            return o.isoformat()
-        return json.JSONEncoder.default(self, o)
+from fastapi.encoders import jsonable_encoder
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -32,12 +23,44 @@ load_dotenv(ROOT_DIR / '.env')
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[os.environ.get('DB_NAME', 'test_database')]
+
+# Custom JSON encoder for MongoDB ObjectId
+class JSONEncoder(json.JSONEncoder):
+    def default(self, o: Any) -> Any:
+        if isinstance(o, ObjectId):
+            return str(o)
+        if isinstance(o, datetime):
+            return o.isoformat()
+        return super().default(o)
+
+# Helper function to convert MongoDB documents to JSON serializable format
+def serialize_mongo_doc(doc):
+    if doc is None:
+        return None
+    
+    if isinstance(doc, list):
+        return [serialize_mongo_doc(item) for item in doc]
+    
+    if isinstance(doc, dict):
+        result = {}
+        for key, value in doc.items():
+            if key == '_id':
+                result['_id'] = str(value)
+            elif isinstance(value, ObjectId):
+                result[key] = str(value)
+            elif isinstance(value, datetime):
+                result[key] = value.isoformat()
+            elif isinstance(value, dict) or isinstance(value, list):
+                result[key] = serialize_mongo_doc(value)
+            else:
+                result[key] = value
+        return result
+    
+    return doc
 
 # Create the main app without a prefix
-app = FastAPI(
-    json_encoder=JSONEncoder
-)
+app = FastAPI()
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
