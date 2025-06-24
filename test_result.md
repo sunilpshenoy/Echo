@@ -198,15 +198,18 @@ frontend:
 
   - task: "Real-time Chat Interface"
     implemented: true
-    working: "NA"
+    working: false
     file: "App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented WebSocket client, real-time message display, message sending, auto-scroll"
+      - working: false
+        agent: "testing"
+        comment: "WebSocket connection is established, but real-time messaging cannot be tested due to authentication issues. Backend logs show 500 Internal Server Error for chat creation and message retrieval."
 
   - task: "Chat Sidebar and Navigation"
     implemented: true
