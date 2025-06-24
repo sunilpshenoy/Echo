@@ -469,6 +469,11 @@ async def search_users(q: str, current_user = Depends(get_current_user)):
 # Include the router in the main app
 app.include_router(api_router)
 
+# Add a simple test endpoint
+@app.get("/api/test-connection")
+async def test_connection():
+    return "Connection successful"
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
