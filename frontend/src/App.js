@@ -342,6 +342,7 @@ function App() {
             <div className="mb-4">
               <input
                 type="email"
+                name="email"
                 placeholder="Email"
                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={loginForm.email}
