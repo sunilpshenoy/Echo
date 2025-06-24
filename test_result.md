@@ -255,6 +255,51 @@ backend:
         agent: "testing"
         comment: "Enhanced User Profile functionality is working correctly. Successfully updated user status messages and other profile fields via the /api/profile endpoint. The API correctly validates and applies changes to the user profile. Enhanced user data is properly included in API responses, showing status messages in chat listings."
 
+  - task: "Message Encryption Features"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented encryption key generation, message encryption/decryption, and encrypted file sharing"
+      - working: true
+        agent: "testing"
+        comment: "Message encryption features are working correctly. Successfully tested encryption key generation for new users, message encryption/decryption, and encrypted file sharing. The system properly generates unique encryption keys for each user, encrypts message content before storage, and correctly handles encrypted file attachments."
+
+  - task: "User Blocking Features"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented user blocking functionality, block records in database, and block enforcement"
+      - working: true
+        agent: "testing"
+        comment: "User blocking features are working correctly. Successfully tested blocking users, unblocking users, retrieving blocked users list, and block enforcement. The system properly prevents blocked users from sending messages to each other, creating direct chats, and adding each other as contacts."
+
+  - task: "User Reporting Features"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented user reporting functionality, report records in database, and admin report management"
+      - working: true
+        agent: "testing"
+        comment: "User reporting features are working correctly. Successfully tested reporting users with different reasons, reporting with message context, and admin report management. The system properly stores report records with reporter and reported user information, and provides an admin endpoint to view pending reports."
+
 frontend:
   - task: "User Authentication UI"
     implemented: true
