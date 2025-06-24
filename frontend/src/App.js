@@ -89,26 +89,39 @@ function App() {
     console.log('API URL:', API);
     
     try {
+      // Use XMLHttpRequest instead of axios
       console.log('Making login API call to:', `${API}/login`);
-      const response = await axios.post(`${API}/login`, loginForm);
-      console.log('Login successful:', response.data);
-      setToken(response.data.access_token);
-      setUser(response.data.user);
-      localStorage.setItem('token', response.data.access_token);
-      setCurrentView('chat');
-      fetchChats();
-      fetchContacts();
+      
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${API}/login`, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      
+      xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          console.log('Login successful:', xhr.responseText);
+          const response = JSON.parse(xhr.responseText);
+          setToken(response.access_token);
+          setUser(response.user);
+          localStorage.setItem('token', response.access_token);
+          setCurrentView('chat');
+          fetchChats();
+          fetchContacts();
+        } else {
+          console.error('Login error:', xhr.status, xhr.statusText);
+          console.error('Response:', xhr.responseText);
+          alert('Login failed: ' + xhr.statusText);
+        }
+      };
+      
+      xhr.onerror = function() {
+        console.error('Login request failed');
+        alert('Login request failed');
+      };
+      
+      xhr.send(JSON.stringify(loginForm));
     } catch (error) {
       console.error('Login error:', error);
-      console.error('Login error details:', {
-        message: error.message,
-        response: error.response ? {
-          status: error.response.status,
-          data: error.response.data
-        } : 'No response',
-        request: error.request ? 'Request was made but no response received' : 'No request'
-      });
-      alert('Login failed: ' + (error.response?.data?.detail || error.message));
+      alert('Login failed: ' + error.message);
     }
   };
 
@@ -119,26 +132,39 @@ function App() {
     console.log('API URL:', API);
     
     try {
+      // Use XMLHttpRequest instead of axios
       console.log('Making register API call to:', `${API}/register`);
-      const response = await axios.post(`${API}/register`, registerForm);
-      console.log('Registration successful:', response.data);
-      setToken(response.data.access_token);
-      setUser(response.data.user);
-      localStorage.setItem('token', response.data.access_token);
-      setCurrentView('chat');
-      fetchChats();
-      fetchContacts();
+      
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${API}/register`, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      
+      xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          console.log('Registration successful:', xhr.responseText);
+          const response = JSON.parse(xhr.responseText);
+          setToken(response.access_token);
+          setUser(response.user);
+          localStorage.setItem('token', response.access_token);
+          setCurrentView('chat');
+          fetchChats();
+          fetchContacts();
+        } else {
+          console.error('Registration error:', xhr.status, xhr.statusText);
+          console.error('Response:', xhr.responseText);
+          alert('Registration failed: ' + xhr.statusText);
+        }
+      };
+      
+      xhr.onerror = function() {
+        console.error('Registration request failed');
+        alert('Registration request failed');
+      };
+      
+      xhr.send(JSON.stringify(registerForm));
     } catch (error) {
       console.error('Registration error:', error);
-      console.error('Registration error details:', {
-        message: error.message,
-        response: error.response ? {
-          status: error.response.status,
-          data: error.response.data
-        } : 'No response',
-        request: error.request ? 'Request was made but no response received' : 'No request'
-      });
-      alert('Registration failed: ' + (error.response?.data?.detail || error.message));
+      alert('Registration failed: ' + error.message);
     }
   };
 
