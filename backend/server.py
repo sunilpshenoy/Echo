@@ -476,10 +476,15 @@ async def test_connection():
 
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "https://639f667a-da1c-446c-ba92-c3cc7261bffb.preview.emergentagent.com",
+        "*"
+    ],
     allow_credentials=True,
-    allow_origins=["*"],
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Configure logging
