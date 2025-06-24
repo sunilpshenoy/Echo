@@ -1093,6 +1093,342 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
             {"$set": {"is_online": False, "last_seen": datetime.utcnow()}}
         )
 
+# Core Chat Management Endpoints
+@api_router.get("/chats")
+async def get_chats(current_user = Depends(get_current_user)):
+    """Get all chats for the current user"""
+    chats = await db.chats.find({
+        "members": current_user["user_id"]
+    }).to_list(100)
+    
+    # Get last message for each chat and serialize
+    for chat in chats:
+        if chat.get("last_message"):
+            # Get the actual last message
+            last_msg = await db.messages.find_one(
+                {"chat_id": chat["chat_id"]},
+                sort=[("timestamp", -1)]
+            )
+            if last_msg:
+                chat["last_message"] = serialize_mongo_doc(last_msg)
+        
+        # Get other chat member info for direct chats
+        if chat.get("chat_type") == "direct":
+            other_member_id = next(
+                (member for member in chat["members"] if member != current_user["user_id"]), 
+                None
+            )
+            if other_member_id:
+                other_user = await db.users.find_one({"user_id": other_member_id})
+                if other_user:
+                    chat["other_user"] = {
+                        "user_id": other_user["user_id"],
+                        "username": other_user["username"],
+                        "display_name": other_user.get("display_name"),
+                        "avatar": other_user.get("avatar"),
+                        "status_message": other_user.get("status_message"),
+                        "is_online": other_user.get("is_online", False)
+                    }
+    
+    return serialize_mongo_doc(chats)
+
+@api_router.post("/chats")
+async def create_chat(chat_data: dict, current_user = Depends(get_current_user)):
+    """Create a new chat"""
+    if chat_data.get("chat_type") == "direct":
+        # Create direct chat
+        other_user_id = chat_data.get("other_user_id")
+        if not other_user_id:
+            raise HTTPException(status_code=400, detail="other_user_id required for direct chat")
+        
+        # Check if direct chat already exists
+        existing_chat = await db.chats.find_one({
+            "chat_type": "direct",
+            "members": {"$all": [current_user["user_id"], other_user_id]}
+        })
+        if existing_chat:
+            return serialize_mongo_doc(existing_chat)
+        
+        # Check if users are blocked
+        block_check = await db.blocked_users.find_one({
+            "$or": [
+                {"user_id": current_user["user_id"], "blocked_user_id": other_user_id},
+                {"user_id": other_user_id, "blocked_user_id": current_user["user_id"]}
+            ]
+        })
+        if block_check:
+            raise HTTPException(status_code=403, detail="Cannot create chat with blocked user")
+        
+        chat = Chat(
+            chat_type="direct",
+            members=[current_user["user_id"], other_user_id],
+            admins=[current_user["user_id"]],
+            created_by=current_user["user_id"]
+        )
+    elif chat_data.get("chat_type") == "group":
+        # Create group chat
+        members = chat_data.get("members", [])
+        if not members:
+            raise HTTPException(status_code=400, detail="Members required for group chat")
+        
+        # Add current user to members if not already included
+        if current_user["user_id"] not in members:
+            members.append(current_user["user_id"])
+        
+        chat = Chat(
+            chat_type="group",
+            name=chat_data.get("name", "New Group"),
+            description=chat_data.get("description"),
+            members=members,
+            admins=[current_user["user_id"]],
+            created_by=current_user["user_id"]
+        )
+    else:
+        raise HTTPException(status_code=400, detail="Invalid chat_type")
+    
+    chat_dict = chat.dict()
+    await db.chats.insert_one(chat_dict)
+    
+    # Notify other members via WebSocket
+    for member_id in chat.members:
+        if member_id != current_user["user_id"]:
+            await manager.send_personal_message(
+                json.dumps({
+                    "type": "new_chat",
+                    "data": serialize_mongo_doc(chat_dict)
+                }),
+                member_id
+            )
+    
+    return serialize_mongo_doc(chat_dict)
+
+@api_router.get("/chats/{chat_id}/messages")
+async def get_chat_messages(chat_id: str, current_user = Depends(get_current_user)):
+    """Get messages for a specific chat"""
+    # Verify user is member of chat
+    chat = await db.chats.find_one({"chat_id": chat_id})
+    if not chat or current_user["user_id"] not in chat["members"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    messages = await db.messages.find({
+        "chat_id": chat_id,
+        "is_deleted": {"$ne": True}
+    }).sort("timestamp", 1).to_list(1000)
+    
+    # Decrypt messages if user has access
+    for message in messages:
+        if message.get("is_encrypted") and message.get("encrypted_content"):
+            user_key = current_user.get("encryption_key")
+            if user_key:
+                try:
+                    decrypted = MessageEncryption.decrypt_message(
+                        message["encrypted_content"], 
+                        user_key
+                    )
+                    message["content"] = decrypted
+                except:
+                    message["content"] = "[Encrypted Message]"
+    
+    return serialize_mongo_doc(messages)
+
+@api_router.post("/chats/{chat_id}/messages")
+async def send_message(chat_id: str, message_data: dict, current_user = Depends(get_current_user)):
+    """Send a message to a chat"""
+    # Verify user is member of chat
+    chat = await db.chats.find_one({"chat_id": chat_id})
+    if not chat or current_user["user_id"] not in chat["members"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Check for blocks in direct chats
+    if chat.get("chat_type") == "direct":
+        other_user_id = next(
+            (member for member in chat["members"] if member != current_user["user_id"]), 
+            None
+        )
+        if other_user_id:
+            block_check = await db.blocked_users.find_one({
+                "$or": [
+                    {"user_id": current_user["user_id"], "blocked_user_id": other_user_id},
+                    {"user_id": other_user_id, "blocked_user_id": current_user["user_id"]}
+                ]
+            })
+            if block_check:
+                raise HTTPException(status_code=403, detail="Cannot send message to blocked user")
+    
+    # Create message
+    message = Message(
+        chat_id=chat_id,
+        sender_id=current_user["user_id"],
+        content=message_data.get("content", ""),
+        message_type=message_data.get("message_type", "text"),
+        file_name=message_data.get("file_name"),
+        file_size=message_data.get("file_size"),
+        file_data=message_data.get("file_data"),
+        voice_duration=message_data.get("voice_duration"),
+        reply_to=message_data.get("reply_to"),
+        scheduled_for=message_data.get("scheduled_for")
+    )
+    
+    # Encrypt message content if enabled
+    if chat.get("encryption_enabled", True) and message.content:
+        user_key = current_user.get("encryption_key")
+        if user_key:
+            message.encrypted_content = MessageEncryption.encrypt_message(
+                message.content, 
+                user_key
+            )
+            message.is_encrypted = True
+    
+    # Set expiration for disappearing messages
+    if chat.get("disappearing_timer"):
+        message.expires_at = datetime.utcnow() + timedelta(seconds=chat["disappearing_timer"])
+    
+    message_dict = message.dict()
+    await db.messages.insert_one(message_dict)
+    
+    # Update chat's last message
+    await db.chats.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"last_message": message_dict}}
+    )
+    
+    # Broadcast to chat members via WebSocket
+    for member_id in chat["members"]:
+        await manager.send_personal_message(
+            json.dumps({
+                "type": "new_message",
+                "data": serialize_mongo_doc(message_dict)
+            }),
+            member_id
+        )
+    
+    return serialize_mongo_doc(message_dict)
+
+# Contact Management Endpoints
+@api_router.get("/contacts")
+async def get_contacts(current_user = Depends(get_current_user)):
+    """Get all contacts for the current user"""
+    contacts = await db.contacts.find({
+        "user_id": current_user["user_id"]
+    }).to_list(100)
+    
+    # Get contact user details
+    for contact in contacts:
+        user = await db.users.find_one({"user_id": contact["contact_user_id"]})
+        if user:
+            contact["contact_user"] = {
+                "user_id": user["user_id"],
+                "username": user["username"],
+                "display_name": user.get("display_name"),
+                "avatar": user.get("avatar"),
+                "status_message": user.get("status_message"),
+                "is_online": user.get("is_online", False)
+            }
+    
+    return serialize_mongo_doc(contacts)
+
+@api_router.post("/contacts")
+async def add_contact(contact_data: dict, current_user = Depends(get_current_user)):
+    """Add a new contact"""
+    email = contact_data.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="Email required")
+    
+    # Find user by email
+    contact_user = await db.users.find_one({"email": email})
+    if not contact_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if contact_user["user_id"] == current_user["user_id"]:
+        raise HTTPException(status_code=400, detail="Cannot add yourself as contact")
+    
+    # Check if already a contact
+    existing = await db.contacts.find_one({
+        "user_id": current_user["user_id"],
+        "contact_user_id": contact_user["user_id"]
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="Already a contact")
+    
+    # Check if blocked
+    block_check = await db.blocked_users.find_one({
+        "$or": [
+            {"user_id": current_user["user_id"], "blocked_user_id": contact_user["user_id"]},
+            {"user_id": contact_user["user_id"], "blocked_user_id": current_user["user_id"]}
+        ]
+    })
+    if block_check:
+        raise HTTPException(status_code=403, detail="Cannot add blocked user as contact")
+    
+    # Create contact
+    contact = {
+        "contact_id": str(uuid.uuid4()),
+        "user_id": current_user["user_id"],
+        "contact_user_id": contact_user["user_id"],
+        "contact_name": contact_data.get("contact_name", contact_user["username"]),
+        "added_at": datetime.utcnow()
+    }
+    
+    await db.contacts.insert_one(contact)
+    
+    # Add contact user details for response
+    contact["contact_user"] = {
+        "user_id": contact_user["user_id"],
+        "username": contact_user["username"],
+        "display_name": contact_user.get("display_name"),
+        "avatar": contact_user.get("avatar"),
+        "status_message": contact_user.get("status_message"),
+        "is_online": contact_user.get("is_online", False)
+    }
+    
+    return serialize_mongo_doc(contact)
+
+# User Search and Discovery
+@api_router.get("/users/search")
+async def search_users(query: str, current_user = Depends(get_current_user)):
+    """Search for users by username or email"""
+    if len(query) < 2:
+        return []
+    
+    users = await db.users.find({
+        "$or": [
+            {"username": {"$regex": query, "$options": "i"}},
+            {"email": {"$regex": query, "$options": "i"}},
+            {"display_name": {"$regex": query, "$options": "i"}}
+        ],
+        "user_id": {"$ne": current_user["user_id"]}
+    }).limit(20).to_list(20)
+    
+    # Remove sensitive data and add contact/block status
+    result = []
+    for user in users:
+        # Check if blocked
+        is_blocked = await db.blocked_users.find_one({
+            "$or": [
+                {"user_id": current_user["user_id"], "blocked_user_id": user["user_id"]},
+                {"user_id": user["user_id"], "blocked_user_id": current_user["user_id"]}
+            ]
+        })
+        
+        # Check if contact
+        is_contact = await db.contacts.find_one({
+            "user_id": current_user["user_id"],
+            "contact_user_id": user["user_id"]
+        })
+        
+        result.append({
+            "user_id": user["user_id"],
+            "username": user["username"],
+            "display_name": user.get("display_name"),
+            "avatar": user.get("avatar"),
+            "status_message": user.get("status_message"),
+            "is_online": user.get("is_online", False),
+            "is_blocked": bool(is_blocked),
+            "is_contact": bool(is_contact)
+        })
+    
+    return result
+
 # Include the router in the main app
 app.include_router(api_router)
 
