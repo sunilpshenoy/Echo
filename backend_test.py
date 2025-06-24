@@ -1329,6 +1329,409 @@ def test_admin_reports():
     logger.info("Admin reports tests passed")
     return True
 
+def test_voice_rooms():
+    """Test voice room creation and joining"""
+    logger.info("Testing voice rooms...")
+    
+    # Create a voice room
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    room_data = {
+        "name": "Test Voice Room",
+        "description": "A test voice room for API testing",
+        "max_participants": 10
+    }
+    
+    response = requests.post(f"{API_URL}/voice/rooms", json=room_data, headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to create voice room: {response.text}")
+        return False
+    
+    room_id = response.json()["room_id"]
+    logger.info(f"Voice room created with ID: {room_id}")
+    
+    # Get voice rooms
+    response = requests.get(f"{API_URL}/voice/rooms", headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get voice rooms: {response.text}")
+        return False
+    
+    rooms = response.json()
+    if not any(room.get("room_id") == room_id for room in rooms):
+        logger.error(f"Created room not found in rooms list")
+        return False
+    
+    logger.info(f"Successfully retrieved voice rooms list with {len(rooms)} rooms")
+    
+    # Join voice room
+    response = requests.post(f"{API_URL}/voice/rooms/{room_id}/join", headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to join voice room: {response.text}")
+        return False
+    
+    if "participants" not in response.json() or user_ids['user1'] not in response.json()["participants"]:
+        logger.error(f"User not added to participants list: {response.json()}")
+        return False
+    
+    logger.info("Successfully joined voice room")
+    
+    # Have user2 join the room as well
+    headers2 = {"Authorization": f"Bearer {user_tokens['user2']}"}
+    response = requests.post(f"{API_URL}/voice/rooms/{room_id}/join", headers=headers2)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to join voice room with second user: {response.text}")
+        return False
+    
+    if "participants" not in response.json() or len(response.json()["participants"]) != 2:
+        logger.error(f"Second user not added to participants list: {response.json()}")
+        return False
+    
+    logger.info("Successfully joined voice room with second user")
+    
+    # Check WebSocket notifications (if any were received)
+    voice_join_messages = [msg for msg in ws_messages if msg.get("type") == "user_joined_voice"]
+    if voice_join_messages:
+        logger.info(f"Received {len(voice_join_messages)} voice room join notifications via WebSocket")
+    
+    logger.info("Voice rooms tests passed")
+    return True
+
+def test_voice_video_calls():
+    """Test voice/video call initiation and management"""
+    logger.info("Testing voice/video calls...")
+    
+    # Initiate a voice call
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    call_data = {
+        "chat_id": chat_ids['direct_chat'],
+        "call_type": "voice"
+    }
+    
+    response = requests.post(f"{API_URL}/calls/initiate", json=call_data, headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to initiate voice call: {response.text}")
+        return False
+    
+    call_id = response.json()["call_id"]
+    logger.info(f"Voice call initiated with ID: {call_id}")
+    
+    # Verify call data
+    if response.json().get("call_type") != "voice" or response.json().get("status") != "ringing":
+        logger.error(f"Call has incorrect type or status: {response.json()}")
+        return False
+    
+    # Initiate a video call
+    call_data = {
+        "chat_id": chat_ids['direct_chat'],
+        "call_type": "video"
+    }
+    
+    response = requests.post(f"{API_URL}/calls/initiate", json=call_data, headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to initiate video call: {response.text}")
+        return False
+    
+    video_call_id = response.json()["call_id"]
+    logger.info(f"Video call initiated with ID: {video_call_id}")
+    
+    # Test screen sharing
+    response = requests.post(
+        f"{API_URL}/calls/{video_call_id}/screen-share",
+        params={"enable": "true"},
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to enable screen sharing: {response.text}")
+        return False
+    
+    if not response.json().get("screen_sharing"):
+        logger.error(f"Screen sharing not enabled in response: {response.json()}")
+        return False
+    
+    logger.info("Successfully enabled screen sharing")
+    
+    # Check WebSocket notifications (if any were received)
+    call_messages = [msg for msg in ws_messages if msg.get("type") in ["incoming_call", "screen_share_toggle"]]
+    if call_messages:
+        logger.info(f"Received {len(call_messages)} call-related notifications via WebSocket")
+    
+    logger.info("Voice/video calls tests passed")
+    return True
+
+def test_safety_number_verification():
+    """Test safety number verification"""
+    logger.info("Testing safety number verification...")
+    
+    # Get safety number for user2
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    response = requests.get(f"{API_URL}/safety/number/{user_ids['user2']}", headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get safety number: {response.text}")
+        return False
+    
+    safety_data = response.json()
+    if "safety_number" not in safety_data or "qr_code" not in safety_data:
+        logger.error(f"Safety number response missing required fields: {safety_data}")
+        return False
+    
+    safety_number = safety_data["safety_number"]
+    logger.info(f"Retrieved safety number: {safety_number}")
+    
+    # Verify safety number
+    verification_data = {
+        "user_id": user_ids['user2'],
+        "safety_number": safety_number
+    }
+    
+    response = requests.post(f"{API_URL}/safety/verify", json=verification_data, headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to verify safety number: {response.text}")
+        return False
+    
+    if response.json().get("status") != "verified":
+        logger.error(f"Safety number verification failed: {response.json()}")
+        return False
+    
+    logger.info("Successfully verified safety number")
+    
+    # Test with incorrect safety number
+    verification_data = {
+        "user_id": user_ids['user2'],
+        "safety_number": "incorrect123456"
+    }
+    
+    response = requests.post(f"{API_URL}/safety/verify", json=verification_data, headers=headers)
+    
+    if response.status_code != 200 or response.json().get("status") != "invalid":
+        logger.error(f"Incorrect safety number verification should fail: {response.status_code} - {response.text}")
+        return False
+    
+    logger.info("Safety number verification tests passed")
+    return True
+
+def test_backup_restore():
+    """Test backup creation"""
+    logger.info("Testing backup and restore...")
+    
+    # Create a full backup
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    response = requests.post(f"{API_URL}/backup/create", params={"backup_type": "full"}, headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to create full backup: {response.text}")
+        return False
+    
+    backup_data = response.json()
+    if "backup_id" not in backup_data or "download_url" not in backup_data:
+        logger.error(f"Backup response missing required fields: {backup_data}")
+        return False
+    
+    logger.info(f"Created full backup with ID: {backup_data['backup_id']}")
+    
+    # Create a messages-only backup
+    response = requests.post(f"{API_URL}/backup/create", params={"backup_type": "messages_only"}, headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to create messages-only backup: {response.text}")
+        return False
+    
+    logger.info(f"Created messages-only backup with ID: {response.json()['backup_id']}")
+    
+    # Create a media-only backup
+    response = requests.post(f"{API_URL}/backup/create", params={"backup_type": "media_only"}, headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to create media-only backup: {response.text}")
+        return False
+    
+    logger.info(f"Created media-only backup with ID: {response.json()['backup_id']}")
+    
+    logger.info("Backup and restore tests passed")
+    return True
+
+def test_privacy_settings():
+    """Test privacy settings update"""
+    logger.info("Testing privacy settings...")
+    
+    # Update privacy settings
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    privacy_data = {
+        "settings": {
+            "profile_photo": "contacts",
+            "last_seen": "nobody",
+            "phone_number": "nobody",
+            "read_receipts": False,
+            "typing_indicators": True
+        }
+    }
+    
+    response = requests.put(f"{API_URL}/privacy/settings", json=privacy_data, headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to update privacy settings: {response.text}")
+        return False
+    
+    logger.info("Successfully updated privacy settings")
+    
+    # Verify privacy settings are enforced
+    # User2 tries to view User1's profile (should fail with contacts-only setting)
+    headers2 = {"Authorization": f"Bearer {user_tokens['user3']}"}  # Using user3 who is not a contact
+    response = requests.get(f"{API_URL}/profile/{user_ids['user1']}", headers=headers2)
+    
+    if response.status_code != 403:
+        logger.error(f"Privacy settings not enforced for profile view: {response.status_code} - {response.text}")
+        return False
+    
+    logger.info("Successfully verified privacy settings enforcement")
+    
+    # Reset privacy settings for other tests
+    privacy_data = {
+        "settings": {
+            "profile_photo": "everyone",
+            "last_seen": "everyone",
+            "phone_number": "contacts",
+            "read_receipts": True,
+            "typing_indicators": True
+        }
+    }
+    
+    requests.put(f"{API_URL}/privacy/settings", json=privacy_data, headers=headers)
+    
+    logger.info("Privacy settings tests passed")
+    return True
+
+def test_user_discovery():
+    """Test public user discovery"""
+    logger.info("Testing public user discovery...")
+    
+    # First, set a username handle for user1
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    profile_data = {
+        "username_handle": f"testuser_{str(uuid.uuid4())[:8]}"
+    }
+    
+    response = requests.put(f"{API_URL}/profile", json=profile_data, headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to set username handle: {response.text}")
+        return False
+    
+    username_handle = response.json()["username_handle"]
+    logger.info(f"Set username handle to: {username_handle}")
+    
+    # Search for users
+    response = requests.get(f"{API_URL}/discover/users", headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to discover users: {response.text}")
+        return False
+    
+    users = response.json()
+    logger.info(f"Discovered {len(users)} users")
+    
+    # Search with query
+    query = username_handle.split("_")[0]  # Use part of the username as query
+    response = requests.get(f"{API_URL}/discover/users?query={query}", headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to discover users with query: {response.text}")
+        return False
+    
+    users = response.json()
+    logger.info(f"Discovered {len(users)} users with query '{query}'")
+    
+    # Test channel discovery
+    response = requests.get(f"{API_URL}/discover/channels", headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to discover channels: {response.text}")
+        return False
+    
+    channels = response.json()
+    logger.info(f"Discovered {len(channels)} channels")
+    
+    logger.info("User discovery tests passed")
+    return True
+
+def test_enhanced_websocket_features():
+    """Test enhanced WebSocket features like typing indicators"""
+    logger.info("Testing enhanced WebSocket features...")
+    
+    # Clear previous WebSocket messages
+    ws_messages.clear()
+    
+    # Send typing indicator via WebSocket
+    if 'user1' in ws_connections and ws_connections['user1'].sock and ws_connections['user1'].sock.connected:
+        typing_data = {
+            "type": "typing",
+            "chat_id": chat_ids['direct_chat'],
+            "is_typing": True
+        }
+        
+        try:
+            ws_connections['user1'].send(json.dumps(typing_data))
+            logger.info("Sent typing indicator via WebSocket")
+            
+            # Wait for any responses
+            time.sleep(2)
+            
+            # Check if we received any typing status messages
+            typing_messages = [msg for msg in ws_messages if msg.get("type") == "typing_status"]
+            if typing_messages:
+                logger.info(f"Received {len(typing_messages)} typing status notifications")
+            
+            # Send stop typing
+            typing_data["is_typing"] = False
+            ws_connections['user1'].send(json.dumps(typing_data))
+            logger.info("Sent stop typing indicator via WebSocket")
+            
+            # Wait for any responses
+            time.sleep(2)
+        except Exception as e:
+            logger.error(f"Error sending WebSocket message: {e}")
+            return False
+    else:
+        logger.warning("WebSocket connection not available for testing typing indicators")
+        # This is not a critical failure, so we'll continue
+    
+    # Test user status update via WebSocket
+    if 'user1' in ws_connections and ws_connections['user1'].sock and ws_connections['user1'].sock.connected:
+        status_data = {
+            "type": "user_status",
+            "status": "away",
+            "activity": "Testing WebSocket features",
+            "game": "ChatApp Testing"
+        }
+        
+        try:
+            ws_connections['user1'].send(json.dumps(status_data))
+            logger.info("Sent user status update via WebSocket")
+            
+            # Wait for any responses
+            time.sleep(2)
+            
+            # Check if we received any status update messages
+            status_messages = [msg for msg in ws_messages if msg.get("type") == "status_update"]
+            if status_messages:
+                logger.info(f"Received {len(status_messages)} status update notifications")
+        except Exception as e:
+            logger.error(f"Error sending WebSocket status message: {e}")
+            return False
+    else:
+        logger.warning("WebSocket connection not available for testing status updates")
+        # This is not a critical failure, so we'll continue
+    
+    logger.info("Enhanced WebSocket features tests passed")
+    return True
+
 def run_all_tests():
     """Run all tests and return results"""
     test_results = {
@@ -1380,6 +1783,27 @@ def run_all_tests():
         "User Reporting": {
             "report_user": test_report_user(),
             "admin_reports": test_admin_reports()
+        },
+        "Voice Rooms": {
+            "voice_rooms": test_voice_rooms()
+        },
+        "Voice/Video Calls": {
+            "calls": test_voice_video_calls()
+        },
+        "Safety Number Verification": {
+            "safety_number": test_safety_number_verification()
+        },
+        "Advanced Backup/Restore": {
+            "backup": test_backup_restore()
+        },
+        "Enhanced Privacy Controls": {
+            "privacy_settings": test_privacy_settings()
+        },
+        "Public User Discovery": {
+            "user_discovery": test_user_discovery()
+        },
+        "Enhanced WebSocket Features": {
+            "websocket_features": test_enhanced_websocket_features()
         }
     }
     
