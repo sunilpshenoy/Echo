@@ -220,10 +220,15 @@ function App() {
 
   const fetchMessages = async (chatId) => {
     try {
+      console.log('Fetching messages for chat:', chatId, 'with token:', token);
       const response = await axios.get(`${API}/chats/${chatId}/messages`, getAuthHeaders());
+      console.log('Messages fetched successfully:', response.data);
       setMessages(response.data);
     } catch (error) {
       console.error('Error fetching messages:', error);
+      if (error.response?.status === 401) {
+        console.error('Unauthorized - token might be invalid');
+      }
     }
   };
 
@@ -232,14 +237,19 @@ function App() {
     if (!newMessage.trim() || !activeChat) return;
 
     try {
+      console.log('Sending message:', newMessage, 'to chat:', activeChat.chat_id);
       await axios.post(`${API}/chats/${activeChat.chat_id}/messages`, {
         content: newMessage,
         message_type: 'text'
       }, getAuthHeaders());
       
       setNewMessage('');
+      console.log('Message sent successfully');
     } catch (error) {
       console.error('Error sending message:', error);
+      if (error.response?.status === 401) {
+        console.error('Unauthorized - token might be invalid');
+      }
     }
   };
 
