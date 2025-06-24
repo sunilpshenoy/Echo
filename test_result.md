@@ -198,6 +198,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "After fixing the CryptContext import issue in the backend, the backend API endpoints are working correctly when tested directly with curl. However, the frontend is still not successfully communicating with the backend. When submitting the registration or login forms, no network requests are being made to the backend. There might be an issue with how the frontend is making API calls or with environment variable access."
+      - working: false
+        agent: "testing"
+        comment: "Added debug logging to the frontend. Environment variables are correctly loaded (REACT_APP_BACKEND_URL is set properly), but API calls from the frontend to the backend are not being made. Tried different approaches including XMLHttpRequest instead of axios, but the issue persists. This appears to be a CORS or network connectivity issue between the frontend and backend."
 
   - task: "Real-time Chat Interface"
     implemented: true
