@@ -93,96 +93,68 @@ function App() {
 
   // Authentication functions
   const login = async (e) => {
-    e.preventDefault();  // Prevent default form submission
+    e.preventDefault();
     console.log('Login form submitted:', loginForm);
     console.log('Backend URL:', BACKEND_URL);
     console.log('API URL:', API);
     
     try {
       console.log('Making login API call to:', `${API}/login`);
+      const response = await axios.post(`${API}/login`, loginForm);
+      console.log('Login successful:', response.data);
       
-      // Use fetch API instead of XMLHttpRequest
-      const response = await fetch(`${API}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(loginForm)
-      });
+      const { access_token, user } = response.data;
       
-      console.log('Login response status:', response.status);
+      // Update state
+      setToken(access_token);
+      setUser(user);
+      localStorage.setItem('token', access_token);
       
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Login successful:', data);
-        
-        // Store token and user data
-        setToken(data.access_token);
-        setUser(data.user);
-        localStorage.setItem('token', data.access_token);
-        
-        // Fetch chats and contacts before changing view
-        await fetchChats(data.access_token);
-        await fetchContacts(data.access_token);
-        
-        // Change view to chat after data is loaded
-        console.log('Changing view to chat...');
-        setCurrentView('chat');
-      } else {
-        const errorText = await response.text();
-        console.error('Login error:', response.status, errorText);
-        alert(`Login failed: ${response.status} ${response.statusText}`);
-      }
+      console.log('Token and user set, now switching to chat view...');
+      setCurrentView('chat');
+      
+      // Fetch data after view change
+      setTimeout(() => {
+        fetchChats(access_token);
+        fetchContacts(access_token);
+      }, 100);
+      
     } catch (error) {
       console.error('Login error:', error);
-      alert('Login failed: ' + error.message);
+      alert('Login failed: ' + (error.response?.data?.detail || error.message));
     }
   };
 
   const register = async (e) => {
-    e.preventDefault();  // Prevent default form submission
+    e.preventDefault();
     console.log('Register form submitted:', registerForm);
     console.log('Backend URL:', BACKEND_URL);
     console.log('API URL:', API);
     
     try {
       console.log('Making register API call to:', `${API}/register`);
+      const response = await axios.post(`${API}/register`, registerForm);
+      console.log('Registration successful:', response.data);
       
-      // Use fetch API instead of XMLHttpRequest
-      const response = await fetch(`${API}/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(registerForm)
-      });
+      const { access_token, user } = response.data;
       
-      console.log('Register response status:', response.status);
+      // Update state
+      setToken(access_token);
+      setUser(user);
+      localStorage.setItem('token', access_token);
       
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Registration successful:', data);
-        
-        // Store token and user data
-        setToken(data.access_token);
-        setUser(data.user);
-        localStorage.setItem('token', data.access_token);
-        
-        // Fetch chats and contacts before changing view
-        await fetchChats(data.access_token);
-        await fetchContacts(data.access_token);
-        
-        // Change view to chat after data is loaded
-        console.log('Changing view to chat...');
-        setCurrentView('chat');
-      } else {
-        const errorText = await response.text();
-        console.error('Registration error:', response.status, errorText);
-        alert(`Registration failed: ${response.status} ${response.statusText}`);
-      }
+      console.log('Token and user set, now switching to chat view...');
+      setCurrentView('chat');
+      
+      // Fetch data after view change
+      setTimeout(() => {
+        fetchChats(access_token);
+        fetchContacts(access_token);
+      }, 100);
+      
     } catch (error) {
       console.error('Registration error:', error);
-      alert('Registration failed: ' + error.message);
+      alert('Registration failed: ' + (error.response?.data?.detail || error.message));
     }
   };
 
