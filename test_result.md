@@ -179,6 +179,81 @@ backend:
       - working: true
         agent: "testing"
         comment: "Message storage and retrieval is working correctly. Successfully sent messages to both direct and group chats, and retrieved message history with proper metadata. Real-time message broadcasting via WebSockets is also working."
+        
+  - task: "File Upload API"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented file upload endpoint with size limits, type validation, and base64 encoding"
+      - working: true
+        agent: "testing"
+        comment: "File upload API is working correctly. Successfully tested uploading image files, file size validation (rejecting files >10MB), and file type validation. The API correctly returns file metadata including name, size, type, and base64-encoded data."
+
+  - task: "Enhanced Message API"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Enhanced message model with file attachment support, including file_name, file_size, and file_data fields"
+      - working: true
+        agent: "testing"
+        comment: "Enhanced Message API is working correctly. Successfully sent messages with image and text file attachments. The API properly handles different message types (text, image, file) and correctly stores and retrieves file metadata and content."
+
+  - task: "Read Receipts API"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented read receipt tracking with read_by field in messages and dedicated endpoint for marking messages as read"
+      - working: true
+        agent: "testing"
+        comment: "Read Receipts API is working correctly. Successfully marked messages as read using the /api/messages/read endpoint. The API properly tracks which users have read each message and updates the read status in real-time. The sender can see when their messages have been read by recipients."
+
+  - task: "Enhanced Group Chat API"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented dedicated group chat creation endpoint and member management functionality"
+      - working: true
+        agent: "testing"
+        comment: "Enhanced Group Chat API is working correctly. Successfully created group chats with the dedicated /api/chats/group endpoint. Member management works properly - admins can add and remove members, while non-admins are prevented from making changes. The API correctly enforces permissions and maintains the group structure."
+
+  - task: "Enhanced User Profile"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Enhanced user model with status_message field and profile update endpoint"
+      - working: true
+        agent: "testing"
+        comment: "Enhanced User Profile functionality is working correctly. Successfully updated user status messages and other profile fields via the /api/profile endpoint. The API correctly validates and applies changes to the user profile. Enhanced user data is properly included in API responses, showing status messages in chat listings."
 
 frontend:
   - task: "User Authentication UI"
