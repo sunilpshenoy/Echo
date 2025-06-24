@@ -126,7 +126,7 @@ function App() {
   };
 
   const register = async (e) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default form submission
     console.log('Register form submitted:', registerForm);
     console.log('Backend URL:', BACKEND_URL);
     console.log('API URL:', API);
