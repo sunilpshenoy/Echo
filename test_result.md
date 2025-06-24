@@ -607,10 +607,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "File/Image Sharing"
-    - "Message Read Receipts"
-    - "Enhanced Group Chat Features"
-    - "Enhanced UI/UX"
+    - "Visual Encryption Indicators"
+    - "Block User Interface"
+    - "Report User Interface"
+    - "Security Branding"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
