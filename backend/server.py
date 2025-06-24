@@ -420,7 +420,7 @@ async def add_contact(contact_data: dict, current_user = Depends(get_current_use
     contact_dict = contact.dict()
     await db.contacts.insert_one(contact_dict)
     
-    return contact_dict
+    return serialize_mongo_doc(contact_dict)
 
 # WebSocket endpoint
 @api_router.websocket("/ws/{user_id}")
