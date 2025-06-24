@@ -122,15 +122,18 @@ backend:
 
   - task: "WebSocket Real-time Communication"
     implemented: true
-    working: "NA"
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented WebSocket connection manager, real-time message broadcasting, online/offline status tracking"
+      - working: true
+        agent: "testing"
+        comment: "WebSocket connections are working properly. Successfully established connections for multiple users, and the connection manager correctly tracks user online status."
 
   - task: "Chat Management System"
     implemented: true
