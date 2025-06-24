@@ -253,7 +253,7 @@ async def get_user_chats(current_user = Depends(get_current_user)):
     
     # Populate chat details
     for chat in chats:
-        if chat["last_message"]:
+        if chat.get("last_message"):
             # Get sender info for last message
             sender = await db.users.find_one({"user_id": chat["last_message"]["sender_id"]})
             if sender:
@@ -271,7 +271,7 @@ async def get_user_chats(current_user = Depends(get_current_user)):
                     "is_online": other_user.get("is_online", False)
                 }
     
-    return chats
+    return serialize_mongo_doc(chats)
 
 @api_router.post("/chats")
 async def create_chat(chat_data: dict, current_user = Depends(get_current_user)):
@@ -282,7 +282,7 @@ async def create_chat(chat_data: dict, current_user = Depends(get_current_user))
             "members": {"$all": [current_user["user_id"], chat_data["other_user_id"]]}
         })
         if existing_chat:
-            return existing_chat
+            return serialize_mongo_doc(existing_chat)
         
         # Create new direct chat
         chat = Chat(
@@ -300,7 +300,7 @@ async def create_chat(chat_data: dict, current_user = Depends(get_current_user))
     
     chat_dict = chat.dict()
     await db.chats.insert_one(chat_dict)
-    return chat_dict
+    return serialize_mongo_doc(chat_dict)
 
 @api_router.get("/chats/{chat_id}/messages")
 async def get_chat_messages(chat_id: str, current_user = Depends(get_current_user)):
@@ -318,7 +318,7 @@ async def get_chat_messages(chat_id: str, current_user = Depends(get_current_use
             message["sender_name"] = sender["username"]
             message["sender_avatar"] = sender.get("avatar")
     
-    return messages
+    return serialize_mongo_doc(messages)
 
 @api_router.post("/chats/{chat_id}/messages")
 async def send_message(chat_id: str, message_data: dict, current_user = Depends(get_current_user)):
