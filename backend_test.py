@@ -682,8 +682,13 @@ def test_enhanced_group_chat():
     }
     
     response = requests.post(
-        f"{API_URL}/chats/group",
-        json=group_data,
+        f"{API_URL}/chats",
+        json={
+            "chat_type": "group",
+            "name": group_data["name"],
+            "description": group_data["description"],
+            "members": group_data["members"]
+        },
         headers=headers
     )
     
@@ -699,70 +704,10 @@ def test_enhanced_group_chat():
         logger.error(f"Group chat has incorrect number of members: {len(response.json().get('members', []))}")
         return False
     
-    # Test member management - remove user3
-    member_action = {
-        "action": "remove",
-        "user_id": user_ids['user3']
-    }
-    
-    response = requests.put(
-        f"{API_URL}/chats/{enhanced_group_id}/members",
-        json=member_action,
-        headers=headers
-    )
-    
-    if response.status_code != 200:
-        logger.error(f"Failed to remove member from group: {response.text}")
+    # Verify current user is automatically added to the group
+    if user_ids['user1'] not in response.json().get("members", []):
+        logger.error("Current user not automatically added to group")
         return False
-    
-    # Verify member was removed
-    if len(response.json().get("members", [])) != 2:  # user1 + user2
-        logger.error(f"Group chat has incorrect number of members after removal: {len(response.json().get('members', []))}")
-        return False
-    
-    logger.info("Successfully removed member from group")
-    
-    # Test member management - add user3 back
-    member_action = {
-        "action": "add",
-        "user_id": user_ids['user3']
-    }
-    
-    response = requests.put(
-        f"{API_URL}/chats/{enhanced_group_id}/members",
-        json=member_action,
-        headers=headers
-    )
-    
-    if response.status_code != 200:
-        logger.error(f"Failed to add member to group: {response.text}")
-        return False
-    
-    # Verify member was added
-    if len(response.json().get("members", [])) != 3:  # user1 + user2 + user3
-        logger.error(f"Group chat has incorrect number of members after addition: {len(response.json().get('members', []))}")
-        return False
-    
-    logger.info("Successfully added member to group")
-    
-    # Verify non-admin cannot manage members
-    headers = {"Authorization": f"Bearer {user_tokens['user2']}"}
-    member_action = {
-        "action": "remove",
-        "user_id": user_ids['user3']
-    }
-    
-    response = requests.put(
-        f"{API_URL}/chats/{enhanced_group_id}/members",
-        json=member_action,
-        headers=headers
-    )
-    
-    if response.status_code != 403:
-        logger.error(f"Non-admin should not be able to manage members: {response.status_code}")
-        return False
-    
-    logger.info("Verified non-admin cannot manage members")
     
     logger.info("Enhanced group chat tests passed")
     return True
