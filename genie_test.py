@@ -73,22 +73,33 @@ def test_genie_process_command(command, expected_intent=None):
     headers = {"Authorization": f"Bearer {user_token}"}
     command_data = {"command": command}
     
-    response = requests.post(f"{API_URL}/genie/process", json=command_data, headers=headers)
+    logger.info(f"Testing command: '{command}'")
+    logger.info(f"Request data: {command_data}")
     
-    if response.status_code != 200:
-        logger.error(f"Failed to process genie command: {response.text}")
+    try:
+        response = requests.post(f"{API_URL}/genie/process", json=command_data, headers=headers)
+        
+        logger.info(f"Response status: {response.status_code}")
+        logger.info(f"Response content: {response.text}")
+        
+        if response.status_code != 200:
+            logger.error(f"Failed to process genie command: {response.text}")
+            return False
+        
+        result = response.json()
+        logger.info(f"Intent: {result.get('intent')}")
+        logger.info(f"Entities: {result.get('entities')}")
+        logger.info(f"Action: {result.get('action')}")
+        logger.info(f"Response: {result.get('response_text')}")
+        
+        if expected_intent and result.get('intent') != expected_intent:
+            logger.error(f"Expected intent '{expected_intent}' but got '{result.get('intent')}'")
+            return False
+        
+        return True
+    except Exception as e:
+        logger.error(f"Exception during command processing: {str(e)}")
         return False
-    
-    result = response.json()
-    logger.info(f"Command: '{command}'")
-    logger.info(f"Intent: {result.get('intent')}")
-    logger.info(f"Response: {result.get('response_text')}")
-    
-    if expected_intent and result.get('intent') != expected_intent:
-        logger.error(f"Expected intent '{expected_intent}' but got '{result.get('intent')}'")
-        return False
-    
-    return True
 
 def test_genie_undo():
     """Test the genie undo functionality"""
