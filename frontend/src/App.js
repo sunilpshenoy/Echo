@@ -70,18 +70,6 @@ function App() {
     theme: 'light'
   });
 
-  // Customization state
-  const [showCustomization, setShowCustomization] = useState(false);
-  const [customSettings, setCustomSettings] = useState({
-    fontFamily: 'Inter', // Default font
-    fontSize: 'medium',
-    backgroundColor: 'white',
-    primaryColor: '#25D366', // WhatsApp green
-    textColor: 'black',
-    userNameColor: '#128C7E',
-    theme: 'light'
-  });
-
   // Enhanced features state
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showVoiceCall, setShowVoiceCall] = useState(false);
