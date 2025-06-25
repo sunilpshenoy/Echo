@@ -2646,9 +2646,7 @@ function App() {
       )}
     </div>
 
-}
-
-export default App;    {/* Genie Assistant */}
+    {/* Genie Assistant */}
     {user && (
       <GenieAssistant 
         user={user} 
@@ -2659,3 +2657,5 @@ export default App;    {/* Genie Assistant */}
   </div>
 );
 }
+
+export default App;
