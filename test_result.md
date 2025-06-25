@@ -422,7 +422,7 @@ backend:
 
   - task: "Genie Undo Functionality"
     implemented: true
-    working: false
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
@@ -437,6 +437,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "Further testing of the Genie Undo functionality confirms the issue. When a command is processed by the Genie, it correctly logs the interaction in the database, but when trying to undo the action, it fails to find the relevant record to undo. The specific error message received is '🧞‍♂️ *Mystical interference detected* No recent contact found to undo!' This suggests that while the command is being processed and the intent is recognized, the actual action (like adding a contact) is not being executed, so there's nothing to undo. The issue could be in the perform_undo function or in the action execution logic."
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested the /api/genie/undo endpoint. The endpoint now works correctly for undoing actions like adding contacts. When a contact is added using the Genie command 'add contact test.contact@example.com', the undo endpoint successfully removes the contact and returns a success message: '🧞‍♂️ *Waves magical hands* ✨ The friendship bond has been gently severed!'. The issue was fixed by ensuring that actions are properly logged in the database with the interaction_id, allowing the perform_undo function to find and reverse the action."
 
 frontend:
   - task: "User Authentication UI"
