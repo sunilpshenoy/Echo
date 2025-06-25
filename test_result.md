@@ -819,7 +819,7 @@ agent_communication:
   - task: "Advanced Voice/Video Calls"
     implemented: true
     working: true
-    file: "server.py"
+    file: "App.js"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
@@ -833,6 +833,9 @@ agent_communication:
       - working: true
         agent: "testing"
         comment: "BACKEND TESTING PASSED: The /api/calls/initiate endpoint is working correctly for both voice and video calls. WebSocket notifications are properly sent to participants. The previous testing issues were resolved - all backend functionality is working correctly."
+      - working: true
+        agent: "testing"
+        comment: "FRONTEND TESTING PASSED: The voice and video call buttons are properly implemented in the chat header. When a chat is selected, the buttons are visible and correctly styled. The initiateCall function is properly implemented to handle both voice and video calls, including WebRTC initialization and permissions requests."
 
   - task: "Voice Rooms (Discord-style)"
     implemented: true
