@@ -2300,7 +2300,7 @@ def test_genie_undo_functionality():
     headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
     
     # First, perform an action using Genie
-    action_command = "add contact test.user@example.com"
+    action_command = f"add contact {test_users[1]['email']}"
     
     action_response = requests.post(
         f"{API_URL}/genie/process",
