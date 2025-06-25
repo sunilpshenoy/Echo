@@ -402,8 +402,11 @@ function App() {
 
   const register = async (e) => {
     e.preventDefault();
+    console.log('Register form submitted:', registerForm);
     try {
+      console.log('Attempting to register with:', registerForm);
       const response = await axios.post(`${API}/register`, registerForm);
+      console.log('Register response:', response.data);
       const { access_token, user } = response.data;
       
       setToken(access_token);
@@ -417,6 +420,7 @@ function App() {
       }
       
       setTimeout(() => {
+        console.log('Fetching user data after registration');
         fetchChats(access_token);
         fetchContacts(access_token);
         fetchBlockedUsers(access_token);
@@ -427,6 +431,7 @@ function App() {
       
     } catch (error) {
       console.error('Registration error:', error);
+      console.error('Registration error details:', error.response?.data);
       alert('Registration failed: ' + (error.response?.data?.detail || error.message));
     }
   };
@@ -1444,29 +1449,6 @@ function App() {
                 ✅
               </button>
               <button
-                onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)}
-                className={`text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all ${
-                  workspaceMode === 'business' ? 'bg-purple-100 text-purple-700' : ''
-                }`}
-                title="Workspace"
-              >
-                {workspaceMode === 'personal' ? '🏠' : '🏢'}
-              </button>
-              <button
-                onClick={() => setShowCalendar(!showCalendar)}
-                className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all"
-                title="Calendar"
-              >
-                📅
-              </button>
-              <button
-                onClick={() => setShowTasks(!showTasks)}
-                className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all"
-                title="Tasks"
-              >
-                ✅
-              </button>
-              <button
                 onClick={() => setShowGameCenter(!showGameCenter)}
                 className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all"
                 title="Games"
@@ -1683,21 +1665,6 @@ function App() {
                         <p className="text-xs text-purple-500 italic ml-2">typing...</p>
                       </div>
                     )}
-                    <div className="flex items-center justify-between mt-1">
-                      {chat.chat_type === 'direct' && chat.other_user?.is_online && (
-                        <span className="text-xs text-green-500 font-medium">● Online</span>
-                      )}
-                      {chat.chat_type === 'group' && (
-                        <span className="text-xs text-gray-500">
-                          👥 {chat.members?.length || 0} members
-                        </span>
-                      )}
-                      {chat.chat_type === 'channel' && (
-                        <span className="text-xs text-blue-500">
-                          📢 Channel
-                        </span>
-                      )}
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1706,230 +1673,315 @@ function App() {
         </div>
       </div>
 
-      {/* Ultimate Enhanced Chat Area */}
+      {/* Chat Area */}
       <div className="flex-1 flex flex-col">
         {activeChat ? (
           <>
-            {/* Ultimate Chat Header */}
-            <div className="p-4 bg-white/80 backdrop-blur-lg border-b border-gray-200/50 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full flex items-center justify-center shadow-lg">
-                    <span className="text-white font-medium">
-                      {activeChat.chat_type === 'direct' 
-                        ? activeChat.other_user?.username?.charAt(0).toUpperCase() || '?'
-                        : activeChat.name?.charAt(0).toUpperCase() || 'G'
-                      }
-                    </span>
-                  </div>
-                  <div className="ml-4">
-                    <p className="font-medium text-lg flex items-center">
-                      {activeChat.chat_type === 'direct' 
-                        ? activeChat.other_user?.username || 'Unknown User'
-                        : activeChat.name
-                      }
-                      <span className="ml-2 text-purple-500">🚀</span>
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {activeChat.chat_type === 'direct' && activeChat.other_user?.is_online && (
-                        <span className="text-green-500">● Online</span>
-                      )}
-                      {activeChat.chat_type === 'group' && (
-                        <span>👥 {activeChat.members?.length || 0} members</span>
-                      )}
-                      <span className="ml-2">• End-to-end encrypted • Ultimate Security</span>
-                    </p>
-                  </div>
+            {/* Chat Header */}
+            <div className="p-4 bg-white border-b border-gray-200 flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full flex items-center justify-center">
+                  <span className="text-white font-medium">
+                    {activeChat.chat_type === 'direct' 
+                      ? activeChat.other_user?.username?.charAt(0).toUpperCase() || '?'
+                      : activeChat.name?.charAt(0).toUpperCase() || 'G'
+                    }
+                  </span>
                 </div>
-                
-                {/* Ultimate action buttons */}
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => initiateCall('voice')}
-                    className="p-3 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all hover:scale-110"
-                    title="Voice Call"
-                  >
-                    <span className="text-xl">📞</span>
-                  </button>
-                  <button
-                    onClick={() => initiateCall('video')}
-                    className="p-3 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all hover:scale-110"
-                    title="Video Call"
-                  >
-                    <span className="text-xl">📹</span>
-                  </button>
-                  <button
-                    onClick={isScreenSharing ? stopScreenShare : startScreenShare}
-                    className={`p-3 rounded-xl transition-all hover:scale-110 ${
-                      isScreenSharing 
-                        ? 'text-red-600 bg-red-50' 
-                        : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
-                    }`}
-                    title={isScreenSharing ? "Stop Screen Share" : "Start Screen Share"}
-                  >
-                    <span className="text-xl">🖥️</span>
-                  </button>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="p-3 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all hover:scale-110"
-                    title="Attach File"
-                  >
-                    <span className="text-xl">📎</span>
-                  </button>
-                  {activeChat.chat_type === 'direct' && (
+                <div className="ml-3">
+                  <p className="font-medium text-gray-900">
+                    {activeChat.chat_type === 'direct' 
+                      ? activeChat.other_user?.username || 'Unknown User'
+                      : activeChat.name
+                    } <span className="text-xs text-gray-500">🔒</span>
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {activeChat.chat_type === 'direct' 
+                      ? activeChat.other_user?.is_online ? 'Online' : 'Offline'
+                      : `${activeChat.members?.length || 0} members`
+                    }
+                  </p>
+                </div>
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => initiateCall('voice')}
+                  className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+                  title="Voice Call"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => initiateCall('video')}
+                  className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+                  title="Video Call"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+                  title="Attach File"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                  </svg>
+                </button>
+                {activeChat.chat_type === 'direct' && (
+                  <>
                     <button
-                      onClick={() => getSafetyNumber(activeChat.other_user?.user_id)}
-                      className="p-3 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all hover:scale-110"
-                      title="Safety Number"
+                      onClick={() => {
+                        if (window.confirm(`Block ${activeChat.other_user?.username}?`)) {
+                          axios.post(`${API}/users/${activeChat.other_user?.user_id}/block`, {}, getAuthHeaders())
+                            .then(() => {
+                              fetchBlockedUsers();
+                              alert(`${activeChat.other_user?.username} has been blocked`);
+                            })
+                            .catch(error => {
+                              console.error('Error blocking user:', error);
+                            });
+                        }
+                      }}
+                      className="p-2 text-gray-600 hover:text-red-600 hover:bg-gray-100 rounded-full transition-colors"
+                      title="Block User"
                     >
-                      <span className="text-xl">🛡️</span>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                      </svg>
                     </button>
-                  )}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    hidden
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        // handleFileSelect(e.target.files[0]);
-                      }
-                    }}
-                  />
-                </div>
+                    <button
+                      onClick={() => {
+                        setReportForm({
+                          ...reportForm,
+                          user_id: activeChat.other_user?.user_id,
+                          chat_id: activeChat.chat_id
+                        });
+                        setShowReportModal(true);
+                      }}
+                      className="p-2 text-gray-600 hover:text-orange-600 hover:bg-gray-100 rounded-full transition-colors"
+                      title="Report User"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
-            {/* Ultimate Messages Area */}
-            <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-gray-50/50 to-white/50 backdrop-blur-sm">
-              {replyToMessage && (
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border border-blue-200 mb-4 backdrop-blur-sm">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-sm text-blue-600 font-medium">↩️ Replying to:</p>
-                      <p className="text-sm text-gray-700 mt-1">{replyToMessage.content}</p>
-                    </div>
-                    <button
-                      onClick={() => setReplyToMessage(null)}
-                      className="text-gray-400 hover:text-gray-600 text-xl"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </div>
-              )}
-              
-              {isScreenSharing && (
-                <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-4 rounded-xl border border-purple-200 mb-4">
-                  <div className="flex items-center justify-center">
-                    <span className="text-2xl mr-2">🖥️</span>
-                    <p className="text-purple-700 font-medium">You are sharing your screen</p>
-                  </div>
-                </div>
-              )}
-              
-              {messages.map(renderMessage)}
+            {/* Messages Area */}
+            <div 
+              className="flex-1 p-4 overflow-y-auto bg-gray-50"
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOver(true);
+              }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragOver(false);
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                  // Handle file upload
+                  const file = files[0];
+                  if (file.size > 10 * 1024 * 1024) {
+                    alert('File size exceeds 10MB limit');
+                    return;
+                  }
+                  
+                  setUploadingFile(true);
+                  const reader = new FileReader();
+                  reader.onload = async () => {
+                    const base64Data = reader.result.split(',')[1];
+                    
+                    try {
+                      const messageType = file.type.startsWith('image/') ? 'image' : 'file';
+                      await axios.post(`${API}/chats/${activeChat.chat_id}/messages`, {
+                        content: file.name,
+                        message_type: messageType,
+                        file_data: base64Data,
+                        file_name: file.name,
+                        file_size: file.size,
+                        file_type: file.type
+                      }, getAuthHeaders());
+                      
+                      setUploadingFile(false);
+                    } catch (error) {
+                      console.error('Error uploading file:', error);
+                      setUploadingFile(false);
+                      alert('Failed to upload file');
+                    }
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }}
+            >
+              {messages.map(message => renderMessage(message))}
               <div ref={messagesEndRef} />
+              
+              {/* File Drop Overlay */}
+              {dragOver && (
+                <div className="absolute inset-0 bg-blue-500 bg-opacity-20 flex items-center justify-center">
+                  <div className="bg-white p-6 rounded-lg shadow-xl">
+                    <p className="text-lg font-medium">Drop file to send</p>
+                    <p className="text-sm text-gray-500">Max size: 10MB</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* File Upload Progress */}
+              {uploadingFile && (
+                <div className="fixed bottom-20 right-8 bg-white p-4 rounded-lg shadow-lg">
+                  <div className="flex items-center">
+                    <svg className="animate-spin h-5 w-5 mr-3 text-blue-500" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Uploading file...</span>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Ultimate Message Input */}
-            <div className="p-6 bg-white/80 backdrop-blur-lg border-t border-gray-200/50">
-              <form onSubmit={sendMessage} className="flex items-center space-x-3">
+            {/* Reply to Message */}
+            {replyToMessage && (
+              <div className="bg-gray-100 p-3 border-t border-gray-200">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center">
+                    <div className="w-1 h-8 bg-blue-500 rounded-full mr-2"></div>
+                    <div>
+                      <p className="text-xs text-gray-500">Replying to</p>
+                      <p className="text-sm font-medium truncate max-w-md">{replyToMessage.content}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setReplyToMessage(null)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Message Input */}
+            <div className="p-3 bg-white border-t border-gray-200">
+              <form onSubmit={sendMessage} className="flex items-center space-x-2">
                 <button
                   type="button"
-                  onClick={isRecording ? stopRecording : startRecording}
-                  className={`p-4 rounded-full transition-all ${
-                    isRecording 
-                      ? 'bg-red-500 text-white animate-pulse shadow-lg scale-110' 
-                      : 'bg-gradient-to-r from-gray-200 to-gray-300 text-gray-600 hover:from-gray-300 hover:to-gray-400 hover:scale-110'
-                  }`}
-                  title={isRecording ? `Recording... ${recordingDuration}s` : 'Voice Message'}
+                  className="p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100"
+                  onClick={() => setShowEmojiPicker(true)}
                 >
-                  <span className="text-xl">🎤</span>
+                  😊
                 </button>
-                
-                <div className="flex-1 relative">
+                <div className="relative flex-1">
                   <input
                     type="text"
-                    placeholder="Type your ultimate message... 🚀"
-                    className="w-full p-4 pr-16 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white/80 backdrop-blur-sm shadow-lg transition-all focus:scale-105"
+                    placeholder="Type a message..."
+                    className="w-full p-3 pr-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    disabled={isRecording}
                   />
-                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex space-x-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                      className="text-gray-400 hover:text-gray-600 text-xl transition-all hover:scale-125"
-                    >
-                      😊
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowCreatePoll(true)}
-                      className="text-gray-400 hover:text-gray-600 text-xl transition-all hover:scale-125"
-                    >
-                      📊
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full ${
+                      isRecording ? 'text-red-500 bg-red-100' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                    }`}
+                    onMouseDown={startRecording}
+                    onMouseUp={stopRecording}
+                    onMouseLeave={() => isRecording && stopRecording()}
+                  >
+                    🎤
+                    {isRecording && (
+                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-red-500 text-white text-xs py-1 px-2 rounded">
+                        {recordingDuration}s
+                      </span>
+                    )}
+                  </button>
                 </div>
-                
                 <button
                   type="submit"
-                  className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white px-8 py-4 rounded-2xl hover:shadow-2xl hover:scale-110 transition-all duration-300 flex items-center space-x-2"
-                  disabled={(!newMessage.trim() && !replyToMessage) || isRecording}
+                  className="p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                  disabled={!newMessage.trim() && !replyToMessage}
                 >
-                  <span className="font-medium">Send</span>
-                  <span className="text-lg">🚀</span>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
                 </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      if (file.size > 10 * 1024 * 1024) {
+                        alert('File size exceeds 10MB limit');
+                        return;
+                      }
+                      
+                      setUploadingFile(true);
+                      const reader = new FileReader();
+                      reader.onload = async () => {
+                        const base64Data = reader.result.split(',')[1];
+                        
+                        try {
+                          const messageType = file.type.startsWith('image/') ? 'image' : 'file';
+                          await axios.post(`${API}/chats/${activeChat.chat_id}/messages`, {
+                            content: file.name,
+                            message_type: messageType,
+                            file_data: base64Data,
+                            file_name: file.name,
+                            file_size: file.size,
+                            file_type: file.type
+                          }, getAuthHeaders());
+                          
+                          setUploadingFile(false);
+                          e.target.value = '';
+                        } catch (error) {
+                          console.error('Error uploading file:', error);
+                          setUploadingFile(false);
+                          alert('Failed to upload file');
+                        }
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
               </form>
-              
-              {/* Ultimate Emoji Picker */}
-              {showEmojiPicker && (
-                <div className="absolute bottom-24 right-8 z-50 shadow-2xl rounded-2xl overflow-hidden">
-                  <EmojiPicker
-                    onEmojiClick={(emojiData) => {
-                      setNewMessage(prev => prev + emojiData.emoji);
-                      setShowEmojiPicker(false);
-                    }}
-                  />
-                </div>
-              )}
             </div>
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center bg-gray-50">
-            <div className="text-center max-w-lg">
-              <div className="w-32 h-32 mx-auto mb-8 bg-gray-100 rounded-full flex items-center justify-center">
-                <svg className="w-16 h-16 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
-                </svg>
-              </div>
-              
-              <h3 className="text-3xl font-medium text-gray-900 mb-4">
-                ChatApp Pro
-              </h3>
-              
-              <p className="text-gray-600 mb-8 text-lg">
-                Select a chat to start messaging
-              </p>
-              
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
-                  <span className="text-2xl mb-2">🔒</span>
-                  <span className="font-medium text-gray-700">End-to-end encrypted</span>
+            <div className="text-center p-8 max-w-md">
+              <div className="text-8xl mb-6">🚀</div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Welcome to ChatApp Pro Ultimate!</h2>
+              <p className="text-gray-600 mb-6">Select a chat to start messaging or create a new one.</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                  <div className="text-3xl mb-2">🔒</div>
+                  <h3 className="font-medium text-gray-800">End-to-End Encryption</h3>
+                  <p className="text-sm text-gray-600">Your messages are secure and private</p>
                 </div>
-                <div className="flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
-                  <span className="text-2xl mb-2">📞</span>
-                  <span className="font-medium text-gray-700">Voice & video calls</span>
+                <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                  <div className="text-3xl mb-2">📱</div>
+                  <h3 className="font-medium text-gray-800">Multi-Device</h3>
+                  <p className="text-sm text-gray-600">Access your chats from anywhere</p>
                 </div>
-                <div className="flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
-                  <span className="text-2xl mb-2">📖</span>
-                  <span className="font-medium text-gray-700">Stories & status</span>
+                <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                  <div className="text-3xl mb-2">🎮</div>
+                  <h3 className="font-medium text-gray-800">Games & Fun</h3>
+                  <p className="text-sm text-gray-600">Play games with your friends</p>
                 </div>
-                <div className="flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
-                  <span className="text-2xl mb-2">🧞‍♂️</span>
-                  <span className="font-medium text-gray-700">AI Assistant</span>
+                <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                  <div className="text-3xl mb-2">🎨</div>
+                  <h3 className="font-medium text-gray-800">Customization</h3>
+                  <p className="text-sm text-gray-600">Make it your own with themes</p>
                 </div>
               </div>
             </div>
@@ -1937,40 +1989,40 @@ function App() {
         )}
       </div>
 
-      {/* All the modals and overlays */}
-      
       {/* Add Contact Modal */}
       {showAddContact && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
-            <h3 className="text-lg font-semibold mb-4">Add Contact</h3>
-            <form onSubmit={async (e) => {
+            <h3 className="text-lg font-semibold mb-4">Add New Contact</h3>
+            <form onSubmit={(e) => {
               e.preventDefault();
-              try {
-                await axios.post(`${API}/contacts`, contactForm, getAuthHeaders());
-                setContactForm({ email: '', contact_name: '' });
-                setShowAddContact(false);
-                fetchContacts();
-              } catch (error) {
-                console.error('Error adding contact:', error);
-                alert('Error adding contact: ' + (error.response?.data?.detail || error.message));
-              }
+              axios.post(`${API}/contacts`, contactForm, getAuthHeaders())
+                .then(() => {
+                  setShowAddContact(false);
+                  setContactForm({ email: '', contact_name: '' });
+                  fetchContacts();
+                  alert('Contact added successfully!');
+                })
+                .catch(error => {
+                  console.error('Error adding contact:', error);
+                  alert('Failed to add contact: ' + (error.response?.data?.detail || error.message));
+                });
             }}>
               <div className="space-y-4">
                 <input
                   type="email"
-                  placeholder="Contact Email"
+                  placeholder="Email Address"
+                  className="w-full p-3 border rounded-lg"
                   value={contactForm.email}
                   onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
-                  className="w-full p-3 border rounded-lg"
                   required
                 />
                 <input
                   type="text"
                   placeholder="Contact Name (optional)"
+                  className="w-full p-3 border rounded-lg"
                   value={contactForm.contact_name}
                   onChange={(e) => setContactForm({...contactForm, contact_name: e.target.value})}
-                  className="w-full p-3 border rounded-lg"
                 />
               </div>
               <div className="flex space-x-3 mt-6">
@@ -1983,7 +2035,7 @@ function App() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-blue-500 text-white rounded-lg"
+                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg"
                 >
                   Add Contact
                 </button>
@@ -1997,60 +2049,65 @@ function App() {
       {showCreateGroup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
-            <h3 className="text-lg font-semibold mb-4">Create Group</h3>
-            <form onSubmit={async (e) => {
+            <h3 className="text-lg font-semibold mb-4">Create New Group</h3>
+            <form onSubmit={(e) => {
               e.preventDefault();
-              try {
-                await axios.post(`${API}/chats`, {
-                  chat_type: 'group',
-                  name: groupForm.name,
-                  description: groupForm.description,
-                  members: selectedMembers
-                }, getAuthHeaders());
-                setGroupForm({ name: '', description: '', members: [], chat_type: 'group' });
-                setSelectedMembers([]);
-                setShowCreateGroup(false);
-                fetchChats();
-              } catch (error) {
-                console.error('Error creating group:', error);
-                alert('Error creating group: ' + (error.response?.data?.detail || error.message));
-              }
+              const groupData = {
+                ...groupForm,
+                members: selectedMembers
+              };
+              axios.post(`${API}/chats`, groupData, getAuthHeaders())
+                .then(response => {
+                  setShowCreateGroup(false);
+                  setGroupForm({ name: '', description: '', members: [], chat_type: 'group' });
+                  setSelectedMembers([]);
+                  fetchChats();
+                  setActiveChat(response.data);
+                })
+                .catch(error => {
+                  console.error('Error creating group:', error);
+                  alert('Failed to create group: ' + (error.response?.data?.detail || error.message));
+                });
             }}>
               <div className="space-y-4">
                 <input
                   type="text"
                   placeholder="Group Name"
+                  className="w-full p-3 border rounded-lg"
                   value={groupForm.name}
                   onChange={(e) => setGroupForm({...groupForm, name: e.target.value})}
-                  className="w-full p-3 border rounded-lg"
                   required
                 />
                 <textarea
                   placeholder="Group Description (optional)"
+                  className="w-full p-3 border rounded-lg h-20"
                   value={groupForm.description}
                   onChange={(e) => setGroupForm({...groupForm, description: e.target.value})}
-                  className="w-full p-3 border rounded-lg h-20"
                 />
                 <div>
-                  <label className="block text-sm font-medium mb-2">Add Members:</label>
-                  <div className="max-h-40 overflow-y-auto border rounded-lg">
-                    {contacts.map(contact => (
-                      <div key={contact.contact_user_id} className="flex items-center p-2 hover:bg-gray-50">
-                        <input
-                          type="checkbox"
-                          checked={selectedMembers.includes(contact.contact_user_id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedMembers([...selectedMembers, contact.contact_user_id]);
-                            } else {
-                              setSelectedMembers(selectedMembers.filter(id => id !== contact.contact_user_id));
-                            }
-                          }}
-                          className="mr-3"
-                        />
-                        <span>{contact.contact_name || contact.contact_user?.username}</span>
-                      </div>
-                    ))}
+                  <p className="text-sm font-medium mb-2">Select Members:</p>
+                  <div className="max-h-40 overflow-y-auto border rounded-lg p-2">
+                    {contacts.length === 0 ? (
+                      <p className="text-sm text-gray-500 p-2">No contacts available</p>
+                    ) : (
+                      contacts.map(contact => (
+                        <label key={contact.user_id} className="flex items-center p-2 hover:bg-gray-50">
+                          <input
+                            type="checkbox"
+                            checked={selectedMembers.includes(contact.user_id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedMembers([...selectedMembers, contact.user_id]);
+                              } else {
+                                setSelectedMembers(selectedMembers.filter(id => id !== contact.user_id));
+                              }
+                            }}
+                            className="mr-3"
+                          />
+                          <span>{contact.contact_name || contact.username}</span>
+                        </label>
+                      ))
+                    )}
                   </div>
                 </div>
               </div>
@@ -2064,7 +2121,8 @@ function App() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-purple-500 text-white rounded-lg"
+                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg"
+                  disabled={groupForm.name.trim() === '' || selectedMembers.length === 0}
                 >
                   Create Group
                 </button>
@@ -2074,425 +2132,72 @@ function App() {
         </div>
       )}
 
-      {/* Create Channel Modal */}
-      {showCreateChannel && (
+      {/* Report User Modal */}
+      {showReportModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
-            <h3 className="text-lg font-semibold mb-4">Create Channel</h3>
-            <form onSubmit={async (e) => {
+            <h3 className="text-lg font-semibold mb-4">Report User</h3>
+            <form onSubmit={(e) => {
               e.preventDefault();
-              try {
-                await axios.post(`${API}/channels`, channelForm, getAuthHeaders());
-                setChannelForm({ name: '', description: '', is_public: true, category: 'general' });
-                setShowCreateChannel(false);
-                fetchChannels();
-              } catch (error) {
-                console.error('Error creating channel:', error);
-                alert('Error creating channel: ' + (error.response?.data?.detail || error.message));
-              }
-            }}>
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Channel Name"
-                  value={channelForm.name}
-                  onChange={(e) => setChannelForm({...channelForm, name: e.target.value})}
-                  className="w-full p-3 border rounded-lg"
-                  required
-                />
-                <textarea
-                  placeholder="Channel Description"
-                  value={channelForm.description}
-                  onChange={(e) => setChannelForm({...channelForm, description: e.target.value})}
-                  className="w-full p-3 border rounded-lg h-20"
-                />
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={channelForm.is_public}
-                    onChange={(e) => setChannelForm({...channelForm, is_public: e.target.checked})}
-                    className="mr-3"
-                  />
-                  <label>Public Channel</label>
-                </div>
-              </div>
-              <div className="flex space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateChannel(false)}
-                  className="flex-1 py-2 border rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2 bg-blue-500 text-white rounded-lg"
-                >
-                  Create Channel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Create Story Modal */}
-      {showCreateStory && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
-            <h3 className="text-lg font-semibold mb-4">Create Story</h3>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              try {
-                await axios.post(`${API}/stories`, storyForm, getAuthHeaders());
-                setStoryForm({
-                  content: '',
-                  media_type: 'text',
-                  background_color: '#000000',
-                  text_color: '#ffffff',
-                  privacy: 'all'
+              axios.post(`${API}/users/report`, reportForm, getAuthHeaders())
+                .then(() => {
+                  setShowReportModal(false);
+                  setReportForm({
+                    user_id: '',
+                    reason: '',
+                    description: '',
+                    message_id: null,
+                    chat_id: null
+                  });
+                  alert('Report submitted successfully');
+                })
+                .catch(error => {
+                  console.error('Error reporting user:', error);
+                  alert('Failed to submit report: ' + (error.response?.data?.detail || error.message));
                 });
-                setShowCreateStory(false);
-                fetchStories();
-              } catch (error) {
-                console.error('Error creating story:', error);
-                alert('Error creating story: ' + (error.response?.data?.detail || error.message));
-              }
             }}>
               <div className="space-y-4">
-                <textarea
-                  placeholder="What's on your mind?"
-                  value={storyForm.content}
-                  onChange={(e) => setStoryForm({...storyForm, content: e.target.value})}
-                  className="w-full p-3 border rounded-lg h-32"
-                  required
-                />
-                <div className="flex items-center space-x-4">
-                  <label className="text-sm">Background:</label>
-                  <input
-                    type="color"
-                    value={storyForm.background_color}
-                    onChange={(e) => setStoryForm({...storyForm, background_color: e.target.value})}
-                    className="w-12 h-8 border rounded"
-                  />
-                  <label className="text-sm">Text:</label>
-                  <input
-                    type="color"
-                    value={storyForm.text_color}
-                    onChange={(e) => setStoryForm({...storyForm, text_color: e.target.value})}
-                    className="w-12 h-8 border rounded"
-                  />
-                </div>
-              </div>
-              <div className="flex space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateStory(false)}
-                  className="flex-1 py-2 border rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2 bg-pink-500 text-white rounded-lg"
-                >
-                  Create Story
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Create Voice Room Modal */}
-      {showCreateVoiceRoom && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
-            <h3 className="text-lg font-semibold mb-4">Create Voice Room</h3>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              try {
-                await axios.post(`${API}/voice/rooms`, voiceRoomForm, getAuthHeaders());
-                setVoiceRoomForm({ name: '', description: '', max_participants: 50 });
-                setShowCreateVoiceRoom(false);
-              } catch (error) {
-                console.error('Error creating voice room:', error);
-                alert('Error creating voice room: ' + (error.response?.data?.detail || error.message));
-              }
-            }}>
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Voice Room Name"
-                  value={voiceRoomForm.name}
-                  onChange={(e) => setVoiceRoomForm({...voiceRoomForm, name: e.target.value})}
-                  className="w-full p-3 border rounded-lg"
-                  required
-                />
-                <textarea
-                  placeholder="Description (optional)"
-                  value={voiceRoomForm.description}
-                  onChange={(e) => setVoiceRoomForm({...voiceRoomForm, description: e.target.value})}
-                  className="w-full p-3 border rounded-lg h-20"
-                />
-                <input
-                  type="number"
-                  placeholder="Max Participants"
-                  value={voiceRoomForm.max_participants}
-                  onChange={(e) => setVoiceRoomForm({...voiceRoomForm, max_participants: parseInt(e.target.value)})}
-                  className="w-full p-3 border rounded-lg"
-                  min="2"
-                  max="100"
-                />
-              </div>
-              <div className="flex space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateVoiceRoom(false)}
-                  className="flex-1 py-2 border rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2 bg-orange-500 text-white rounded-lg"
-                >
-                  Create Voice Room
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Create Poll Modal */}
-      {showCreatePoll && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
-            <h3 className="text-lg font-semibold mb-4">Create Poll</h3>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              if (!activeChat) {
-                alert('Please select a chat first');
-                return;
-              }
-              try {
-                await createPoll();
-              } catch (error) {
-                console.error('Error creating poll:', error);
-              }
-            }}>
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Poll Question"
-                  value={pollForm.question}
-                  onChange={(e) => setPollForm({...pollForm, question: e.target.value})}
-                  className="w-full p-3 border rounded-lg"
-                  required
-                />
-                {pollForm.options.map((option, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <input
-                      type="text"
-                      placeholder={`Option ${index + 1}`}
-                      value={option}
-                      onChange={(e) => {
-                        const newOptions = [...pollForm.options];
-                        newOptions[index] = e.target.value;
-                        setPollForm({...pollForm, options: newOptions});
-                      }}
-                      className="flex-1 p-3 border rounded-lg"
-                      required
-                    />
-                    {pollForm.options.length > 2 && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newOptions = pollForm.options.filter((_, i) => i !== index);
-                          setPollForm({...pollForm, options: newOptions});
-                        }}
-                        className="text-red-500"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setPollForm({...pollForm, options: [...pollForm.options, '']})}
-                  className="text-blue-500 text-sm"
-                >
-                  + Add Option
-                </button>
-                <div className="flex items-center space-x-4">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={pollForm.is_anonymous}
-                      onChange={(e) => setPollForm({...pollForm, is_anonymous: e.target.checked})}
-                      className="mr-2"
-                    />
-                    Anonymous
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={pollForm.allows_multiple_answers}
-                      onChange={(e) => setPollForm({...pollForm, allows_multiple_answers: e.target.checked})}
-                      className="mr-2"
-                    />
-                    Multiple Answers
-                  </label>
-                </div>
-              </div>
-              <div className="flex space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowCreatePoll(false)}
-                  className="flex-1 py-2 border rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2 bg-indigo-500 text-white rounded-lg"
-                >
-                  Create Poll
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-      {showAddContact && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
-            <h3 className="text-lg font-semibold mb-4">Add Contact</h3>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              try {
-                await axios.post(`${API}/contacts`, contactForm, getAuthHeaders());
-                setContactForm({ email: '', contact_name: '' });
-                setShowAddContact(false);
-                fetchContacts();
-              } catch (error) {
-                console.error('Error adding contact:', error);
-                alert('Error adding contact: ' + (error.response?.data?.detail || error.message));
-              }
-            }}>
-              <div className="space-y-4">
-                <input
-                  type="email"
-                  placeholder="Contact Email"
-                  value={contactForm.email}
-                  onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
-                  className="w-full p-3 border rounded-lg"
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Contact Name (optional)"
-                  value={contactForm.contact_name}
-                  onChange={(e) => setContactForm({...contactForm, contact_name: e.target.value})}
-                  className="w-full p-3 border rounded-lg"
-                />
-              </div>
-              <div className="flex space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowAddContact(false)}
-                  className="flex-1 py-2 border rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2 bg-blue-500 text-white rounded-lg"
-                >
-                  Add Contact
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Create Group Modal */}
-      {showCreateGroup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
-            <h3 className="text-lg font-semibold mb-4">Create Group</h3>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              try {
-                await axios.post(`${API}/chats`, {
-                  chat_type: 'group',
-                  name: groupForm.name,
-                  description: groupForm.description,
-                  members: selectedMembers
-                }, getAuthHeaders());
-                setGroupForm({ name: '', description: '', members: [], chat_type: 'group' });
-                setSelectedMembers([]);
-                setShowCreateGroup(false);
-                fetchChats();
-              } catch (error) {
-                console.error('Error creating group:', error);
-                alert('Error creating group: ' + (error.response?.data?.detail || error.message));
-              }
-            }}>
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Group Name"
-                  value={groupForm.name}
-                  onChange={(e) => setGroupForm({...groupForm, name: e.target.value})}
-                  className="w-full p-3 border rounded-lg"
-                  required
-                />
-                <textarea
-                  placeholder="Group Description (optional)"
-                  value={groupForm.description}
-                  onChange={(e) => setGroupForm({...groupForm, description: e.target.value})}
-                  className="w-full p-3 border rounded-lg h-20"
-                />
                 <div>
-                  <label className="block text-sm font-medium mb-2">Add Members:</label>
-                  <div className="max-h-40 overflow-y-auto border rounded-lg">
-                    {contacts.map(contact => (
-                      <div key={contact.contact_user_id} className="flex items-center p-2 hover:bg-gray-50">
-                        <input
-                          type="checkbox"
-                          checked={selectedMembers.includes(contact.contact_user_id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedMembers([...selectedMembers, contact.contact_user_id]);
-                            } else {
-                              setSelectedMembers(selectedMembers.filter(id => id !== contact.contact_user_id));
-                            }
-                          }}
-                          className="mr-3"
-                        />
-                        <span>{contact.contact_name || contact.contact_user?.username}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Reason</label>
+                  <select
+                    value={reportForm.reason}
+                    onChange={(e) => setReportForm({...reportForm, reason: e.target.value})}
+                    className="w-full p-3 border rounded-lg"
+                    required
+                  >
+                    <option value="">Select a reason</option>
+                    <option value="spam">Spam</option>
+                    <option value="harassment">Harassment</option>
+                    <option value="inappropriate_content">Inappropriate Content</option>
+                    <option value="impersonation">Impersonation</option>
+                    <option value="hate_speech">Hate Speech</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    placeholder="Please provide details about the issue"
+                    className="w-full p-3 border rounded-lg h-32"
+                    value={reportForm.description}
+                    onChange={(e) => setReportForm({...reportForm, description: e.target.value})}
+                    required
+                  />
                 </div>
               </div>
               <div className="flex space-x-3 mt-6">
                 <button
                   type="button"
-                  onClick={() => setShowCreateGroup(false)}
+                  onClick={() => setShowReportModal(false)}
                   className="flex-1 py-2 border rounded-lg"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-purple-500 text-white rounded-lg"
+                  className="flex-1 py-2 bg-red-600 text-white rounded-lg"
                 >
-                  Create Group
+                  Submit Report
                 </button>
               </div>
             </form>
@@ -2500,873 +2205,215 @@ function App() {
         </div>
       )}
 
-      {/* Create Channel Modal */}
-      {showCreateChannel && (
+      {/* Customization Modal */}
+      {showCustomization && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
-            <h3 className="text-lg font-semibold mb-4">Create Channel</h3>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              try {
-                await axios.post(`${API}/channels`, channelForm, getAuthHeaders());
-                setChannelForm({ name: '', description: '', is_public: true, category: 'general' });
-                setShowCreateChannel(false);
-                fetchChannels();
-              } catch (error) {
-                console.error('Error creating channel:', error);
-                alert('Error creating channel: ' + (error.response?.data?.detail || error.message));
-              }
-            }}>
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Channel Name"
-                  value={channelForm.name}
-                  onChange={(e) => setChannelForm({...channelForm, name: e.target.value})}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Customize Appearance</h3>
+              <button
+                onClick={() => setShowCustomization(false)}
+                className="text-gray-500 hover:text-gray-700 p-2"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Font Family</label>
+                <select
+                  value={customSettings.fontFamily}
+                  onChange={(e) => {
+                    const newSettings = {...customSettings, fontFamily: e.target.value};
+                    setCustomSettings(newSettings);
+                    const root = document.documentElement;
+                    root.style.setProperty('--font-family', e.target.value);
+                  }}
                   className="w-full p-3 border rounded-lg"
-                  required
-                />
-                <textarea
-                  placeholder="Channel Description"
-                  value={channelForm.description}
-                  onChange={(e) => setChannelForm({...channelForm, description: e.target.value})}
-                  className="w-full p-3 border rounded-lg h-20"
-                />
-                <div className="flex items-center">
+                >
+                  <option value="Inter">Inter (Modern)</option>
+                  <option value="Roboto">Roboto (Android)</option>
+                  <option value="San Francisco">SF Pro (iOS)</option>
+                  <option value="Helvetica Neue">Helvetica Neue</option>
+                  <option value="Arial">Arial (Classic)</option>
+                  <option value="Georgia">Georgia (Serif)</option>
+                  <option value="Courier New">Courier (Mono)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Font Size</label>
+                <div className="flex space-x-2">
+                  {['small', 'medium', 'large', 'xl'].map(size => (
+                    <button
+                      key={size}
+                      onClick={() => {
+                        const newSettings = {...customSettings, fontSize: size};
+                        setCustomSettings(newSettings);
+                        const root = document.documentElement;
+                        root.style.setProperty('--font-size', size === 'small' ? '12px' : size === 'large' ? '16px' : size === 'xl' ? '18px' : '14px');
+                      }}
+                      className={`flex-1 py-2 px-3 rounded-lg border ${
+                        customSettings.fontSize === size
+                          ? 'bg-blue-100 border-blue-300 text-blue-800'
+                          : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      {size.charAt(0).toUpperCase() + size.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="color"
+                    value={customSettings.backgroundColor}
+                    onChange={(e) => {
+                      const newSettings = {...customSettings, backgroundColor: e.target.value};
+                      setCustomSettings(newSettings);
+                      const root = document.documentElement;
+                      root.style.setProperty('--bg-color', e.target.value);
+                    }}
+                    className="w-12 h-10 rounded border"
+                  />
+                  <input
+                    type="text"
+                    value={customSettings.backgroundColor}
+                    onChange={(e) => {
+                      const newSettings = {...customSettings, backgroundColor: e.target.value};
+                      setCustomSettings(newSettings);
+                      const root = document.documentElement;
+                      root.style.setProperty('--bg-color', e.target.value);
+                    }}
+                    className="flex-1 p-2 border rounded-lg"
+                    placeholder="#ffffff"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Primary Color</label>
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="color"
+                    value={customSettings.primaryColor}
+                    onChange={(e) => {
+                      const newSettings = {...customSettings, primaryColor: e.target.value};
+                      setCustomSettings(newSettings);
+                      const root = document.documentElement;
+                      root.style.setProperty('--primary-color', e.target.value);
+                    }}
+                    className="w-12 h-10 rounded border"
+                  />
+                  <input
+                    type="text"
+                    value={customSettings.primaryColor}
+                    onChange={(e) => {
+                      const newSettings = {...customSettings, primaryColor: e.target.value};
+                      setCustomSettings(newSettings);
+                      const root = document.documentElement;
+                      root.style.setProperty('--primary-color', e.target.value);
+                    }}
+                    className="flex-1 p-2 border rounded-lg"
+                    placeholder="#25D366"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Text Color</label>
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="color"
+                    value={customSettings.textColor}
+                    onChange={(e) => {
+                      const newSettings = {...customSettings, textColor: e.target.value};
+                      setCustomSettings(newSettings);
+                      const root = document.documentElement;
+                      root.style.setProperty('--text-color', e.target.value);
+                    }}
+                    className="w-12 h-10 rounded border"
+                  />
+                  <input
+                    type="text"
+                    value={customSettings.textColor}
+                    onChange={(e) => {
+                      const newSettings = {...customSettings, textColor: e.target.value};
+                      setCustomSettings(newSettings);
+                      const root = document.documentElement;
+                      root.style.setProperty('--text-color', e.target.value);
+                    }}
+                    className="flex-1 p-2 border rounded-lg"
+                    placeholder="#000000"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="flex items-center space-x-3">
                   <input
                     type="checkbox"
-                    checked={channelForm.is_public}
-                    onChange={(e) => setChannelForm({...channelForm, is_public: e.target.checked})}
-                    className="mr-3"
+                    checked={customSettings.theme === 'dark'}
+                    onChange={(e) => {
+                      const newTheme = e.target.checked ? 'dark' : 'light';
+                      const newSettings = {...customSettings, theme: newTheme};
+                      setCustomSettings(newSettings);
+                      if (newTheme === 'dark') {
+                        document.body.setAttribute('data-theme', 'dark');
+                      } else {
+                        document.body.removeAttribute('data-theme');
+                      }
+                    }}
+                    className="rounded"
                   />
-                  <label>Public Channel</label>
-                </div>
+                  <span>Dark Mode</span>
+                </label>
               </div>
-              <div className="flex space-x-3 mt-6">
+              <div className="flex space-x-3">
                 <button
-                  type="button"
-                  onClick={() => setShowCreateChannel(false)}
+                  onClick={() => {
+                    const defaultSettings = {
+                      fontFamily: 'Inter',
+                      fontSize: 'medium',
+                      backgroundColor: 'white',
+                      primaryColor: '#25D366',
+                      textColor: 'black',
+                      userNameColor: '#128C7E',
+                      theme: 'light'
+                    };
+                    setCustomSettings(defaultSettings);
+                    localStorage.removeItem('chatapp-custom-settings');
+                    
+                    // Apply default settings
+                    const root = document.documentElement;
+                    root.style.setProperty('--font-family', defaultSettings.fontFamily);
+                    root.style.setProperty('--font-size', '14px');
+                    root.style.setProperty('--bg-color', defaultSettings.backgroundColor);
+                    root.style.setProperty('--primary-color', defaultSettings.primaryColor);
+                    root.style.setProperty('--text-color', defaultSettings.textColor);
+                    root.style.setProperty('--username-color', defaultSettings.userNameColor);
+                    document.body.removeAttribute('data-theme');
+                  }}
                   className="flex-1 py-2 border rounded-lg"
                 >
-                  Cancel
+                  Reset to Default
                 </button>
                 <button
-                  type="submit"
-                  className="flex-1 py-2 bg-blue-500 text-white rounded-lg"
+                  onClick={() => {
+                    localStorage.setItem('chatapp-custom-settings', JSON.stringify(customSettings));
+                    setShowCustomization(false);
+                  }}
+                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg"
                 >
-                  Create Channel
+                  Save Changes
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Create Story Modal */}
-      {showCreateStory && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
-            <h3 className="text-lg font-semibold mb-4">Create Story</h3>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              try {
-                await axios.post(`${API}/stories`, storyForm, getAuthHeaders());
-                setStoryForm({
-                  content: '',
-                  media_type: 'text',
-                  background_color: '#000000',
-                  text_color: '#ffffff',
-                  privacy: 'all'
-                });
-                setShowCreateStory(false);
-                fetchStories();
-              } catch (error) {
-                console.error('Error creating story:', error);
-                alert('Error creating story: ' + (error.response?.data?.detail || error.message));
-              }
-            }}>
-              <div className="space-y-4">
-                <textarea
-                  placeholder="What's on your mind?"
-                  value={storyForm.content}
-                  onChange={(e) => setStoryForm({...storyForm, content: e.target.value})}
-                  className="w-full p-3 border rounded-lg h-32"
-                  required
-                />
-                <div className="flex items-center space-x-4">
-                  <label className="text-sm">Background:</label>
-                  <input
-                    type="color"
-                    value={storyForm.background_color}
-                    onChange={(e) => setStoryForm({...storyForm, background_color: e.target.value})}
-                    className="w-12 h-8 border rounded"
-                  />
-                  <label className="text-sm">Text:</label>
-                  <input
-                    type="color"
-                    value={storyForm.text_color}
-                    onChange={(e) => setStoryForm({...storyForm, text_color: e.target.value})}
-                    className="w-12 h-8 border rounded"
-                  />
-                </div>
-              </div>
-              <div className="flex space-x-3 mt-6">
+              <div className="text-center">
                 <button
-                  type="button"
-                  onClick={() => setShowCreateStory(false)}
-                  className="flex-1 py-2 border rounded-lg"
+                  onClick={() => setShowAdvancedCustomization(true)}
+                  className="text-blue-600 hover:text-blue-800 text-sm"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2 bg-pink-500 text-white rounded-lg"
-                >
-                  Create Story
+                  Advanced Customization Options
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Create Voice Room Modal */}
-      {showCreateVoiceRoom && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
-            <h3 className="text-lg font-semibold mb-4">Create Voice Room</h3>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              try {
-                await axios.post(`${API}/voice/rooms`, voiceRoomForm, getAuthHeaders());
-                setVoiceRoomForm({ name: '', description: '', max_participants: 50 });
-                setShowCreateVoiceRoom(false);
-              } catch (error) {
-                console.error('Error creating voice room:', error);
-                alert('Error creating voice room: ' + (error.response?.data?.detail || error.message));
-              }
-            }}>
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Voice Room Name"
-                  value={voiceRoomForm.name}
-                  onChange={(e) => setVoiceRoomForm({...voiceRoomForm, name: e.target.value})}
-                  className="w-full p-3 border rounded-lg"
-                  required
-                />
-                <textarea
-                  placeholder="Description (optional)"
-                  value={voiceRoomForm.description}
-                  onChange={(e) => setVoiceRoomForm({...voiceRoomForm, description: e.target.value})}
-                  className="w-full p-3 border rounded-lg h-20"
-                />
-                <input
-                  type="number"
-                  placeholder="Max Participants"
-                  value={voiceRoomForm.max_participants}
-                  onChange={(e) => setVoiceRoomForm({...voiceRoomForm, max_participants: parseInt(e.target.value)})}
-                  className="w-full p-3 border rounded-lg"
-                  min="2"
-                  max="100"
-                />
-              </div>
-              <div className="flex space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateVoiceRoom(false)}
-                  className="flex-1 py-2 border rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2 bg-orange-500 text-white rounded-lg"
-                >
-                  Create Voice Room
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Create Poll Modal */}
-      {showCreatePoll && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
-            <h3 className="text-lg font-semibold mb-4">Create Poll</h3>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              if (!activeChat) {
-                alert('Please select a chat first');
-                return;
-              }
-              try {
-                await createPoll();
-              } catch (error) {
-                console.error('Error creating poll:', error);
-              }
-            }}>
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Poll Question"
-                  value={pollForm.question}
-                  onChange={(e) => setPollForm({...pollForm, question: e.target.value})}
-                  className="w-full p-3 border rounded-lg"
-                  required
-                />
-                {pollForm.options.map((option, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <input
-                      type="text"
-                      placeholder={`Option ${index + 1}`}
-                      value={option}
-                      onChange={(e) => {
-                        const newOptions = [...pollForm.options];
-                        newOptions[index] = e.target.value;
-                        setPollForm({...pollForm, options: newOptions});
-                      }}
-                      className="flex-1 p-3 border rounded-lg"
-                      required
-                    />
-                    {pollForm.options.length > 2 && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newOptions = pollForm.options.filter((_, i) => i !== index);
-                          setPollForm({...pollForm, options: newOptions});
-                        }}
-                        className="text-red-500"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setPollForm({...pollForm, options: [...pollForm.options, '']})}
-                  className="text-blue-500 text-sm"
-                >
-                  + Add Option
-                </button>
-                <div className="flex items-center space-x-4">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={pollForm.is_anonymous}
-                      onChange={(e) => setPollForm({...pollForm, is_anonymous: e.target.checked})}
-                      className="mr-2"
-                    />
-                    Anonymous
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={pollForm.allows_multiple_answers}
-                      onChange={(e) => setPollForm({...pollForm, allows_multiple_answers: e.target.checked})}
-                      className="mr-2"
-                    />
-                    Multiple Answers
-                  </label>
-                </div>
-              </div>
-              <div className="flex space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowCreatePoll(false)}
-                  className="flex-1 py-2 border rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2 bg-indigo-500 text-white rounded-lg"
-                >
-                  Create Poll
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Customization Modal */}
-      {showCustomization && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw] max-h-[80vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-4 text-gray-900">Customize Appearance</h3>
-            <div className="space-y-6">
-              {/* Font Family */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Font Family</label>
-                <select
-                  value={customSettings.fontFamily}
-                  onChange={(e) => setCustomSettings({...customSettings, fontFamily: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                >
-                  <option value="Inter">Inter (Default)</option>
-                  <option value="Arial">Arial</option>
-                  <option value="Helvetica">Helvetica</option>
-                  <option value="Times New Roman">Times New Roman</option>
-                  <option value="Georgia">Georgia</option>
-                  <option value="Courier New">Courier New</option>
-                  <option value="Verdana">Verdana</option>
-                  <option value="Roboto">Roboto</option>
-                </select>
-              </div>
-
-              {/* Font Size */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Font Size</label>
-                <select
-                  value={customSettings.fontSize}
-                  onChange={(e) => setCustomSettings({...customSettings, fontSize: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                >
-                  <option value="small">Small</option>
-                  <option value="medium">Medium (Default)</option>
-                  <option value="large">Large</option>
-                  <option value="xl">Extra Large</option>
-                </select>
-              </div>
-
-              {/* Background Color */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {['white', '#f5f5f5', '#e5e7eb', '#d1d5db'].map(color => (
-                    <button
-                      key={color}
-                      onClick={() => setCustomSettings({...customSettings, backgroundColor: color})}
-                      className={`w-full h-12 rounded-lg border-2 ${customSettings.backgroundColor === color ? 'border-green-500' : 'border-gray-300'}`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-                <input
-                  type="color"
-                  value={customSettings.backgroundColor}
-                  onChange={(e) => setCustomSettings({...customSettings, backgroundColor: e.target.value})}
-                  className="w-full mt-2 h-10 border border-gray-300 rounded-lg"
-                />
-              </div>
-
-              {/* Primary Color (WhatsApp Green) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Primary Color</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {['#25D366', '#128C7E', '#34B7F1', '#7C3AED'].map(color => (
-                    <button
-                      key={color}
-                      onClick={() => setCustomSettings({...customSettings, primaryColor: color})}
-                      className={`w-full h-12 rounded-lg border-2 ${customSettings.primaryColor === color ? 'border-gray-800' : 'border-gray-300'}`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-                <input
-                  type="color"
-                  value={customSettings.primaryColor}
-                  onChange={(e) => setCustomSettings({...customSettings, primaryColor: e.target.value})}
-                  className="w-full mt-2 h-10 border border-gray-300 rounded-lg"
-                />
-              </div>
-
-              {/* Text Color */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Text Color</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {['black', '#374151', '#6B7280', '#9CA3AF'].map(color => (
-                    <button
-                      key={color}
-                      onClick={() => setCustomSettings({...customSettings, textColor: color})}
-                      className={`w-full h-12 rounded-lg border-2 ${customSettings.textColor === color ? 'border-green-500' : 'border-gray-300'}`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-                <input
-                  type="color"
-                  value={customSettings.textColor}
-                  onChange={(e) => setCustomSettings({...customSettings, textColor: e.target.value})}
-                  className="w-full mt-2 h-10 border border-gray-300 rounded-lg"
-                />
-              </div>
-
-              {/* Username Color */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Username Color</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {['#128C7E', '#25D366', '#34B7F1', '#E53E3E'].map(color => (
-                    <button
-                      key={color}
-                      onClick={() => setCustomSettings({...customSettings, userNameColor: color})}
-                      className={`w-full h-12 rounded-lg border-2 ${customSettings.userNameColor === color ? 'border-gray-800' : 'border-gray-300'}`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-                <input
-                  type="color"
-                  value={customSettings.userNameColor}
-                  onChange={(e) => setCustomSettings({...customSettings, userNameColor: e.target.value})}
-                  className="w-full mt-2 h-10 border border-gray-300 rounded-lg"
-                />
-              </div>
-
-              {/* Theme */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Theme</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setCustomSettings({...customSettings, theme: 'light'})}
-                    className={`p-3 rounded-lg border-2 ${customSettings.theme === 'light' ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}
-                  >
-                    ☀️ Light
-                  </button>
-                  <button
-                    onClick={() => setCustomSettings({...customSettings, theme: 'dark'})}
-                    className={`p-3 rounded-lg border-2 ${customSettings.theme === 'dark' ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}
-                  >
-                    🌙 Dark
-                  </button>
-                </div>
-              </div>
-
-              {/* Reset to Defaults */}
-              <div>
-                <button
-                  onClick={() => setCustomSettings({
-                    fontFamily: 'Inter',
-                    fontSize: 'medium',
-                    backgroundColor: 'white',
-                    primaryColor: '#25D366',
-                    textColor: 'black',
-                    userNameColor: '#128C7E',
-                    theme: 'light'
-                  })}
-                  className="w-full p-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  Reset to Defaults
-                </button>
-              </div>
-            </div>
-            
-            <div className="flex space-x-3 mt-6">
-              <button
-                onClick={() => setShowCustomization(false)}
-                className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  // Apply settings
-                  const root = document.documentElement;
-                  root.style.setProperty('--font-family', customSettings.fontFamily);
-                  root.style.setProperty('--font-size', customSettings.fontSize);
-                  root.style.setProperty('--bg-color', customSettings.backgroundColor);
-                  root.style.setProperty('--primary-color', customSettings.primaryColor);
-                  root.style.setProperty('--text-color', customSettings.textColor);
-                  root.style.setProperty('--username-color', customSettings.userNameColor);
-                  
-                  // Save to localStorage
-                  localStorage.setItem('chatapp-custom-settings', JSON.stringify(customSettings));
-                  setShowCustomization(false);
-                }}
-                className="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                Apply
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Customization Modal */}
-      {showCustomization && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw] max-h-[80vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-4 text-gray-900">Customize Appearance</h3>
-            <div className="space-y-6">
-              {/* Font Family */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Font Family</label>
-                <select
-                  value={customSettings.fontFamily}
-                  onChange={(e) => setCustomSettings({...customSettings, fontFamily: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                >
-                  <option value="Inter">Inter (Default)</option>
-                  <option value="Arial">Arial</option>
-                  <option value="Helvetica">Helvetica</option>
-                  <option value="Times New Roman">Times New Roman</option>
-                  <option value="Georgia">Georgia</option>
-                  <option value="Courier New">Courier New</option>
-                  <option value="Verdana">Verdana</option>
-                  <option value="Roboto">Roboto</option>
-                </select>
-              </div>
-
-              {/* Font Size */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Font Size</label>
-                <select
-                  value={customSettings.fontSize}
-                  onChange={(e) => setCustomSettings({...customSettings, fontSize: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                >
-                  <option value="small">Small</option>
-                  <option value="medium">Medium (Default)</option>
-                  <option value="large">Large</option>
-                  <option value="xl">Extra Large</option>
-                </select>
-              </div>
-
-              {/* Background Color */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {['white', '#f5f5f5', '#e5e7eb', '#d1d5db'].map(color => (
-                    <button
-                      key={color}
-                      onClick={() => setCustomSettings({...customSettings, backgroundColor: color})}
-                      className={`w-full h-12 rounded-lg border-2 ${customSettings.backgroundColor === color ? 'border-green-500' : 'border-gray-300'}`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-                <input
-                  type="color"
-                  value={customSettings.backgroundColor}
-                  onChange={(e) => setCustomSettings({...customSettings, backgroundColor: e.target.value})}
-                  className="w-full mt-2 h-10 border border-gray-300 rounded-lg"
-                />
-              </div>
-
-              {/* Primary Color (WhatsApp Green) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Primary Color</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {['#25D366', '#128C7E', '#34B7F1', '#7C3AED'].map(color => (
-                    <button
-                      key={color}
-                      onClick={() => setCustomSettings({...customSettings, primaryColor: color})}
-                      className={`w-full h-12 rounded-lg border-2 ${customSettings.primaryColor === color ? 'border-gray-800' : 'border-gray-300'}`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-                <input
-                  type="color"
-                  value={customSettings.primaryColor}
-                  onChange={(e) => setCustomSettings({...customSettings, primaryColor: e.target.value})}
-                  className="w-full mt-2 h-10 border border-gray-300 rounded-lg"
-                />
-              </div>
-
-              {/* Text Color */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Text Color</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {['black', '#374151', '#6B7280', '#9CA3AF'].map(color => (
-                    <button
-                      key={color}
-                      onClick={() => setCustomSettings({...customSettings, textColor: color})}
-                      className={`w-full h-12 rounded-lg border-2 ${customSettings.textColor === color ? 'border-green-500' : 'border-gray-300'}`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-                <input
-                  type="color"
-                  value={customSettings.textColor}
-                  onChange={(e) => setCustomSettings({...customSettings, textColor: e.target.value})}
-                  className="w-full mt-2 h-10 border border-gray-300 rounded-lg"
-                />
-              </div>
-
-              {/* Username Color */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Username Color</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {['#128C7E', '#25D366', '#34B7F1', '#E53E3E'].map(color => (
-                    <button
-                      key={color}
-                      onClick={() => setCustomSettings({...customSettings, userNameColor: color})}
-                      className={`w-full h-12 rounded-lg border-2 ${customSettings.userNameColor === color ? 'border-gray-800' : 'border-gray-300'}`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-                <input
-                  type="color"
-                  value={customSettings.userNameColor}
-                  onChange={(e) => setCustomSettings({...customSettings, userNameColor: e.target.value})}
-                  className="w-full mt-2 h-10 border border-gray-300 rounded-lg"
-                />
-              </div>
-
-              {/* Theme */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Theme</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setCustomSettings({...customSettings, theme: 'light'})}
-                    className={`p-3 rounded-lg border-2 ${customSettings.theme === 'light' ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}
-                  >
-                    ☀️ Light
-                  </button>
-                  <button
-                    onClick={() => setCustomSettings({...customSettings, theme: 'dark'})}
-                    className={`p-3 rounded-lg border-2 ${customSettings.theme === 'dark' ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}
-                  >
-                    🌙 Dark
-                  </button>
-                </div>
-              </div>
-
-              {/* Reset to Defaults */}
-              <div>
-                <button
-                  onClick={() => setCustomSettings({
-                    fontFamily: 'Inter',
-                    fontSize: 'medium',
-                    backgroundColor: 'white',
-                    primaryColor: '#25D366',
-                    textColor: 'black',
-                    userNameColor: '#128C7E',
-                    theme: 'light'
-                  })}
-                  className="w-full p-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  Reset to Defaults
-                </button>
-              </div>
-            </div>
-            
-            <div className="flex space-x-3 mt-6">
-              <button
-                onClick={() => setShowCustomization(false)}
-                className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  // Apply settings
-                  const root = document.documentElement;
-                  root.style.setProperty('--font-family', customSettings.fontFamily);
-                  root.style.setProperty('--font-size', customSettings.fontSize);
-                  root.style.setProperty('--bg-color', customSettings.backgroundColor);
-                  root.style.setProperty('--primary-color', customSettings.primaryColor);
-                  root.style.setProperty('--text-color', customSettings.textColor);
-                  root.style.setProperty('--username-color', customSettings.userNameColor);
-                  
-                  // Save to localStorage
-                  localStorage.setItem('chatapp-custom-settings', JSON.stringify(customSettings));
-                  setShowCustomization(false);
-                }}
-                className="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                Apply
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Customization Modal */}
-      {showCustomization && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw] max-h-[80vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-4 text-gray-900">Customize Appearance</h3>
-            <div className="space-y-6">
-              {/* Font Family */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Font Family</label>
-                <select
-                  value={customSettings.fontFamily}
-                  onChange={(e) => setCustomSettings({...customSettings, fontFamily: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                >
-                  <option value="Inter">Inter (Default)</option>
-                  <option value="Arial">Arial</option>
-                  <option value="Helvetica">Helvetica</option>
-                  <option value="Times New Roman">Times New Roman</option>
-                  <option value="Georgia">Georgia</option>
-                  <option value="Courier New">Courier New</option>
-                  <option value="Verdana">Verdana</option>
-                  <option value="Roboto">Roboto</option>
-                </select>
-              </div>
-
-              {/* Font Size */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Font Size</label>
-                <select
-                  value={customSettings.fontSize}
-                  onChange={(e) => setCustomSettings({...customSettings, fontSize: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                >
-                  <option value="small">Small</option>
-                  <option value="medium">Medium (Default)</option>
-                  <option value="large">Large</option>
-                  <option value="xl">Extra Large</option>
-                </select>
-              </div>
-
-              {/* Background Color */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {['white', '#f5f5f5', '#e5e7eb', '#d1d5db'].map(color => (
-                    <button
-                      key={color}
-                      onClick={() => setCustomSettings({...customSettings, backgroundColor: color})}
-                      className={`w-full h-12 rounded-lg border-2 ${customSettings.backgroundColor === color ? 'border-green-500' : 'border-gray-300'}`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-                <input
-                  type="color"
-                  value={customSettings.backgroundColor}
-                  onChange={(e) => setCustomSettings({...customSettings, backgroundColor: e.target.value})}
-                  className="w-full mt-2 h-10 border border-gray-300 rounded-lg"
-                />
-              </div>
-
-              {/* Primary Color (WhatsApp Green) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Primary Color</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {['#25D366', '#128C7E', '#34B7F1', '#7C3AED'].map(color => (
-                    <button
-                      key={color}
-                      onClick={() => setCustomSettings({...customSettings, primaryColor: color})}
-                      className={`w-full h-12 rounded-lg border-2 ${customSettings.primaryColor === color ? 'border-gray-800' : 'border-gray-300'}`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-                <input
-                  type="color"
-                  value={customSettings.primaryColor}
-                  onChange={(e) => setCustomSettings({...customSettings, primaryColor: e.target.value})}
-                  className="w-full mt-2 h-10 border border-gray-300 rounded-lg"
-                />
-              </div>
-
-              {/* Text Color */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Text Color</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {['black', '#374151', '#6B7280', '#9CA3AF'].map(color => (
-                    <button
-                      key={color}
-                      onClick={() => setCustomSettings({...customSettings, textColor: color})}
-                      className={`w-full h-12 rounded-lg border-2 ${customSettings.textColor === color ? 'border-green-500' : 'border-gray-300'}`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-                <input
-                  type="color"
-                  value={customSettings.textColor}
-                  onChange={(e) => setCustomSettings({...customSettings, textColor: e.target.value})}
-                  className="w-full mt-2 h-10 border border-gray-300 rounded-lg"
-                />
-              </div>
-
-              {/* Username Color */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Username Color</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {['#128C7E', '#25D366', '#34B7F1', '#E53E3E'].map(color => (
-                    <button
-                      key={color}
-                      onClick={() => setCustomSettings({...customSettings, userNameColor: color})}
-                      className={`w-full h-12 rounded-lg border-2 ${customSettings.userNameColor === color ? 'border-gray-800' : 'border-gray-300'}`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-                <input
-                  type="color"
-                  value={customSettings.userNameColor}
-                  onChange={(e) => setCustomSettings({...customSettings, userNameColor: e.target.value})}
-                  className="w-full mt-2 h-10 border border-gray-300 rounded-lg"
-                />
-              </div>
-
-              {/* Theme */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Theme</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setCustomSettings({...customSettings, theme: 'light'})}
-                    className={`p-3 rounded-lg border-2 ${customSettings.theme === 'light' ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}
-                  >
-                    ☀️ Light
-                  </button>
-                  <button
-                    onClick={() => setCustomSettings({...customSettings, theme: 'dark'})}
-                    className={`p-3 rounded-lg border-2 ${customSettings.theme === 'dark' ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}
-                  >
-                    🌙 Dark
-                  </button>
-                </div>
-              </div>
-
-              {/* Reset to Defaults */}
-              <div>
-                <button
-                  onClick={() => setCustomSettings({
-                    fontFamily: 'Inter',
-                    fontSize: 'medium',
-                    backgroundColor: 'white',
-                    primaryColor: '#25D366',
-                    textColor: 'black',
-                    userNameColor: '#128C7E',
-                    theme: 'light'
-                  })}
-                  className="w-full p-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  Reset to Defaults
-                </button>
-              </div>
-            </div>
-            
-            <div className="flex space-x-3 mt-6">
-              <button
-                onClick={() => setShowCustomization(false)}
-                className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  // Apply settings
-                  const root = document.documentElement;
-                  root.style.setProperty('--font-family', customSettings.fontFamily);
-                  root.style.setProperty('--font-size', customSettings.fontSize);
-                  root.style.setProperty('--bg-color', customSettings.backgroundColor);
-                  root.style.setProperty('--primary-color', customSettings.primaryColor);
-                  root.style.setProperty('--text-color', customSettings.textColor);
-                  root.style.setProperty('--username-color', customSettings.userNameColor);
-                  
-                  // Save to localStorage
-                  localStorage.setItem('chatapp-custom-settings', JSON.stringify(customSettings));
-                  setShowCustomization(false);
-                }}
-                className="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                Apply
-              </button>
             </div>
           </div>
         </div>
@@ -3410,7 +2457,23 @@ function App() {
           token={token}
           activeChat={activeChat}
           onClose={() => setShowGameCenter(false)}
-          onSendMessage={sendMessage}
+          onSendMessage={(content, messageType, metadata) => {
+            if (!activeChat) return;
+            
+            const messageData = {
+              content,
+              message_type: messageType || 'text'
+            };
+            
+            if (metadata) {
+              messageData.metadata = JSON.stringify(metadata);
+            }
+            
+            axios.post(`${API}/chats/${activeChat.chat_id}/messages`, messageData, getAuthHeaders())
+              .catch(error => {
+                console.error('Error sending game message:', error);
+              });
+          }}
         />
       )}
 
@@ -3418,70 +2481,20 @@ function App() {
       {showAdvancedCustomization && (
         <AdvancedCustomization
           onClose={() => setShowAdvancedCustomization(false)}
-          currentSettings={advancedSettings}
-          onSettingsChange={setAdvancedSettings}
-        />
-      )}
-
-      {/* Workspace Switcher */}
-      {showWorkspaceSwitcher && (
-        <WorkspaceSwitcher
-          user={user}
-          token={token}
-          currentMode={workspaceMode}
-          onModeChange={setWorkspaceMode}
-          onClose={() => setShowWorkspaceSwitcher(false)}
-        />
-      )}
-
-      {/* Calendar */}
-      {showCalendar && (
-        <Calendar
-          user={user}
-          token={token}
-          workspaceMode={workspaceMode}
-          onClose={() => setShowCalendar(false)}
-        />
-      )}
-
-      {/* Task Manager */}
-      {showTasks && (
-        <TaskManager
-          user={user}
-          token={token}
-          workspaceMode={workspaceMode}
-          onClose={() => setShowTasks(false)}
-        />
-      )}
-
-      {/* Game Center */}
-      {showGameCenter && (
-        <GameCenter
-          user={user}
-          token={token}
-          activeChat={activeChat}
-          onClose={() => setShowGameCenter(false)}
-          onSendMessage={sendMessage}
-        />
-      )}
-
-      {/* Advanced Customization */}
-      {showAdvancedCustomization && (
-        <AdvancedCustomization
-          onClose={() => setShowAdvancedCustomization(false)}
-          currentSettings={advancedSettings}
-          onSettingsChange={setAdvancedSettings}
+          currentSettings={customSettings}
+          onSettingsChange={(newSettings) => {
+            setCustomSettings(newSettings);
+            localStorage.setItem('chatapp-custom-settings', JSON.stringify(newSettings));
+          }}
         />
       )}
 
       {/* Genie Assistant */}
-      {user && (
-        <GenieAssistant 
-          user={user} 
-          token={token} 
-          onAction={handleGenieAction}
-        />
-      )}
+      <GenieAssistant
+        user={user}
+        token={token}
+        onAction={handleGenieAction}
+      />
     </div>
   );
 }
