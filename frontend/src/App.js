@@ -1341,13 +1341,12 @@ function App() {
                 </button>
                 <button
                   onClick={() => setShowPrivacySettings(!showPrivacySettings)}
-                <button
-                  onClick={() => setShowPrivacySettings(!showPrivacySettings)}
                   className="group relative text-white/80 hover:text-white p-3 rounded-xl hover:bg-white/10 transition-all duration-300 transform hover:scale-110"
                   title="Privacy"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
                   <span className="text-xl relative z-10">🛡️</span>
+                </button>
                 </button>
                 <button
                   onClick={() => setShowBackupRestore(!showBackupRestore)}
