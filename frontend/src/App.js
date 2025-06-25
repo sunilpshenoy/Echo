@@ -2647,13 +2647,13 @@ function App() {
     </div>
 
     {/* Genie Assistant */}
-    {user && (
+    {user && 
       <GenieAssistant 
         user={user} 
         token={token} 
         onAction={handleGenieAction}
       />
-    )}
+    }
   </div>
 );
 }
