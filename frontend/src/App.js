@@ -3303,6 +3303,37 @@ function App() {
         </div>
       )}
 
+      {/* Workspace Calendar */}
+      {showCalendar && (
+        <Calendar
+          user={user}
+          token={token}
+          workspaceMode={workspaceMode}
+          onClose={() => setShowCalendar(false)}
+        />
+      )}
+
+      {/* Task Manager */}
+      {showTasks && (
+        <TaskManager
+          user={user}
+          token={token}
+          workspaceMode={workspaceMode}
+          onClose={() => setShowTasks(false)}
+        />
+      )}
+
+      {/* Workspace Switcher */}
+      {showWorkspaceSwitcher && (
+        <WorkspaceSwitcher
+          user={user}
+          token={token}
+          currentMode={workspaceMode}
+          onModeChange={setWorkspaceMode}
+          onClose={() => setShowWorkspaceSwitcher(false)}
+        />
+      )}
+
       {/* Genie Assistant */}
       {user && (
         <GenieAssistant 
