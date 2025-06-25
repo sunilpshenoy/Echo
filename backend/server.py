@@ -2173,6 +2173,7 @@ async def perform_undo(action: dict, user_id: str):
     """Perform undo operations for various actions"""
     
     action_type = action.get("type")
+    logging.info(f"Performing undo for action type: {action_type}")
     
     try:
         if action_type == "create_chat":
@@ -2189,15 +2190,31 @@ async def perform_undo(action: dict, user_id: str):
             
         elif action_type == "add_contact":
             # Find and remove the most recent contact added by Genie
+            logging.info(f"Looking for contacts added by Genie for user: {user_id}")
             recent_contact = await db.contacts.find_one(
                 {"user_id": user_id, "added_by_genie": True},
                 sort=[("added_at", -1)]
             )
+            
             if recent_contact:
+                logging.info(f"Found contact to undo: {recent_contact}")
                 await db.contacts.delete_one({"contact_id": recent_contact["contact_id"]})
                 return {"success": True, "message": "The friendship bond has been gently severed!"}
             else:
-                return {"success": False, "message": "No recent contact found to undo!"}
+                # Try without the added_by_genie flag as fallback
+                logging.info("No contacts with added_by_genie flag found, trying without flag")
+                recent_contact = await db.contacts.find_one(
+                    {"user_id": user_id},
+                    sort=[("added_at", -1)]
+                )
+                
+                if recent_contact:
+                    logging.info(f"Found contact without flag to undo: {recent_contact}")
+                    await db.contacts.delete_one({"contact_id": recent_contact["contact_id"]})
+                    return {"success": True, "message": "The friendship bond has been gently severed!"}
+                else:
+                    logging.info("No contacts found to undo")
+                    return {"success": False, "message": "No recent contact found to undo!"}
                 
         elif action_type == "block_user":
             # Find and remove the most recent block added by Genie
