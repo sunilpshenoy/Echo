@@ -340,7 +340,7 @@ def test_workspace_mode():
         logger.error(f"Failed to update workspace mode: {response.text}")
         return False
     
-    if response.json().get("mode") != mode_data["mode"]:
+    if response.json().get("current_mode") != mode_data["mode"]:
         logger.error(f"Workspace mode not updated correctly: {response.json()}")
         return False
     
