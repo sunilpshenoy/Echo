@@ -1850,9 +1850,11 @@ async def execute_genie_action(action: dict, user_id: str, interaction_id: str =
         if action_type == "add_contact":
             # Add contact
             contact_info = action.get("contact_info")
+            logging.info(f"Executing add_contact action with contact_info: {contact_info}")
             if "@" in contact_info:  # Assume it's an email
                 user = await db.users.find_one({"email": contact_info})
                 if user:
+                    logging.info(f"Found user with email {contact_info}: {user.get('username')}")
                     # Check if already a contact
                     existing = await db.contacts.find_one({
                         "user_id": user_id,
@@ -1870,6 +1872,13 @@ async def execute_genie_action(action: dict, user_id: str, interaction_id: str =
                             "interaction_id": interaction_id
                         }
                         result = await db.contacts.insert_one(contact)
+                        logging.info(f"Added contact: {contact}")
+                    else:
+                        logging.info(f"Contact already exists or trying to add self as contact")
+                else:
+                    logging.info(f"No user found with email {contact_info}")
+            else:
+                logging.info(f"Contact info doesn't contain an email: {contact_info}")
         
         elif action_type == "block_user":
             # Block user
