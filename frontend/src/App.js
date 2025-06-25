@@ -5,6 +5,7 @@ import GenieAssistant from './components/GenieAssistant';
 import Calendar from './components/Calendar';
 import TaskManager from './components/TaskManager';
 import WorkspaceSwitcher from './components/WorkspaceSwitcher';
+import GameCenter from './components/GameCenter';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
