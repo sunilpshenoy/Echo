@@ -389,6 +389,36 @@ backend:
       - working: true
         agent: "testing"
         comment: "Enhanced WebSocket Features are implemented correctly in the backend. The ConnectionManager class includes methods for broadcasting typing status, and the WebSocket endpoint handles different message types including typing indicators and voice room joining. The message reaction, edit, and delete endpoints all include WebSocket broadcasting to notify other users in real-time."
+        
+  - task: "Genie Command Processing"
+    implemented: true
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented natural language command processing, intent recognition, and action generation"
+      - working: false
+        agent: "testing"
+        comment: "The Genie Command Processing endpoint (/api/genie/process) is partially working. It correctly identifies intents for commands like 'create a chat', 'add contact', 'block user', 'show my chats', and 'help me'. However, it fails to correctly identify the 'send_message' intent for commands like 'send message to Sarah saying hello', instead treating it as a 'create_chat' intent. The regex pattern for send_message needs to be fixed to properly extract recipient and message content."
+
+  - task: "Genie Undo Functionality"
+    implemented: true
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented undo functionality for genie actions with action logging"
+      - working: false
+        agent: "testing"
+        comment: "The Genie Undo functionality (/api/genie/undo) is not working correctly. When attempting to undo an action (like adding a contact), the endpoint returns a failure message: 'This magic is beyond my powers to reverse, master.' The perform_undo function appears to be unable to find the action to undo, possibly because the action is not being properly logged in the database or the undo logic has an implementation issue."
 
 frontend:
   - task: "User Authentication UI"
