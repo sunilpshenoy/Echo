@@ -392,7 +392,7 @@ backend:
         
   - task: "Genie Command Processing"
     implemented: true
-    working: false
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
@@ -407,6 +407,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "Conducted additional testing of the Genie Command Processing endpoint. The issue is in the intent recognition logic in the analyze_command function. The regex patterns for 'send_message' intent are not being matched correctly. The command 'send message to Sarah saying hello' is being incorrectly matched by the 'create_chat' pattern instead of the 'send_message' pattern. This is likely due to the order of pattern matching or an issue with the regex patterns themselves."
+      - working: true
+        agent: "testing"
+        comment: "Fixed the Genie Command Processing endpoint by reordering the intent patterns in the analyze_command function. The 'send_message' patterns are now checked before the 'create_chat' patterns, which prevents the 'message' pattern in 'create_chat' from incorrectly matching 'send message' commands. All test commands are now correctly identified with their proper intents."
 
   - task: "Genie Undo Functionality"
     implemented: true
