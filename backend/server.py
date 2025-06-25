@@ -1908,9 +1908,10 @@ async def analyze_command(command: str, user_id: str, context: dict):
         
         # Message Actions
         "send_message": [
-            r"send.*message.*to (.+).*saying (.+)",
-            r"tell (.+).*that (.+)",
-            r"message (.+).*(.+)"
+            r"send.*message.*to (.+?).*saying (.+)",
+            r"tell (.+?).*that (.+)",
+            r"message (.+?).*(.+)",
+            r"send (.+?).*message (.+)"
         ],
         
         # User Management
