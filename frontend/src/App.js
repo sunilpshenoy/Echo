@@ -894,7 +894,6 @@ function App() {
   };
 
   // Genie Assistant action handler
-  const handleGenieAction_duplicate = async (action) => {
     try {
       switch (action.type) {
         case 'create_chat':
