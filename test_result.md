@@ -984,11 +984,11 @@ frontend:
 
   - task: "Advanced Customization"
     implemented: true
-    working: true
+    working: false
     file: "components/AdvancedCustomization.js"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "testing"
@@ -996,6 +996,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "Successfully tested the basic customization features. Found a customization button in the header area that opens a customization modal. The modal allows users to customize the appearance of the app, including font family, font size, background color, primary color, and text color. The customization options are well-organized and easy to use."
+      - working: false
+        agent: "testing"
+        comment: "Attempted to test the Advanced Customization again but was unable to proceed past the login page. The login page loads correctly with proper styling and branding, but login attempts with both existing and new user credentials do not redirect to the chat interface. This suggests there may be an issue with the authentication flow or a problem with the backend API connection."
 
 metadata:
   created_by: "main_agent"
