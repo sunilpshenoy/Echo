@@ -9,9 +9,19 @@ import GameCenter from './components/GameCenter';
 import AdvancedCustomization from './components/AdvancedCustomization';
 import "./components/AdvancedCustomization.css";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://1f08d9c4-28b0-437e-b8a1-ad0ba8b89e9a.preview.emergentagent.com';
+// Hardcoded URL for testing
+const BACKEND_URL = 'https://1f08d9c4-28b0-437e-b8a1-ad0ba8b89e9a.preview.emergentagent.com';
 const API = `${BACKEND_URL}/api`;
 
+console.log('BACKEND_URL:', BACKEND_URL);
+console.log('API URL:', API);
+
+// Initialize audio recorder
+const MicRecorder = require("mic-recorder-to-mp3");
+const Mp3Recorder = new MicRecorder({ bitRate: 128 });
+
+function App() {
+  // Rest of the code remains the same...
 // Initialize audio recorder
 const MicRecorder = require("mic-recorder-to-mp3");
 const Mp3Recorder = new MicRecorder({ bitRate: 128 });
