@@ -2686,6 +2686,199 @@ function App() {
         </div>
       )}
 
+      {/* Customization Modal */}
+      {showCustomization && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw] max-h-[80vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold mb-4 text-gray-900">Customize Appearance</h3>
+            <div className="space-y-6">
+              {/* Font Family */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Font Family</label>
+                <select
+                  value={customSettings.fontFamily}
+                  onChange={(e) => setCustomSettings({...customSettings, fontFamily: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                >
+                  <option value="Inter">Inter (Default)</option>
+                  <option value="Arial">Arial</option>
+                  <option value="Helvetica">Helvetica</option>
+                  <option value="Times New Roman">Times New Roman</option>
+                  <option value="Georgia">Georgia</option>
+                  <option value="Courier New">Courier New</option>
+                  <option value="Verdana">Verdana</option>
+                  <option value="Roboto">Roboto</option>
+                </select>
+              </div>
+
+              {/* Font Size */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Font Size</label>
+                <select
+                  value={customSettings.fontSize}
+                  onChange={(e) => setCustomSettings({...customSettings, fontSize: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                >
+                  <option value="small">Small</option>
+                  <option value="medium">Medium (Default)</option>
+                  <option value="large">Large</option>
+                  <option value="xl">Extra Large</option>
+                </select>
+              </div>
+
+              {/* Background Color */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {['white', '#f5f5f5', '#e5e7eb', '#d1d5db'].map(color => (
+                    <button
+                      key={color}
+                      onClick={() => setCustomSettings({...customSettings, backgroundColor: color})}
+                      className={`w-full h-12 rounded-lg border-2 ${customSettings.backgroundColor === color ? 'border-green-500' : 'border-gray-300'}`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+                <input
+                  type="color"
+                  value={customSettings.backgroundColor}
+                  onChange={(e) => setCustomSettings({...customSettings, backgroundColor: e.target.value})}
+                  className="w-full mt-2 h-10 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              {/* Primary Color (WhatsApp Green) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Primary Color</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {['#25D366', '#128C7E', '#34B7F1', '#7C3AED'].map(color => (
+                    <button
+                      key={color}
+                      onClick={() => setCustomSettings({...customSettings, primaryColor: color})}
+                      className={`w-full h-12 rounded-lg border-2 ${customSettings.primaryColor === color ? 'border-gray-800' : 'border-gray-300'}`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+                <input
+                  type="color"
+                  value={customSettings.primaryColor}
+                  onChange={(e) => setCustomSettings({...customSettings, primaryColor: e.target.value})}
+                  className="w-full mt-2 h-10 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              {/* Text Color */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Text Color</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {['black', '#374151', '#6B7280', '#9CA3AF'].map(color => (
+                    <button
+                      key={color}
+                      onClick={() => setCustomSettings({...customSettings, textColor: color})}
+                      className={`w-full h-12 rounded-lg border-2 ${customSettings.textColor === color ? 'border-green-500' : 'border-gray-300'}`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+                <input
+                  type="color"
+                  value={customSettings.textColor}
+                  onChange={(e) => setCustomSettings({...customSettings, textColor: e.target.value})}
+                  className="w-full mt-2 h-10 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              {/* Username Color */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Username Color</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {['#128C7E', '#25D366', '#34B7F1', '#E53E3E'].map(color => (
+                    <button
+                      key={color}
+                      onClick={() => setCustomSettings({...customSettings, userNameColor: color})}
+                      className={`w-full h-12 rounded-lg border-2 ${customSettings.userNameColor === color ? 'border-gray-800' : 'border-gray-300'}`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+                <input
+                  type="color"
+                  value={customSettings.userNameColor}
+                  onChange={(e) => setCustomSettings({...customSettings, userNameColor: e.target.value})}
+                  className="w-full mt-2 h-10 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              {/* Theme */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Theme</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setCustomSettings({...customSettings, theme: 'light'})}
+                    className={`p-3 rounded-lg border-2 ${customSettings.theme === 'light' ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}
+                  >
+                    ☀️ Light
+                  </button>
+                  <button
+                    onClick={() => setCustomSettings({...customSettings, theme: 'dark'})}
+                    className={`p-3 rounded-lg border-2 ${customSettings.theme === 'dark' ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}
+                  >
+                    🌙 Dark
+                  </button>
+                </div>
+              </div>
+
+              {/* Reset to Defaults */}
+              <div>
+                <button
+                  onClick={() => setCustomSettings({
+                    fontFamily: 'Inter',
+                    fontSize: 'medium',
+                    backgroundColor: 'white',
+                    primaryColor: '#25D366',
+                    textColor: 'black',
+                    userNameColor: '#128C7E',
+                    theme: 'light'
+                  })}
+                  className="w-full p-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Reset to Defaults
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={() => setShowCustomization(false)}
+                className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  // Apply settings
+                  const root = document.documentElement;
+                  root.style.setProperty('--font-family', customSettings.fontFamily);
+                  root.style.setProperty('--font-size', customSettings.fontSize);
+                  root.style.setProperty('--bg-color', customSettings.backgroundColor);
+                  root.style.setProperty('--primary-color', customSettings.primaryColor);
+                  root.style.setProperty('--text-color', customSettings.textColor);
+                  root.style.setProperty('--username-color', customSettings.userNameColor);
+                  
+                  // Save to localStorage
+                  localStorage.setItem('chatapp-custom-settings', JSON.stringify(customSettings));
+                  setShowCustomization(false);
+                }}
+                className="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Genie Assistant */}
       {user && (
         <GenieAssistant 
