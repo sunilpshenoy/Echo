@@ -1798,6 +1798,330 @@ async def search_users(query: str, current_user = Depends(get_current_user)):
     
     return result
 
+# Genie Assistant NLP and Action Processing
+@api_router.post("/genie/process")
+async def process_genie_command(command_data: dict, current_user = Depends(get_current_user)):
+    """Process natural language commands from the Genie Assistant"""
+    command = command_data.get("command", "").lower().strip()
+    user_id = current_user["user_id"]
+    context = command_data.get("current_context", {})
+    
+    # Natural Language Processing and Intent Recognition
+    intent, entities, action, confirmation_needed = await analyze_command(command, user_id, context)
+    
+    # Generate genie-style response
+    response_text = generate_genie_response(intent, entities, action, confirmation_needed)
+    
+    # Log the interaction
+    await db.genie_interactions.insert_one({
+        "user_id": user_id,
+        "command": command,
+        "intent": intent,
+        "entities": entities,
+        "action": action,
+        "response": response_text,
+        "timestamp": datetime.utcnow(),
+        "context": context
+    })
+    
+    return {
+        "intent": intent,
+        "entities": entities,
+        "response_text": response_text,
+        "action": action,
+        "confirmation_needed": confirmation_needed
+    }
+
+@api_router.post("/genie/undo")
+async def undo_last_action(current_user = Depends(get_current_user)):
+    """Undo the last action performed by the genie"""
+    user_id = current_user["user_id"]
+    
+    # Get the last action that can be undone
+    last_action = await db.genie_interactions.find_one(
+        {
+            "user_id": user_id,
+            "action": {"$ne": None},
+            "undone": {"$ne": True}
+        },
+        sort=[("timestamp", -1)]
+    )
+    
+    if not last_action:
+        return {
+            "success": False,
+            "message": "🧞‍♂️ *Mystical search complete* No recent actions found to undo, master!"
+        }
+    
+    # Perform the undo operation
+    undo_result = await perform_undo(last_action["action"], user_id)
+    
+    if undo_result["success"]:
+        # Mark action as undone
+        await db.genie_interactions.update_one(
+            {"_id": last_action["_id"]},
+            {"$set": {"undone": True, "undone_at": datetime.utcnow()}}
+        )
+        
+        return {
+            "success": True,
+            "message": f"🧞‍♂️ *Waves magical hands* ✨ {undo_result['message']}"
+        }
+    else:
+        return {
+            "success": False,
+            "message": f"🧞‍♂️ *Mystical interference detected* {undo_result['message']}"
+        }
+
+async def analyze_command(command: str, user_id: str, context: dict):
+    """Analyze natural language command and extract intent, entities, and actions"""
+    
+    # Define intent patterns and their corresponding actions
+    intent_patterns = {
+        # Chat Management
+        "create_chat": [
+            r"create.*chat.*with (.+)",
+            r"start.*conversation.*with (.+)",
+            r"new.*chat.*(.+)",
+            r"message (.+)",
+            r"talk.*to (.+)"
+        ],
+        "create_group": [
+            r"create.*group.*called (.+)",
+            r"make.*group.*(.+)",
+            r"new.*group.*(.+)",
+            r"start.*group.*(.+)"
+        ],
+        
+        # Contact Management
+        "add_contact": [
+            r"add.*contact.*(.+)",
+            r"add (.+@.+).*as.*contact",
+            r"save.*contact.*(.+)",
+            r"new.*contact.*(.+)"
+        ],
+        "find_contact": [
+            r"find.*contact.*(.+)",
+            r"search.*(.+)",
+            r"look.*for.*(.+)"
+        ],
+        
+        # Message Actions
+        "send_message": [
+            r"send.*message.*to (.+).*saying (.+)",
+            r"tell (.+).*that (.+)",
+            r"message (.+).*(.+)"
+        ],
+        
+        # User Management
+        "block_user": [
+            r"block.*user.*(.+)",
+            r"block (.+)",
+            r"stop.*(.+).*messaging"
+        ],
+        "unblock_user": [
+            r"unblock.*(.+)",
+            r"remove.*block.*(.+)"
+        ],
+        
+        # Stories and Social
+        "create_story": [
+            r"create.*story.*(.+)",
+            r"post.*story.*(.+)",
+            r"new.*story.*(.+)"
+        ],
+        
+        # App Navigation and Help
+        "show_help": [
+            r"help.*",
+            r"what.*can.*you.*do",
+            r"features",
+            r"how.*to.*",
+            r"guide"
+        ],
+        "show_settings": [
+            r"settings",
+            r"preferences",
+            r"configure"
+        ],
+        
+        # General queries
+        "list_chats": [
+            r"show.*chats",
+            r"my.*conversations",
+            r"list.*chats"
+        ],
+        "list_contacts": [
+            r"show.*contacts",
+            r"my.*contacts",
+            r"friends"
+        ]
+    }
+    
+    # Analyze command for intent and entities
+    intent = "unknown"
+    entities = {}
+    action = None
+    confirmation_needed = False
+    
+    import re
+    
+    for intent_name, patterns in intent_patterns.items():
+        for pattern in patterns:
+            match = re.search(pattern, command, re.IGNORECASE)
+            if match:
+                intent = intent_name
+                entities = {"groups": match.groups()}
+                break
+        if intent != "unknown":
+            break
+    
+    # Create action based on intent
+    if intent == "create_chat":
+        target_user = entities["groups"][0] if entities.get("groups") else None
+        action = {
+            "type": "create_chat",
+            "target_user": target_user,
+            "chat_type": "direct"
+        }
+        confirmation_needed = True
+        
+    elif intent == "create_group":
+        group_name = entities["groups"][0] if entities.get("groups") else "New Group"
+        action = {
+            "type": "create_group",
+            "name": group_name
+        }
+        confirmation_needed = True
+        
+    elif intent == "add_contact":
+        contact_info = entities["groups"][0] if entities.get("groups") else None
+        action = {
+            "type": "add_contact",
+            "contact_info": contact_info
+        }
+        confirmation_needed = True
+        
+    elif intent == "send_message":
+        groups = entities.get("groups", [])
+        if len(groups) >= 2:
+            action = {
+                "type": "send_message",
+                "recipient": groups[0],
+                "message": groups[1]
+            }
+            confirmation_needed = True
+            
+    elif intent == "block_user":
+        user_to_block = entities["groups"][0] if entities.get("groups") else None
+        action = {
+            "type": "block_user",
+            "target_user": user_to_block
+        }
+        confirmation_needed = True
+        
+    elif intent in ["list_chats", "list_contacts", "show_help", "show_settings"]:
+        action = {
+            "type": intent
+        }
+        confirmation_needed = False
+    
+    return intent, entities, action, confirmation_needed
+
+def generate_genie_response(intent: str, entities: dict, action: dict, confirmation_needed: bool) -> str:
+    """Generate genie-style responses based on intent and action"""
+    
+    genie_responses = {
+        "create_chat": "I shall conjure a mystical conversation portal with {target}!",
+        "create_group": "Behold! I shall weave together souls into a magnificent group called '{name}'!",
+        "add_contact": "Your wish to befriend {contact} shall be my command!",
+        "send_message": "I shall deliver your message '{message}' to {recipient} with the speed of magical winds!",
+        "block_user": "I shall cast a protective barrier against {user}!",
+        "unblock_user": "The mystical barrier against {user} shall be lifted!",
+        "list_chats": "*Gazing into the crystal ball* I see all your conversations materializing before you!",
+        "list_contacts": "*Summoning contact spirits* Your friends shall appear before your eyes!",
+        "show_help": "Ah, a wise seeker of knowledge! Let me illuminate the magical possibilities of this realm!",
+        "show_settings": "I shall open the sacred settings scroll for your customization!",
+        "create_story": "Your tale '{story}' shall be woven into the fabric of time for all to witness!",
+        "unknown": "Hmm... *strokes mystical beard* Your wish is unclear to me, master. Could you rephrase your desire?"
+    }
+    
+    base_response = genie_responses.get(intent, genie_responses["unknown"])
+    
+    # Replace placeholders with actual entities
+    if action and entities.get("groups"):
+        if intent == "create_chat":
+            base_response = base_response.format(target=entities["groups"][0])
+        elif intent == "create_group":
+            base_response = base_response.format(name=entities["groups"][0])
+        elif intent == "add_contact":
+            base_response = base_response.format(contact=entities["groups"][0])
+        elif intent == "send_message" and len(entities["groups"]) >= 2:
+            base_response = base_response.format(
+                recipient=entities["groups"][0],
+                message=entities["groups"][1]
+            )
+        elif intent in ["block_user", "unblock_user"]:
+            base_response = base_response.format(user=entities["groups"][0])
+        elif intent == "create_story":
+            base_response = base_response.format(story=entities["groups"][0])
+    
+    return base_response
+
+async def perform_undo(action: dict, user_id: str):
+    """Perform undo operations for various actions"""
+    
+    action_type = action.get("type")
+    
+    try:
+        if action_type == "create_chat":
+            # Find and delete the most recent chat created by this user
+            recent_chat = await db.chats.find_one(
+                {"created_by": user_id},
+                sort=[("created_at", -1)]
+            )
+            if recent_chat:
+                await db.chats.delete_one({"chat_id": recent_chat["chat_id"]})
+                return {"success": True, "message": "The mystical conversation portal has been dissolved!"}
+            
+        elif action_type == "add_contact":
+            # Find and remove the most recent contact
+            recent_contact = await db.contacts.find_one(
+                {"user_id": user_id},
+                sort=[("added_at", -1)]
+            )
+            if recent_contact:
+                await db.contacts.delete_one({"contact_id": recent_contact["contact_id"]})
+                return {"success": True, "message": "The friendship bond has been gently severed!"}
+                
+        elif action_type == "block_user":
+            # Find and remove the most recent block
+            recent_block = await db.blocked_users.find_one(
+                {"user_id": user_id},
+                sort=[("blocked_at", -1)]
+            )
+            if recent_block:
+                await db.blocked_users.delete_one({"block_id": recent_block["block_id"]})
+                return {"success": True, "message": "The protective barrier has been lifted!"}
+                
+        elif action_type == "send_message":
+            # Find and soft-delete the most recent message
+            recent_message = await db.messages.find_one(
+                {"sender_id": user_id},
+                sort=[("timestamp", -1)]
+            )
+            if recent_message:
+                await db.messages.update_one(
+                    {"message_id": recent_message["message_id"]},
+                    {"$set": {"is_deleted": True, "deleted_by_genie": True}}
+                )
+                return {"success": True, "message": "Your message has vanished into the mystical void!"}
+        
+        return {"success": False, "message": "This magic is beyond my powers to reverse, master."}
+        
+    except Exception as e:
+        return {"success": False, "message": f"The mystical forces are in chaos: {str(e)}"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
