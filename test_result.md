@@ -447,11 +447,11 @@ backend:
 frontend:
   - task: "User Authentication UI"
     implemented: true
-    working: true
+    working: false
     file: "App.js"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -483,6 +483,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "Successfully tested user registration and login. Created a new user (testuser11762) and was properly redirected to the chat interface. The WebSocket connection was established successfully, showing 'Online' status. The login page displays correctly with the ChatApp Pro Ultimate branding, and the registration form includes all required fields. The compilation error has been fixed."
+      - working: false
+        agent: "testing"
+        comment: "The login page is loading correctly with proper styling and branding, but login attempts with both existing and new user credentials do not redirect to the chat interface. This suggests there may be an issue with the authentication flow or a problem with the backend API connection. The login form is visually correct and includes all required fields, but the form submission is not working as expected."
 
   - task: "Genie Assistant Feature"
     implemented: true
