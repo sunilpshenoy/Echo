@@ -968,7 +968,7 @@ frontend:
     implemented: true
     working: false
     file: "components/GameCenter.js"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: true
     status_history:
@@ -978,6 +978,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Attempted to test the Game Center but could not find the Game Center button in the header area. The button with the 🎮 icon was not present in the UI. Code review shows that the GameCenter component is implemented with support for Chess, Tic-Tac-Toe, and Word Guess games, but the button to access it appears to be missing from the current UI."
+      - working: false
+        agent: "testing"
+        comment: "Attempted to test the Game Center again but was unable to proceed past the login page. The login page loads correctly with proper styling and branding, but login attempts with both existing and new user credentials do not redirect to the chat interface. This suggests there may be an issue with the authentication flow or a problem with the backend API connection."
 
   - task: "Advanced Customization"
     implemented: true
