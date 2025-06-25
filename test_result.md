@@ -449,7 +449,7 @@ frontend:
     implemented: true
     working: false
     file: "App.js"
-    stuck_count: 3
+    stuck_count: 4
     priority: "high"
     needs_retesting: true
     status_history:
@@ -492,6 +492,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Fixed the duplicate token declaration in App.js by using the existing token state variable instead of declaring a new one. The frontend is now compiling successfully, but the login page still doesn't redirect to the chat interface after submitting credentials. The login form is visually correct and includes all required fields, but the form submission is not working as expected. This suggests there may be an issue with the event handlers or the API calls in the login/register functions."
+      - working: false
+        agent: "testing"
+        comment: "Added debug logging to the login and register functions to track the API calls. The login page loads correctly with proper styling and branding, but when submitting the registration or login forms, no network requests are being made to the backend API. The console logs show that the form submission event is being captured, but the axios API calls are not being executed or are failing silently. This suggests there may be an issue with the axios configuration or a problem with the API URL construction."
 
   - task: "Genie Assistant Feature"
     implemented: true
