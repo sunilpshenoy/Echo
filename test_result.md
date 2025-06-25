@@ -164,6 +164,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Contact management is working as expected. Successfully added contacts by email, retrieved user contacts, and tested search functionality. Proper validation prevents adding duplicate contacts and adding yourself as a contact."
+      - working: true
+        agent: "testing"
+        comment: "Comprehensive testing of the /api/contacts POST endpoint confirms it's working correctly. Successfully tested adding contacts with valid emails, error handling for invalid emails (returns 404 with 'User not found'), prevention of duplicate contacts, and prevention of adding self as contact (returns 400 with 'Cannot add yourself as contact'). The GET endpoint also works correctly, returning contacts with proper user details."
 
   - task: "Message Storage and Retrieval"
     implemented: true
