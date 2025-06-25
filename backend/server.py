@@ -1910,7 +1910,7 @@ async def analyze_command(command: str, user_id: str, context: dict):
         "send_message": [
             r"send.*message.*to (.+?).*saying (.+)",
             r"tell (.+?).*that (.+)",
-            r"message (.+?).*(.+)",
+            r"message (.+?).*saying (.+)",
             r"send (.+?).*message (.+)"
         ],
         
