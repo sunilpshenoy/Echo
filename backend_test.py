@@ -356,7 +356,7 @@ def test_add_contacts():
     )
     
     # If contact already exists, this is fine
-    if response.status_code != 200 and not (response.status_code == 400 and "Contact already exists" in response.json().get("detail", "")):
+    if response.status_code != 200 and not (response.status_code == 400 and "Already a contact" in response.json().get("detail", "")):
         logger.error(f"Failed to add contact: {response.text}")
         return False
     
@@ -370,7 +370,7 @@ def test_add_contacts():
     )
     
     # If contact already exists, this is fine
-    if response.status_code != 200 and not (response.status_code == 400 and "Contact already exists" in response.json().get("detail", "")):
+    if response.status_code != 200 and not (response.status_code == 400 and "Already a contact" in response.json().get("detail", "")):
         logger.error(f"Failed to add second contact: {response.text}")
         return False
     
@@ -385,6 +385,17 @@ def test_add_contacts():
     
     if response.status_code != 400 or "Cannot add yourself as contact" not in response.json().get("detail", ""):
         logger.error("Adding self as contact should fail with appropriate error")
+        return False
+    
+    # Test adding invalid email (should fail)
+    response = requests.post(
+        f"{API_URL}/contacts",
+        json={"email": "nonexistent@example.com"},
+        headers=headers
+    )
+    
+    if response.status_code != 404 or "User not found" not in response.json().get("detail", ""):
+        logger.error("Adding nonexistent email should fail with 'User not found'")
         return False
     
     logger.info("Add contacts tests passed")
