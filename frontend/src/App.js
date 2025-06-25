@@ -179,6 +179,29 @@ function App() {
   const [screenStream, setScreenStream] = useState(null);
 
   // Initialize WebSocket connection with enhanced features
+  // Load custom settings from localStorage on component mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('chatapp-custom-settings');
+    if (savedSettings) {
+      const settings = JSON.parse(savedSettings);
+      setCustomSettings(settings);
+      
+      // Apply settings to CSS variables
+      const root = document.documentElement;
+      root.style.setProperty('--font-family', settings.fontFamily);
+      root.style.setProperty('--font-size', settings.fontSize === 'small' ? '12px' : settings.fontSize === 'large' ? '16px' : settings.fontSize === 'xl' ? '18px' : '14px');
+      root.style.setProperty('--bg-color', settings.backgroundColor);
+      root.style.setProperty('--primary-color', settings.primaryColor);
+      root.style.setProperty('--text-color', settings.textColor);
+      root.style.setProperty('--username-color', settings.userNameColor);
+      
+      // Apply theme
+      if (settings.theme === 'dark') {
+        document.body.setAttribute('data-theme', 'dark');
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (user && !websocket) {
       const wsUrl = BACKEND_URL.replace('https:', 'wss:').replace('http:', 'ws:');
