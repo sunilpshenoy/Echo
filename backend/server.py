@@ -1939,7 +1939,7 @@ async def undo_last_action(current_user = Depends(get_current_user)):
     if undo_result["success"]:
         # Mark action as undone
         await db.genie_interactions.update_one(
-            {"_id": last_action["_id"]},
+            {"interaction_id": last_action.get("interaction_id", last_action["_id"])},
             {"$set": {"undone": True, "undone_at": datetime.utcnow()}}
         )
         
@@ -1948,6 +1948,10 @@ async def undo_last_action(current_user = Depends(get_current_user)):
             "message": f"🧞‍♂️ *Waves magical hands* ✨ {undo_result['message']}"
         }
     else:
+        return {
+            "success": False,
+            "message": f"🧞‍♂️ *Mystical interference detected* {undo_result['message']}"
+        }
         return {
             "success": False,
             "message": f"🧞‍♂️ *Mystical interference detected* {undo_result['message']}"
