@@ -404,6 +404,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "The Genie Command Processing endpoint (/api/genie/process) is partially working. It correctly identifies intents for commands like 'create a chat', 'add contact', 'block user', 'show my chats', and 'help me'. However, it fails to correctly identify the 'send_message' intent for commands like 'send message to Sarah saying hello', instead treating it as a 'create_chat' intent. The regex pattern for send_message needs to be fixed to properly extract recipient and message content."
+      - working: false
+        agent: "testing"
+        comment: "Conducted additional testing of the Genie Command Processing endpoint. The issue is in the intent recognition logic in the analyze_command function. The regex patterns for 'send_message' intent are not being matched correctly. The command 'send message to Sarah saying hello' is being incorrectly matched by the 'create_chat' pattern instead of the 'send_message' pattern. This is likely due to the order of pattern matching or an issue with the regex patterns themselves."
 
   - task: "Genie Undo Functionality"
     implemented: true
