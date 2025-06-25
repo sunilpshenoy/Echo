@@ -2654,7 +2654,8 @@ function App() {
         onAction={handleGenieAction}
       />
     )}
-  );
+  </div>
+);
 }
 
 export default App;
