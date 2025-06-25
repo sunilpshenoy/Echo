@@ -153,7 +153,7 @@ backend:
   - task: "Contact Management"
     implemented: true
     working: true
-    file: "server.py"
+    file: "App.js"
     stuck_count: 0
     priority: "medium"
     needs_retesting: false
@@ -167,6 +167,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Comprehensive testing of the /api/contacts POST endpoint confirms it's working correctly. Successfully tested adding contacts with valid emails, error handling for invalid emails (returns 404 with 'User not found'), prevention of duplicate contacts, and prevention of adding self as contact (returns 400 with 'Cannot add yourself as contact'). The GET endpoint also works correctly, returning contacts with proper user details."
+      - working: true
+        agent: "testing"
+        comment: "FRONTEND TESTING PASSED: The Add Contact button is properly implemented in the sidebar and opens the contact form modal when clicked. The form includes fields for email and contact name. The backend API endpoint for adding contacts (/api/contacts) is working correctly and returns the expected response."
 
   - task: "Message Storage and Retrieval"
     implemented: true
