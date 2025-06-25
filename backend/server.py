@@ -1824,6 +1824,10 @@ async def process_genie_command(command_data: dict, current_user = Depends(get_c
         "context": context
     })
     
+    # Execute the action if it doesn't need confirmation
+    if action and not confirmation_needed:
+        await execute_genie_action(action, user_id)
+    
     return {
         "intent": intent,
         "entities": entities,
@@ -1831,6 +1835,68 @@ async def process_genie_command(command_data: dict, current_user = Depends(get_c
         "action": action,
         "confirmation_needed": confirmation_needed
     }
+
+async def execute_genie_action(action: dict, user_id: str):
+    """Execute actions from Genie commands"""
+    if not action:
+        return
+        
+    action_type = action.get("type")
+    
+    try:
+        if action_type == "add_contact":
+            # Add contact
+            contact_info = action.get("contact_info")
+            if "@" in contact_info:  # Assume it's an email
+                user = await db.users.find_one({"email": contact_info})
+                if user:
+                    # Check if already a contact
+                    existing = await db.contacts.find_one({
+                        "user_id": user_id,
+                        "contact_user_id": user["user_id"]
+                    })
+                    
+                    if not existing and user["user_id"] != user_id:
+                        contact = {
+                            "contact_id": str(uuid.uuid4()),
+                            "user_id": user_id,
+                            "contact_user_id": user["user_id"],
+                            "contact_name": user.get("username"),
+                            "added_at": datetime.utcnow()
+                        }
+                        await db.contacts.insert_one(contact)
+        
+        elif action_type == "block_user":
+            # Block user
+            target_user = action.get("target_user")
+            user = await db.users.find_one({"username": {"$regex": f"^{target_user}$", "$options": "i"}})
+            
+            if user and user["user_id"] != user_id:
+                # Check if already blocked
+                existing = await db.blocked_users.find_one({
+                    "user_id": user_id,
+                    "blocked_user_id": user["user_id"]
+                })
+                
+                if not existing:
+                    block = {
+                        "block_id": str(uuid.uuid4()),
+                        "user_id": user_id,
+                        "blocked_user_id": user["user_id"],
+                        "blocked_at": datetime.utcnow()
+                    }
+                    await db.blocked_users.insert_one(block)
+        
+        elif action_type == "list_chats":
+            # No action needed, just for display
+            pass
+            
+        elif action_type == "list_contacts":
+            # No action needed, just for display
+            pass
+            
+    except Exception as e:
+        logging.error(f"Error executing genie action: {e}")
 
 @api_router.post("/genie/undo")
 async def undo_last_action(current_user = Depends(get_current_user)):
