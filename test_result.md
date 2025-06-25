@@ -564,6 +564,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "Successfully tested the real-time chat interface with a newly registered user. The WebSocket connection is established successfully as shown in the console logs ('WebSocket connected') and the user status shows 'Online'. The chat interface loads correctly with all the necessary UI elements for messaging. The welcome message is displayed properly, and the interface is responsive."
+      - working: true
+        agent: "testing"
+        comment: "After fixing the duplicate function declaration in App.js, successfully tested the real-time chat interface. The WebSocket connection is established successfully and the user status shows 'Online'. The chat interface loads correctly with all the necessary UI elements for messaging, including the welcome message and chat features. The interface is responsive and well-designed."
 
   - task: "Chat Sidebar and Navigation"
     implemented: true
