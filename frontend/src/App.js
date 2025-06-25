@@ -1289,91 +1289,75 @@ function App() {
     );
   }
 
-  // Main Chat View with Ultimate Features
+  // Main Chat View with WhatsApp-like Design
   return (
-    <div className="h-screen flex bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
-        <div className="absolute top-40 right-20 w-96 h-96 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-40 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
-      </div>
-
-      {/* Ultimate Enhanced Sidebar */}
-      <div className="w-1/3 bg-white/10 backdrop-blur-2xl border-r border-white/20 flex flex-col shadow-2xl relative z-10">
-        {/* Ultimate Header */}
-        <div className="p-6 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-600 text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-violet-600/50 via-fuchsia-600/50 to-cyan-600/50 animate-pulse"></div>
-          <div className="relative z-10">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="relative">
-                  <div className="w-14 h-14 bg-gradient-to-br from-cyan-400 via-purple-400 to-pink-400 rounded-2xl flex items-center justify-center shadow-xl transform hover:scale-110 transition-all duration-300 border-2 border-white/30">
-                    <span className="font-bold text-xl bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent">
-                      {user.username.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
+    <div className="h-screen flex bg-gray-100">
+      {/* WhatsApp-style Sidebar */}
+      <div className="w-1/3 bg-white border-r border-gray-200 flex flex-col shadow-sm">
+        {/* WhatsApp-style Header */}
+        <div className="p-4 bg-gray-50 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="relative">
+                <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+                  <span className="font-medium text-lg text-gray-700">
+                    {user.username.charAt(0).toUpperCase()}
+                  </span>
                 </div>
-                <div className="ml-4">
-                  <div className="flex items-center space-x-2">
-                    <p className="font-bold text-xl bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent">
-                      {user.display_name || user.username}
-                    </p>
-                    <span className="text-2xl animate-bounce">🚀</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <p className="text-sm text-cyan-200 font-medium">
-                      {isConnected ? '✨ Ultimate Mode Active' : '🔄 Connecting...'}
-                    </p>
-                  </div>
-                </div>
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
               </div>
-              <div className="flex items-center space-x-1">
-                <button
-                  onClick={() => setShowDiscovery(!showDiscovery)}
-                  className="group relative text-white/80 hover:text-white p-3 rounded-xl hover:bg-white/10 transition-all duration-300 transform hover:scale-110"
-                  title="Discover"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-                  <span className="text-xl relative z-10">🔍</span>
-                </button>
-                <button
-                  onClick={() => setShowPrivacySettings(!showPrivacySettings)}
-                  className="group relative text-white/80 hover:text-white p-3 rounded-xl hover:bg-white/10 transition-all duration-300 transform hover:scale-110"
-                  title="Privacy"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-                  <span className="text-xl relative z-10">🛡️</span>
-                </button>
-                <button
-                  onClick={() => setShowBackupRestore(!showBackupRestore)}
-                  className="group relative text-white/80 hover:text-white p-3 rounded-xl hover:bg-white/10 transition-all duration-300 transform hover:scale-110"
-                  title="Backup"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-                  <span className="text-xl relative z-10">💾</span>
-                </button>
-                <button
-                  onClick={() => setShowProfileEditor(!showProfileEditor)}
-                  className="group relative text-white/80 hover:text-white p-3 rounded-xl hover:bg-white/10 transition-all duration-300 transform hover:scale-110"
-                  title="Profile"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-                  <span className="text-xl relative z-10">👤</span>
-                </button>
-                <button
-                  onClick={logout}
-                  className="group relative text-white/80 hover:text-white p-3 rounded-xl hover:bg-white/10 transition-all duration-300 transform hover:scale-110"
-                  title="Logout"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-                  <svg className="w-5 h-5 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                </button>
+              <div className="ml-3">
+                <p className="font-medium text-lg text-gray-900">{user.display_name || user.username}</p>
+                <p className="text-sm text-gray-500">
+                  {isConnected ? 'Online' : 'Connecting...'}
+                </p>
               </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setShowDiscovery(!showDiscovery)}
+                className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all"
+                title="Discover"
+              >
+                🔍
+              </button>
+              <button
+                onClick={() => setShowPrivacySettings(!showPrivacySettings)}
+                className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all"
+                title="Privacy"
+              >
+                🛡️
+              </button>
+              <button
+                onClick={() => setShowBackupRestore(!showBackupRestore)}
+                className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all"
+                title="Backup"
+              >
+                💾
+              </button>
+              <button
+                onClick={() => setShowProfileEditor(!showProfileEditor)}
+                className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all"
+                title="Profile"
+              >
+                👤
+              </button>
+              <button
+                onClick={() => setShowCustomization(!showCustomization)}
+                className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all"
+                title="Customize"
+              >
+                🎨
+              </button>
+              <button
+                onClick={logout}
+                className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all"
+                title="Logout"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
