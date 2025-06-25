@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import './App.css';
+import EmojiPicker from 'emoji-picker-react';
+import Peer from 'simple-peer';
+import io from 'socket.io-client';
+import Webcam from 'react-webcam';
+import MicRecorder from 'mic-recorder-to-mp3';
 import GenieAssistant from './components/GenieAssistant';
-import Calendar from './components/Calendar';
-import TaskManager from './components/TaskManager';
-import WorkspaceSwitcher from './components/WorkspaceSwitcher';
+import './App.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -149,12 +151,6 @@ function App() {
     languages: []
   });
   const [showProfileEditor, setShowProfileEditor] = useState(false);
-
-  // Workspace and Calendar state
-  const [workspaceMode, setWorkspaceMode] = useState("personal");
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [showTasks, setShowTasks] = useState(false);
-  const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
   
   // Polls state
   const [showCreatePoll, setShowCreatePoll] = useState(false);
@@ -1384,29 +1380,6 @@ function App() {
               <button
                 onClick={() => setShowCustomization(!showCustomization)}
                 className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all"
-              <button
-                onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)}
-                className={`text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all ${
-                  workspaceMode === "business" ? "bg-purple-100 text-purple-700" : ""
-                }`}
-                title="Workspace"
-              >
-                {workspaceMode === "personal" ? "🏠" : "🏢"}
-              </button>
-              <button
-                onClick={() => setShowCalendar(!showCalendar)}
-                className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all"
-                title="Calendar"
-              >
-                📅
-              </button>
-              <button
-                onClick={() => setShowTasks(!showTasks)}
-                className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all"
-                title="Tasks"
-              >
-                ✅
-              </button>
                 title="Customize"
               >
                 🎨
@@ -3301,37 +3274,6 @@ function App() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Workspace Calendar */}
-      {showCalendar && (
-        <Calendar
-          user={user}
-          token={token}
-          workspaceMode={workspaceMode}
-          onClose={() => setShowCalendar(false)}
-        />
-      )}
-
-      {/* Task Manager */}
-      {showTasks && (
-        <TaskManager
-          user={user}
-          token={token}
-          workspaceMode={workspaceMode}
-          onClose={() => setShowTasks(false)}
-        />
-      )}
-
-      {/* Workspace Switcher */}
-      {showWorkspaceSwitcher && (
-        <WorkspaceSwitcher
-          user={user}
-          token={token}
-          currentMode={workspaceMode}
-          onModeChange={setWorkspaceMode}
-          onClose={() => setShowWorkspaceSwitcher(false)}
-        />
       )}
 
       {/* Genie Assistant */}
