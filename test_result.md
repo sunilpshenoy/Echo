@@ -595,7 +595,7 @@ frontend:
         agent: "testing"
         comment: "Code review confirms implementation of read status indicators (lines 414-422) with proper visual feedback (✓ sent, ✓✓ delivered, ✓✓ read) and backend support for read receipts (server.py lines 543-576). The functionality to mark messages as read and update their status in real-time is properly implemented."
 
-  - task: "Enhanced Group Chat Features"
+  - task: "Group Chat Creation"
     implemented: true
     working: true
     file: "App.js"
@@ -609,6 +609,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "Code review confirms implementation of Create Group button in sidebar (lines 729-733), group creation form (lines 775-833), group member selection (lines 697-713), and group chat functionality (server.py lines 394-428). The UI for creating and managing group chats is properly implemented with all required features."
+      - working: true
+        agent: "testing"
+        comment: "FRONTEND TESTING PASSED: The Create Group button is properly implemented in the sidebar and opens the group creation modal when clicked. The modal includes fields for group name, description, and member selection. The backend API endpoint for creating groups (/api/chats with chat_type=group) is working correctly and returns the expected response."
 
   - task: "Enhanced UI/UX"
     implemented: true
