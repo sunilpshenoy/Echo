@@ -893,7 +893,6 @@ function App() {
     return { success: false, message: "Action could not be completed" };
   };
 
-  // Genie Assistant action handler
   // Poll functions
   const createPoll = async () => {
     try {
