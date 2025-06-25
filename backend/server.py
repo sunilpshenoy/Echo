@@ -1878,12 +1878,19 @@ async def analyze_command(command: str, user_id: str, context: dict):
     
     # Define intent patterns and their corresponding actions
     intent_patterns = {
+        # Message Actions
+        "send_message": [
+            r"send.*message.*to (.+?).*saying (.+)",
+            r"tell (.+?).*that (.+)",
+            r"message (.+?).*saying (.+)",
+            r"send (.+?).*message (.+)"
+        ],
+        
         # Chat Management
         "create_chat": [
             r"create.*chat.*with (.+)",
             r"start.*conversation.*with (.+)",
             r"new.*chat.*(.+)",
-            r"message (.+)",
             r"talk.*to (.+)"
         ],
         "create_group": [
