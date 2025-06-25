@@ -148,6 +148,13 @@ function App() {
     location: '',
     website: '',
     interests: [],
+
+  // Workspace and Calendar state
+  const [workspaceMode, setWorkspaceMode] = useState('personal');
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [showTasks, setShowTasks] = useState(false);
+  const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
+
     languages: []
   });
   const [showProfileEditor, setShowProfileEditor] = useState(false);
