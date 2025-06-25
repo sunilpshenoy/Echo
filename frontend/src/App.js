@@ -21,12 +21,6 @@ const MicRecorder = require("mic-recorder-to-mp3");
 const Mp3Recorder = new MicRecorder({ bitRate: 128 });
 
 function App() {
-  // Rest of the code remains the same...
-// Initialize audio recorder
-const MicRecorder = require("mic-recorder-to-mp3");
-const Mp3Recorder = new MicRecorder({ bitRate: 128 });
-
-function App() {
   const [currentView, setCurrentView] = useState('login');
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
