@@ -228,7 +228,7 @@ backend:
         agent: "testing"
         comment: "Read Receipts API is working correctly. Successfully marked messages as read using the /api/messages/read endpoint. The API properly tracks which users have read each message and updates the read status in real-time. The sender can see when their messages have been read by recipients."
 
-  - task: "Enhanced Group Chat API"
+  - task: "Group Chat Creation"
     implemented: true
     working: true
     file: "server.py"
@@ -242,6 +242,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Enhanced Group Chat API is working correctly. Successfully created group chats with the dedicated /api/chats/group endpoint. Member management works properly - admins can add and remove members, while non-admins are prevented from making changes. The API correctly enforces permissions and maintains the group structure."
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested the /api/chats POST endpoint for group creation. The endpoint correctly creates group chats with the specified name, description, and members. The current user is automatically added to the group if not included in the members list. The API returns the correct group chat data including chat_id, members, and other metadata. WebSocket notifications are also sent to all members when a new group is created."
 
   - task: "Enhanced User Profile"
     implemented: true
