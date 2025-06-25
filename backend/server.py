@@ -2084,6 +2084,8 @@ async def perform_undo(action: dict, user_id: str):
             if recent_chat:
                 await db.chats.delete_one({"chat_id": recent_chat["chat_id"]})
                 return {"success": True, "message": "The mystical conversation portal has been dissolved!"}
+            else:
+                return {"success": False, "message": "No recent chat found to undo!"}
             
         elif action_type == "add_contact":
             # Find and remove the most recent contact
@@ -2094,6 +2096,8 @@ async def perform_undo(action: dict, user_id: str):
             if recent_contact:
                 await db.contacts.delete_one({"contact_id": recent_contact["contact_id"]})
                 return {"success": True, "message": "The friendship bond has been gently severed!"}
+            else:
+                return {"success": False, "message": "No recent contact found to undo!"}
                 
         elif action_type == "block_user":
             # Find and remove the most recent block
@@ -2104,6 +2108,8 @@ async def perform_undo(action: dict, user_id: str):
             if recent_block:
                 await db.blocked_users.delete_one({"block_id": recent_block["block_id"]})
                 return {"success": True, "message": "The protective barrier has been lifted!"}
+            else:
+                return {"success": False, "message": "No recent block found to undo!"}
                 
         elif action_type == "send_message":
             # Find and soft-delete the most recent message
@@ -2117,10 +2123,25 @@ async def perform_undo(action: dict, user_id: str):
                     {"$set": {"is_deleted": True, "deleted_by_genie": True}}
                 )
                 return {"success": True, "message": "Your message has vanished into the mystical void!"}
+            else:
+                return {"success": False, "message": "No recent message found to undo!"}
+        
+        elif action_type == "create_story":
+            # Find and delete the most recent story
+            recent_story = await db.stories.find_one(
+                {"user_id": user_id},
+                sort=[("created_at", -1)]
+            )
+            if recent_story:
+                await db.stories.delete_one({"story_id": recent_story["story_id"]})
+                return {"success": True, "message": "Your mystical tale has been erased from time!"}
+            else:
+                return {"success": False, "message": "No recent story found to undo!"}
         
         return {"success": False, "message": "This magic is beyond my powers to reverse, master."}
         
     except Exception as e:
+        logging.error(f"Error in perform_undo: {str(e)}")
         return {"success": False, "message": f"The mystical forces are in chaos: {str(e)}"}
 
 # Include the router in the main app
