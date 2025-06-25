@@ -171,14 +171,7 @@ function App() {
   const [showGameCenter, setShowGameCenter] = useState(false);
   const [showAdvancedCustomization, setShowAdvancedCustomization] = useState(false);
   
-  // Advanced customization settings
-  const [advancedSettings, setAdvancedSettings] = useState({
-    theme: 'whatsapp',
-    animations: 'smooth',
-    soundPack: 'default',
-    fontSize: 'medium',
-    fontFamily: 'Inter'
-  });
+  // Advanced customization settings are defined in the AdvancedCustomization component
   
   // Screen sharing
   const [isScreenSharing, setIsScreenSharing] = useState(false);
