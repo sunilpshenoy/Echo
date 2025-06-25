@@ -1420,6 +1420,36 @@ function App() {
                 🎮
               </button>
               <button
+                onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)}
+                className={`text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all ${
+                  workspaceMode === 'business' ? 'bg-purple-100 text-purple-700' : ''
+                }`}
+                title="Workspace"
+              >
+                {workspaceMode === 'personal' ? '🏠' : '🏢'}
+              </button>
+              <button
+                onClick={() => setShowCalendar(!showCalendar)}
+                className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all"
+                title="Calendar"
+              >
+                📅
+              </button>
+              <button
+                onClick={() => setShowTasks(!showTasks)}
+                className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all"
+                title="Tasks"
+              >
+                ✅
+              </button>
+              <button
+                onClick={() => setShowGameCenter(!showGameCenter)}
+                className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all"
+                title="Games"
+              >
+                🎮
+              </button>
+              <button
                 onClick={() => setShowCustomization(!showCustomization)}
                 className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all"
                 title="Customize"
