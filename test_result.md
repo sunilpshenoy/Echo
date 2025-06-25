@@ -761,7 +761,6 @@ test_plan:
     - "Public User Discovery"
     - "Username System"
   stuck_tasks:
-    - "Genie Assistant Feature"
     - "Advanced Voice/Video Calls"
     - "Voice Rooms (Discord-style)"
     - "Screen Sharing & Streaming"
