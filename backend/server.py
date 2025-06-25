@@ -2175,9 +2175,9 @@ async def perform_undo(action: dict, user_id: str):
                 return {"success": False, "message": "No recent chat found to undo!"}
             
         elif action_type == "add_contact":
-            # Find and remove the most recent contact
+            # Find and remove the most recent contact added by Genie
             recent_contact = await db.contacts.find_one(
-                {"user_id": user_id},
+                {"user_id": user_id, "added_by_genie": True},
                 sort=[("added_at", -1)]
             )
             if recent_contact:
@@ -2187,9 +2187,9 @@ async def perform_undo(action: dict, user_id: str):
                 return {"success": False, "message": "No recent contact found to undo!"}
                 
         elif action_type == "block_user":
-            # Find and remove the most recent block
+            # Find and remove the most recent block added by Genie
             recent_block = await db.blocked_users.find_one(
-                {"user_id": user_id},
+                {"user_id": user_id, "blocked_by_genie": True},
                 sort=[("blocked_at", -1)]
             )
             if recent_block:
