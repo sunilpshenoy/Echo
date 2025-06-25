@@ -166,6 +166,7 @@ function App() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showTasks, setShowTasks] = useState(false);
   const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
+  const [showGameCenter, setShowGameCenter] = useState(false);
   
   // Screen sharing
   const [isScreenSharing, setIsScreenSharing] = useState(false);
