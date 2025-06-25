@@ -1051,24 +1051,15 @@ metadata:
 test_plan:
   current_focus:
     - "User Authentication UI"
-  stuck_tasks: 
+    - "Genie Assistant Feature"
+    - "Real-time Chat Interface"
+    - "Chat Sidebar and Navigation"
+    - "Modern UI Design"
     - "Workspace Switcher"
     - "Calendar"
     - "Task Manager"
     - "Game Center"
-    - "File/Image Sharing"
-    - "Message Read Receipts"
-    - "Enhanced UI/UX"
-    - "Visual Encryption Indicators"
-    - "Encrypted Message Display"
-    - "Block User Interface"
-    - "Blocked Users Management"
-    - "Block Status Indicators"
-    - "Block Enforcement"
-    - "Report User Interface"
-    - "Report Form"
-    - "Security Branding"
-    - "Advanced Voice/Video Calls"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
