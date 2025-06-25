@@ -486,11 +486,11 @@ frontend:
 
   - task: "Genie Assistant Feature"
     implemented: true
-    working: false
+    working: true
     file: "components/GenieAssistant.js"
     stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
@@ -507,6 +507,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Unable to test the Genie Assistant feature due to frontend compilation errors. The frontend is not loading properly, so the Genie Assistant component cannot be tested."
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested the Genie Assistant feature. The Genie Assistant appears as a floating button in the bottom-right corner after login. When clicked, it expands into a chat interface with a preferences modal for selecting response mode (text only, voice only, or both). The preferences modal displays correctly and allows the user to select their preferred response mode."
 
   - task: "Real-time Chat Interface"
     implemented: true
