@@ -202,23 +202,21 @@ function App() {
     }
     
     // Check if user is already logged in
-    const existingToken = localStorage.getItem('token');
-    if (existingToken && !user) {
+    if (token && !user) {
       // Validate token by fetching user profile
       axios.get(`${API}/users/me`, {
-        headers: { Authorization: `Bearer ${existingToken}` }
+        headers: { Authorization: `Bearer ${token}` }
       })
       .then(response => {
         setUser(response.data);
-        setToken(existingToken);
         setCurrentView('chat');
         // Fetch user data
-        fetchChats(existingToken);
-        fetchContacts(existingToken);
-        fetchBlockedUsers(existingToken);
-        fetchStories(existingToken);
-        fetchChannels(existingToken);
-        fetchVoiceRooms(existingToken);
+        fetchChats(token);
+        fetchContacts(token);
+        fetchBlockedUsers(token);
+        fetchStories(token);
+        fetchChannels(token);
+        fetchVoiceRooms(token);
       })
       .catch(error => {
         console.error('Token validation failed:', error);
