@@ -5,6 +5,7 @@ import Peer from 'simple-peer';
 import io from 'socket.io-client';
 import Webcam from 'react-webcam';
 import MicRecorder from 'mic-recorder-to-mp3';
+import GenieAssistant from './components/GenieAssistant';
 import './App.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
