@@ -3348,6 +3348,57 @@ function App() {
         </div>
       )}
 
+      {/* Workspace Switcher */}
+      {showWorkspaceSwitcher && (
+        <WorkspaceSwitcher
+          user={user}
+          token={token}
+          currentMode={workspaceMode}
+          onModeChange={setWorkspaceMode}
+          onClose={() => setShowWorkspaceSwitcher(false)}
+        />
+      )}
+
+      {/* Calendar */}
+      {showCalendar && (
+        <Calendar
+          user={user}
+          token={token}
+          workspaceMode={workspaceMode}
+          onClose={() => setShowCalendar(false)}
+        />
+      )}
+
+      {/* Task Manager */}
+      {showTasks && (
+        <TaskManager
+          user={user}
+          token={token}
+          workspaceMode={workspaceMode}
+          onClose={() => setShowTasks(false)}
+        />
+      )}
+
+      {/* Game Center */}
+      {showGameCenter && (
+        <GameCenter
+          user={user}
+          token={token}
+          activeChat={activeChat}
+          onClose={() => setShowGameCenter(false)}
+          onSendMessage={sendMessage}
+        />
+      )}
+
+      {/* Advanced Customization */}
+      {showAdvancedCustomization && (
+        <AdvancedCustomization
+          onClose={() => setShowAdvancedCustomization(false)}
+          currentSettings={advancedSettings}
+          onSettingsChange={setAdvancedSettings}
+        />
+      )}
+
       {/* Genie Assistant */}
       {user && (
         <GenieAssistant 
