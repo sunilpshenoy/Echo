@@ -179,6 +179,16 @@ function App() {
     fontSize: 'medium',
     fontFamily: 'Inter'
   });
+  const [showAdvancedCustomization, setShowAdvancedCustomization] = useState(false);
+  
+  // Advanced customization settings
+  const [advancedSettings, setAdvancedSettings] = useState({
+    theme: 'whatsapp',
+    animations: 'smooth',
+    soundPack: 'default',
+    fontSize: 'medium',
+    fontFamily: 'Inter'
+  });
   
   // Screen sharing
   const [isScreenSharing, setIsScreenSharing] = useState(false);
