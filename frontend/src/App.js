@@ -10,6 +10,7 @@ import AdvancedCustomization from './components/AdvancedCustomization';
 import './components/AdvancedCustomization.css';
 import MicRecorder from 'mic-recorder-to-mp3';
 import MicRecorder from 'mic-recorder-to-mp3';
+import MicRecorder from 'mic-recorder-to-mp3';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
