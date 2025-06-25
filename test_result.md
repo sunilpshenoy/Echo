@@ -780,6 +780,7 @@ test_plan:
     - "Contact Management"
     - "Group Chat Creation"
     - "Genie Assistant"
+    - "UI Customization Features"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
