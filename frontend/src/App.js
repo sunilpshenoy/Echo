@@ -1791,79 +1791,38 @@ function App() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-slate-900/50 via-purple-900/30 to-slate-900/50 backdrop-blur-xl relative">
-            {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute inset-0" style={{
-                backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.1) 1px, transparent 0)`,
-                backgroundSize: '50px 50px'
-              }}></div>
-            </div>
-            
-            <div className="text-center max-w-lg relative z-10">
-              <div className="relative mb-8">
-                <div className="text-8xl mb-6 animate-bounce filter drop-shadow-2xl">🚀</div>
-                <div className="absolute -inset-4 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 rounded-full opacity-20 blur-xl animate-pulse"></div>
+          <div className="flex-1 flex items-center justify-center bg-gray-50">
+            <div className="text-center max-w-lg">
+              <div className="w-32 h-32 mx-auto mb-8 bg-gray-100 rounded-full flex items-center justify-center">
+                <svg className="w-16 h-16 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+                </svg>
               </div>
               
-              <h3 className="text-5xl font-black mb-6">
-                <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-pulse">
-                  ChatApp Pro Ultimate
-                </span>
+              <h3 className="text-3xl font-medium text-gray-900 mb-4">
+                ChatApp Pro
               </h3>
               
-              <p className="text-white/70 mb-10 text-xl font-light leading-relaxed">
-                Select a chat to start the 
-                <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent font-semibold"> ultimate messaging experience</span>
+              <p className="text-gray-600 mb-8 text-lg">
+                Select a chat to start messaging
               </p>
               
-              <div className="grid grid-cols-2 gap-6 text-sm">
-                <div className="group relative p-6 bg-white/5 backdrop-blur-lg rounded-3xl border border-white/10 hover:bg-white/10 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative z-10">
-                    <span className="text-4xl mb-3 block animate-pulse">🔒</span>
-                    <span className="font-semibold text-white/90">Military-grade encryption</span>
-                  </div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+                  <span className="text-2xl mb-2">🔒</span>
+                  <span className="font-medium text-gray-700">End-to-end encrypted</span>
                 </div>
-                
-                <div className="group relative p-6 bg-white/5 backdrop-blur-lg rounded-3xl border border-white/10 hover:bg-white/10 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative z-10">
-                    <span className="text-4xl mb-3 block animate-pulse">📞</span>
-                    <span className="font-semibold text-white/90">HD calls & screen sharing</span>
-                  </div>
+                <div className="flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+                  <span className="text-2xl mb-2">📞</span>
+                  <span className="font-medium text-gray-700">Voice & video calls</span>
                 </div>
-                
-                <div className="group relative p-6 bg-white/5 backdrop-blur-lg rounded-3xl border border-white/10 hover:bg-white/10 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
-                  <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-cyan-500/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative z-10">
-                    <span className="text-4xl mb-3 block animate-pulse">📖</span>
-                    <span className="font-semibold text-white/90">Stories & channels</span>
-                  </div>
+                <div className="flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+                  <span className="text-2xl mb-2">📖</span>
+                  <span className="font-medium text-gray-700">Stories & status</span>
                 </div>
-                
-                <div className="group relative p-6 bg-white/5 backdrop-blur-lg rounded-3xl border border-white/10 hover:bg-white/10 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative z-10">
-                    <span className="text-4xl mb-3 block animate-pulse">🎤</span>
-                    <span className="font-semibold text-white/90">Voice rooms & recording</span>
-                  </div>
-                </div>
-                
-                <div className="group relative p-6 bg-white/5 backdrop-blur-lg rounded-3xl border border-white/10 hover:bg-white/10 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative z-10">
-                    <span className="text-4xl mb-3 block animate-pulse">🔍</span>
-                    <span className="font-semibold text-white/90">Global discovery</span>
-                  </div>
-                </div>
-                
-                <div className="group relative p-6 bg-white/5 backdrop-blur-lg rounded-3xl border border-white/10 hover:bg-white/10 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative z-10">
-                    <span className="text-4xl mb-3 block animate-pulse">🛡️</span>
-                    <span className="font-semibold text-white/90">Advanced privacy</span>
-                  </div>
+                <div className="flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+                  <span className="text-2xl mb-2">🧞‍♂️</span>
+                  <span className="font-medium text-gray-700">AI Assistant</span>
                 </div>
               </div>
             </div>
