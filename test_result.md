@@ -465,9 +465,9 @@ frontend:
 
   - task: "Genie Assistant Feature"
     implemented: true
-    working: false
+    working: true
     file: "components/GenieAssistant.js"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
@@ -477,6 +477,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Encountered a syntax error in App.js related to the Genie Assistant component integration. The error message was 'Unexpected token, expected \",\"' at the line with the Genie Assistant comment. Attempted to fix the issue by modifying the JSX syntax, but the error persisted. Created a simplified version of App.js that loads correctly and displays a login page, but couldn't fully test the Genie Assistant functionality due to the syntax error. From code review, the Genie Assistant component appears to be well-implemented with all required features: floating lamp UI, chat interface, text and voice input, preference selection, and integration with app features through the handleGenieAction function."
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested the Genie Assistant feature with multiple users. The Genie Assistant appears as a floating button in the bottom-right corner after login. When clicked, it expands into a chat interface with a preferences modal for selecting response mode (text only, voice only, or both). The Genie responds to various commands including 'help', 'what can you do', 'create a group', 'add contact', 'show my chats', and 'show my contacts'. The voice command button is functional, and the minimize/maximize functionality works correctly. The Genie Assistant provides appropriate responses with magical language and proper formatting. The undo functionality appears to work for actions like creating groups and adding contacts."
 
   - task: "Real-time Chat Interface"
     implemented: true
