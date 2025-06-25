@@ -2388,6 +2388,315 @@ async def perform_undo(action: dict, user_id: str):
         logging.error(f"Error in perform_undo: {str(e)}")
         return {"success": False, "message": f"The mystical forces are in chaos: {str(e)}"}
 
+# Calendar and Workspace API Endpoints
+
+@api_router.post("/calendar/events")
+async def create_calendar_event(event_data: CalendarEventCreate, current_user = Depends(get_current_user)):
+    """Create a new calendar event"""
+    event = CalendarEvent(
+        user_id=current_user["user_id"],
+        **event_data.dict()
+    )
+    
+    event_dict = event.dict()
+    await db.calendar_events.insert_one(event_dict)
+    
+    # Notify attendees if any
+    if event.attendees:
+        for attendee_id in event.attendees:
+            await manager.send_personal_message(
+                json.dumps({
+                    "type": "calendar_invite",
+                    "data": serialize_mongo_doc(event_dict)
+                }),
+                attendee_id
+            )
+    
+    return serialize_mongo_doc(event_dict)
+
+@api_router.get("/calendar/events")
+async def get_calendar_events(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    workspace_mode: Optional[str] = None,
+    current_user = Depends(get_current_user)
+):
+    """Get calendar events for the user"""
+    query = {"user_id": current_user["user_id"]}
+    
+    if workspace_mode:
+        query["workspace_mode"] = workspace_mode
+    
+    if start_date and end_date:
+        query["start_time"] = {
+            "$gte": datetime.fromisoformat(start_date.replace('Z', '+00:00')),
+            "$lte": datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+        }
+    
+    events = await db.calendar_events.find(query).sort("start_time", 1).to_list(100)
+    return serialize_mongo_doc(events)
+
+@api_router.put("/calendar/events/{event_id}")
+async def update_calendar_event(
+    event_id: str,
+    event_data: dict,
+    current_user = Depends(get_current_user)
+):
+    """Update a calendar event"""
+    event = await db.calendar_events.find_one({
+        "event_id": event_id,
+        "user_id": current_user["user_id"]
+    })
+    
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    allowed_fields = [
+        "title", "description", "start_time", "end_time", "location",
+        "attendees", "reminder_minutes", "priority", "status"
+    ]
+    update_data = {k: v for k, v in event_data.items() if k in allowed_fields}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    await db.calendar_events.update_one(
+        {"event_id": event_id},
+        {"$set": update_data}
+    )
+    
+    updated_event = await db.calendar_events.find_one({"event_id": event_id})
+    return serialize_mongo_doc(updated_event)
+
+@api_router.delete("/calendar/events/{event_id}")
+async def delete_calendar_event(event_id: str, current_user = Depends(get_current_user)):
+    """Delete a calendar event"""
+    result = await db.calendar_events.delete_one({
+        "event_id": event_id,
+        "user_id": current_user["user_id"]
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    return {"status": "deleted"}
+
+# Task Management API
+@api_router.post("/tasks")
+async def create_task(task_data: TaskCreate, current_user = Depends(get_current_user)):
+    """Create a new task"""
+    task = Task(
+        user_id=current_user["user_id"],
+        **task_data.dict()
+    )
+    
+    task_dict = task.dict()
+    await db.tasks.insert_one(task_dict)
+    
+    # Notify assignee if task is assigned to someone else
+    if task.assigned_to and task.assigned_to != current_user["user_id"]:
+        await manager.send_personal_message(
+            json.dumps({
+                "type": "task_assigned",
+                "data": serialize_mongo_doc(task_dict)
+            }),
+            task.assigned_to
+        )
+    
+    return serialize_mongo_doc(task_dict)
+
+@api_router.get("/tasks")
+async def get_tasks(
+    status: Optional[str] = None,
+    workspace_mode: Optional[str] = None,
+    current_user = Depends(get_current_user)
+):
+    """Get tasks for the user"""
+    query = {
+        "$or": [
+            {"user_id": current_user["user_id"]},
+            {"assigned_to": current_user["user_id"]}
+        ]
+    }
+    
+    if status:
+        query["status"] = status
+    if workspace_mode:
+        query["workspace_mode"] = workspace_mode
+    
+    tasks = await db.tasks.find(query).sort("created_at", -1).to_list(100)
+    return serialize_mongo_doc(tasks)
+
+@api_router.put("/tasks/{task_id}")
+async def update_task(
+    task_id: str,
+    task_data: dict,
+    current_user = Depends(get_current_user)
+):
+    """Update a task"""
+    task = await db.tasks.find_one({
+        "task_id": task_id,
+        "$or": [
+            {"user_id": current_user["user_id"]},
+            {"assigned_to": current_user["user_id"]}
+        ]
+    })
+    
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    allowed_fields = [
+        "title", "description", "due_date", "priority", "status",
+        "tags", "estimated_hours", "actual_hours"
+    ]
+    update_data = {k: v for k, v in task_data.items() if k in allowed_fields}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    if update_data.get("status") == "completed" and task["status"] != "completed":
+        update_data["completed_at"] = datetime.utcnow()
+    
+    await db.tasks.update_one(
+        {"task_id": task_id},
+        {"$set": update_data}
+    )
+    
+    updated_task = await db.tasks.find_one({"task_id": task_id})
+    return serialize_mongo_doc(updated_task)
+
+# Workspace Profile API
+@api_router.post("/workspace/profile")
+async def create_workspace_profile(
+    profile_data: WorkspaceProfileCreate,
+    current_user = Depends(get_current_user)
+):
+    """Create or update workspace profile"""
+    # Check if profile already exists
+    existing = await db.workspace_profiles.find_one({"user_id": current_user["user_id"]})
+    
+    if existing:
+        # Update existing profile
+        update_data = profile_data.dict()
+        await db.workspace_profiles.update_one(
+            {"user_id": current_user["user_id"]},
+            {"$set": update_data}
+        )
+        updated_profile = await db.workspace_profiles.find_one({"user_id": current_user["user_id"]})
+        return serialize_mongo_doc(updated_profile)
+    else:
+        # Create new profile
+        profile = WorkspaceProfile(
+            user_id=current_user["user_id"],
+            **profile_data.dict()
+        )
+        
+        profile_dict = profile.dict()
+        await db.workspace_profiles.insert_one(profile_dict)
+        return serialize_mongo_doc(profile_dict)
+
+@api_router.get("/workspace/profile")
+async def get_workspace_profile(current_user = Depends(get_current_user)):
+    """Get user's workspace profile"""
+    profile = await db.workspace_profiles.find_one({"user_id": current_user["user_id"]})
+    
+    if not profile:
+        # Return default profile structure
+        return {
+            "user_id": current_user["user_id"],
+            "workspace_name": "Personal Workspace",
+            "workspace_type": "personal",
+            "is_active": False
+        }
+    
+    return serialize_mongo_doc(profile)
+
+@api_router.put("/workspace/mode")
+async def switch_workspace_mode(mode_data: dict, current_user = Depends(get_current_user)):
+    """Switch between personal and business workspace mode"""
+    mode = mode_data.get("mode", "personal")
+    
+    if mode not in ["personal", "business"]:
+        raise HTTPException(status_code=400, detail="Invalid workspace mode")
+    
+    # Update user's current workspace mode
+    await db.users.update_one(
+        {"user_id": current_user["user_id"]},
+        {"$set": {"current_workspace_mode": mode}}
+    )
+    
+    return {"status": "success", "current_mode": mode}
+
+# Document Collaboration API
+@api_router.post("/documents")
+async def create_document(doc_data: DocumentCreate, current_user = Depends(get_current_user)):
+    """Create a new document"""
+    document = Document(
+        user_id=current_user["user_id"],
+        **doc_data.dict()
+    )
+    
+    doc_dict = document.dict()
+    await db.documents.insert_one(doc_dict)
+    
+    return serialize_mongo_doc(doc_dict)
+
+@api_router.get("/documents")
+async def get_documents(
+    workspace_mode: Optional[str] = None,
+    current_user = Depends(get_current_user)
+):
+    """Get user's documents"""
+    query = {
+        "$or": [
+            {"user_id": current_user["user_id"]},
+            {"collaborators": current_user["user_id"]}
+        ]
+    }
+    
+    if workspace_mode:
+        query["workspace_mode"] = workspace_mode
+    
+    documents = await db.documents.find(query).sort("updated_at", -1).to_list(50)
+    return serialize_mongo_doc(documents)
+
+@api_router.put("/documents/{document_id}")
+async def update_document(
+    document_id: str,
+    doc_data: dict,
+    current_user = Depends(get_current_user)
+):
+    """Update a document"""
+    document = await db.documents.find_one({
+        "document_id": document_id,
+        "$or": [
+            {"user_id": current_user["user_id"]},
+            {"collaborators": current_user["user_id"]}
+        ]
+    })
+    
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    allowed_fields = ["title", "content", "tags"]
+    update_data = {k: v for k, v in doc_data.items() if k in allowed_fields}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    # Add to version history
+    version_entry = {
+        "version": len(document.get("version_history", [])) + 1,
+        "updated_by": current_user["user_id"],
+        "updated_at": datetime.utcnow(),
+        "changes": "Content updated"
+    }
+    
+    await db.documents.update_one(
+        {"document_id": document_id},
+        {
+            "$set": update_data,
+            "$push": {"version_history": version_entry}
+        }
+    )
+    
+    updated_doc = await db.documents.find_one({"document_id": document_id})
+    return serialize_mongo_doc(updated_doc)
+
 # Include the router in the main app
 app.include_router(api_router)
 
