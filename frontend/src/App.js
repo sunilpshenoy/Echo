@@ -1664,10 +1664,435 @@ function App() {
         )}
       </div>
 
-      {/* All the modals and overlays will be rendered here */}
-      {/* (Due to length constraints, I'm showing the main structure. 
-           All modals for voice calls, story creation, channel creation, 
-           voice rooms, privacy settings, etc. would be implemented similarly) */}
+      {/* All the modals and overlays */}
+      
+      {/* Add Contact Modal */}
+      {showAddContact && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+            <h3 className="text-lg font-semibold mb-4">Add Contact</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                await axios.post(`${API}/contacts`, contactForm, getAuthHeaders());
+                setContactForm({ email: '', contact_name: '' });
+                setShowAddContact(false);
+                fetchContacts();
+              } catch (error) {
+                console.error('Error adding contact:', error);
+                alert('Error adding contact: ' + (error.response?.data?.detail || error.message));
+              }
+            }}>
+              <div className="space-y-4">
+                <input
+                  type="email"
+                  placeholder="Contact Email"
+                  value={contactForm.email}
+                  onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
+                  className="w-full p-3 border rounded-lg"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Contact Name (optional)"
+                  value={contactForm.contact_name}
+                  onChange={(e) => setContactForm({...contactForm, contact_name: e.target.value})}
+                  className="w-full p-3 border rounded-lg"
+                />
+              </div>
+              <div className="flex space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowAddContact(false)}
+                  className="flex-1 py-2 border rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 bg-blue-500 text-white rounded-lg"
+                >
+                  Add Contact
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create Group Modal */}
+      {showCreateGroup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+            <h3 className="text-lg font-semibold mb-4">Create Group</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                await axios.post(`${API}/chats`, {
+                  chat_type: 'group',
+                  name: groupForm.name,
+                  description: groupForm.description,
+                  members: selectedMembers
+                }, getAuthHeaders());
+                setGroupForm({ name: '', description: '', members: [], chat_type: 'group' });
+                setSelectedMembers([]);
+                setShowCreateGroup(false);
+                fetchChats();
+              } catch (error) {
+                console.error('Error creating group:', error);
+                alert('Error creating group: ' + (error.response?.data?.detail || error.message));
+              }
+            }}>
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Group Name"
+                  value={groupForm.name}
+                  onChange={(e) => setGroupForm({...groupForm, name: e.target.value})}
+                  className="w-full p-3 border rounded-lg"
+                  required
+                />
+                <textarea
+                  placeholder="Group Description (optional)"
+                  value={groupForm.description}
+                  onChange={(e) => setGroupForm({...groupForm, description: e.target.value})}
+                  className="w-full p-3 border rounded-lg h-20"
+                />
+                <div>
+                  <label className="block text-sm font-medium mb-2">Add Members:</label>
+                  <div className="max-h-40 overflow-y-auto border rounded-lg">
+                    {contacts.map(contact => (
+                      <div key={contact.contact_user_id} className="flex items-center p-2 hover:bg-gray-50">
+                        <input
+                          type="checkbox"
+                          checked={selectedMembers.includes(contact.contact_user_id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedMembers([...selectedMembers, contact.contact_user_id]);
+                            } else {
+                              setSelectedMembers(selectedMembers.filter(id => id !== contact.contact_user_id));
+                            }
+                          }}
+                          className="mr-3"
+                        />
+                        <span>{contact.contact_name || contact.contact_user?.username}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="flex space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateGroup(false)}
+                  className="flex-1 py-2 border rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 bg-purple-500 text-white rounded-lg"
+                >
+                  Create Group
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create Channel Modal */}
+      {showCreateChannel && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+            <h3 className="text-lg font-semibold mb-4">Create Channel</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                await axios.post(`${API}/channels`, channelForm, getAuthHeaders());
+                setChannelForm({ name: '', description: '', is_public: true, category: 'general' });
+                setShowCreateChannel(false);
+                fetchChannels();
+              } catch (error) {
+                console.error('Error creating channel:', error);
+                alert('Error creating channel: ' + (error.response?.data?.detail || error.message));
+              }
+            }}>
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Channel Name"
+                  value={channelForm.name}
+                  onChange={(e) => setChannelForm({...channelForm, name: e.target.value})}
+                  className="w-full p-3 border rounded-lg"
+                  required
+                />
+                <textarea
+                  placeholder="Channel Description"
+                  value={channelForm.description}
+                  onChange={(e) => setChannelForm({...channelForm, description: e.target.value})}
+                  className="w-full p-3 border rounded-lg h-20"
+                />
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={channelForm.is_public}
+                    onChange={(e) => setChannelForm({...channelForm, is_public: e.target.checked})}
+                    className="mr-3"
+                  />
+                  <label>Public Channel</label>
+                </div>
+              </div>
+              <div className="flex space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateChannel(false)}
+                  className="flex-1 py-2 border rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 bg-blue-500 text-white rounded-lg"
+                >
+                  Create Channel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create Story Modal */}
+      {showCreateStory && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+            <h3 className="text-lg font-semibold mb-4">Create Story</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                await axios.post(`${API}/stories`, storyForm, getAuthHeaders());
+                setStoryForm({
+                  content: '',
+                  media_type: 'text',
+                  background_color: '#000000',
+                  text_color: '#ffffff',
+                  privacy: 'all'
+                });
+                setShowCreateStory(false);
+                fetchStories();
+              } catch (error) {
+                console.error('Error creating story:', error);
+                alert('Error creating story: ' + (error.response?.data?.detail || error.message));
+              }
+            }}>
+              <div className="space-y-4">
+                <textarea
+                  placeholder="What's on your mind?"
+                  value={storyForm.content}
+                  onChange={(e) => setStoryForm({...storyForm, content: e.target.value})}
+                  className="w-full p-3 border rounded-lg h-32"
+                  required
+                />
+                <div className="flex items-center space-x-4">
+                  <label className="text-sm">Background:</label>
+                  <input
+                    type="color"
+                    value={storyForm.background_color}
+                    onChange={(e) => setStoryForm({...storyForm, background_color: e.target.value})}
+                    className="w-12 h-8 border rounded"
+                  />
+                  <label className="text-sm">Text:</label>
+                  <input
+                    type="color"
+                    value={storyForm.text_color}
+                    onChange={(e) => setStoryForm({...storyForm, text_color: e.target.value})}
+                    className="w-12 h-8 border rounded"
+                  />
+                </div>
+              </div>
+              <div className="flex space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateStory(false)}
+                  className="flex-1 py-2 border rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 bg-pink-500 text-white rounded-lg"
+                >
+                  Create Story
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create Voice Room Modal */}
+      {showCreateVoiceRoom && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+            <h3 className="text-lg font-semibold mb-4">Create Voice Room</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                await axios.post(`${API}/voice/rooms`, voiceRoomForm, getAuthHeaders());
+                setVoiceRoomForm({ name: '', description: '', max_participants: 50 });
+                setShowCreateVoiceRoom(false);
+              } catch (error) {
+                console.error('Error creating voice room:', error);
+                alert('Error creating voice room: ' + (error.response?.data?.detail || error.message));
+              }
+            }}>
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Voice Room Name"
+                  value={voiceRoomForm.name}
+                  onChange={(e) => setVoiceRoomForm({...voiceRoomForm, name: e.target.value})}
+                  className="w-full p-3 border rounded-lg"
+                  required
+                />
+                <textarea
+                  placeholder="Description (optional)"
+                  value={voiceRoomForm.description}
+                  onChange={(e) => setVoiceRoomForm({...voiceRoomForm, description: e.target.value})}
+                  className="w-full p-3 border rounded-lg h-20"
+                />
+                <input
+                  type="number"
+                  placeholder="Max Participants"
+                  value={voiceRoomForm.max_participants}
+                  onChange={(e) => setVoiceRoomForm({...voiceRoomForm, max_participants: parseInt(e.target.value)})}
+                  className="w-full p-3 border rounded-lg"
+                  min="2"
+                  max="100"
+                />
+              </div>
+              <div className="flex space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateVoiceRoom(false)}
+                  className="flex-1 py-2 border rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 bg-orange-500 text-white rounded-lg"
+                >
+                  Create Voice Room
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create Poll Modal */}
+      {showCreatePoll && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+            <h3 className="text-lg font-semibold mb-4">Create Poll</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              if (!activeChat) {
+                alert('Please select a chat first');
+                return;
+              }
+              try {
+                await createPoll();
+              } catch (error) {
+                console.error('Error creating poll:', error);
+              }
+            }}>
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Poll Question"
+                  value={pollForm.question}
+                  onChange={(e) => setPollForm({...pollForm, question: e.target.value})}
+                  className="w-full p-3 border rounded-lg"
+                  required
+                />
+                {pollForm.options.map((option, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      placeholder={`Option ${index + 1}`}
+                      value={option}
+                      onChange={(e) => {
+                        const newOptions = [...pollForm.options];
+                        newOptions[index] = e.target.value;
+                        setPollForm({...pollForm, options: newOptions});
+                      }}
+                      className="flex-1 p-3 border rounded-lg"
+                      required
+                    />
+                    {pollForm.options.length > 2 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newOptions = pollForm.options.filter((_, i) => i !== index);
+                          setPollForm({...pollForm, options: newOptions});
+                        }}
+                        className="text-red-500"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setPollForm({...pollForm, options: [...pollForm.options, '']})}
+                  className="text-blue-500 text-sm"
+                >
+                  + Add Option
+                </button>
+                <div className="flex items-center space-x-4">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={pollForm.is_anonymous}
+                      onChange={(e) => setPollForm({...pollForm, is_anonymous: e.target.checked})}
+                      className="mr-2"
+                    />
+                    Anonymous
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={pollForm.allows_multiple_answers}
+                      onChange={(e) => setPollForm({...pollForm, allows_multiple_answers: e.target.checked})}
+                      className="mr-2"
+                    />
+                    Multiple Answers
+                  </label>
+                </div>
+              </div>
+              <div className="flex space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowCreatePoll(false)}
+                  className="flex-1 py-2 border rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 bg-indigo-500 text-white rounded-lg"
+                >
+                  Create Poll
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
