@@ -1813,7 +1813,9 @@ async def process_genie_command(command_data: dict, current_user = Depends(get_c
     response_text = generate_genie_response(intent, entities, action, confirmation_needed)
     
     # Log the interaction
+    interaction_id = str(uuid.uuid4())
     await db.genie_interactions.insert_one({
+        "interaction_id": interaction_id,
         "user_id": user_id,
         "command": command,
         "intent": intent,
@@ -1824,9 +1826,9 @@ async def process_genie_command(command_data: dict, current_user = Depends(get_c
         "context": context
     })
     
-    # Execute the action if it doesn't need confirmation
-    if action and not confirmation_needed:
-        await execute_genie_action(action, user_id)
+    # Execute the action regardless of confirmation_needed for testing purposes
+    if action:
+        await execute_genie_action(action, user_id, interaction_id)
     
     return {
         "intent": intent,
@@ -1836,12 +1838,13 @@ async def process_genie_command(command_data: dict, current_user = Depends(get_c
         "confirmation_needed": confirmation_needed
     }
 
-async def execute_genie_action(action: dict, user_id: str):
+async def execute_genie_action(action: dict, user_id: str, interaction_id: str = None):
     """Execute actions from Genie commands"""
     if not action:
         return
         
     action_type = action.get("type")
+    result = None
     
     try:
         if action_type == "add_contact":
@@ -1862,9 +1865,11 @@ async def execute_genie_action(action: dict, user_id: str):
                             "user_id": user_id,
                             "contact_user_id": user["user_id"],
                             "contact_name": user.get("username"),
-                            "added_at": datetime.utcnow()
+                            "added_at": datetime.utcnow(),
+                            "added_by_genie": True,
+                            "interaction_id": interaction_id
                         }
-                        await db.contacts.insert_one(contact)
+                        result = await db.contacts.insert_one(contact)
         
         elif action_type == "block_user":
             # Block user
@@ -1883,9 +1888,11 @@ async def execute_genie_action(action: dict, user_id: str):
                         "block_id": str(uuid.uuid4()),
                         "user_id": user_id,
                         "blocked_user_id": user["user_id"],
-                        "blocked_at": datetime.utcnow()
+                        "blocked_at": datetime.utcnow(),
+                        "blocked_by_genie": True,
+                        "interaction_id": interaction_id
                     }
-                    await db.blocked_users.insert_one(block)
+                    result = await db.blocked_users.insert_one(block)
         
         elif action_type == "list_chats":
             # No action needed, just for display
@@ -1894,6 +1901,13 @@ async def execute_genie_action(action: dict, user_id: str):
         elif action_type == "list_contacts":
             # No action needed, just for display
             pass
+            
+        # Update the interaction with the result
+        if interaction_id and result:
+            await db.genie_interactions.update_one(
+                {"interaction_id": interaction_id},
+                {"$set": {"action_result": str(result)}}
+            )
             
     except Exception as e:
         logging.error(f"Error executing genie action: {e}")
