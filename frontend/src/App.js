@@ -209,6 +209,39 @@ function App() {
     workspace_name: '', workspace_type: 'business', company_name: '',
     department: '', job_title: '', work_email: '', work_phone: ''
   });
+
+  // Calendar and Workspace state
+  const [workspaceMode, setWorkspaceMode] = useState('personal');
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [showTasks, setShowTasks] = useState(false);
+  const [showDocuments, setShowDocuments] = useState(false);
+  const [showWorkspaceProfile, setShowWorkspaceProfile] = useState(false);
+  const [calendarEvents, setCalendarEvents] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [documents, setDocuments] = useState([]);
+  const [workspaceProfile, setWorkspaceProfile] = useState(null);
+  const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [showCreateTask, setShowCreateTask] = useState(false);
+  const [showCreateDocument, setShowCreateDocument] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [calendarView, setCalendarView] = useState('month');
+  const [eventForm, setEventForm] = useState({
+    title: '', description: '', start_time: '', end_time: '',
+    event_type: 'meeting', location: '', attendees: [],
+    reminder_minutes: 15, priority: 'medium'
+  });
+  const [taskForm, setTaskForm] = useState({
+    title: '', description: '', due_date: '', priority: 'medium',
+    assigned_to: '', tags: [], estimated_hours: null
+  });
+  const [documentForm, setDocumentForm] = useState({
+    title: '', content: '', document_type: 'text',
+    tags: [], collaborators: []
+  });
+  const [workspaceForm, setWorkspaceForm] = useState({
+    workspace_name: '', workspace_type: 'business', company_name: '',
+    department: '', job_title: '', work_email: '', work_phone: ''
+  });
   const [userProfile, setUserProfile] = useState({
     bio: '',
     location: '',
