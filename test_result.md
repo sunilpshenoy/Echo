@@ -1017,15 +1017,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "COMPLETED: Advanced Voice/Video Calls"
-    - "COMPLETED: Contact Management" 
-    - "COMPLETED: Group Chat Creation"
-    - "COMPLETED: UI Customization Features"
-    - "COMPLETED: Genie Assistant"
-    - "COMPLETED: User Authentication UI"
-    - "COMPLETED: Real-time Chat Interface"
-    - "COMPLETED: Chat Sidebar and Navigation"
-    - "COMPLETED: Modern UI Design"
+    - "User Authentication UI"
   stuck_tasks: 
     - "Workspace Switcher"
     - "Calendar"
@@ -1045,7 +1037,7 @@ test_plan:
     - "Security Branding"
     - "Advanced Voice/Video Calls"
   test_all: false
-  test_priority: "completed"
+  test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
