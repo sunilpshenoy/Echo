@@ -933,6 +933,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Unable to test the calendar due to frontend compilation errors. The frontend is not loading properly, so the calendar features cannot be evaluated."
+      - working: false
+        agent: "testing"
+        comment: "Attempted to test the Calendar but could not find the Calendar button in the header area. The button with the 📅 icon was not present in the UI. Code review shows that the Calendar component is implemented with support for month/week/day views and event creation, but the button to access it appears to be missing from the current UI."
 
   - task: "Task Manager"
     implemented: true
