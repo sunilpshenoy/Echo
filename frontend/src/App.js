@@ -179,7 +179,6 @@ function App() {
     fontSize: 'medium',
     fontFamily: 'Inter'
   });
-  const [showAdvancedCustomization, setShowAdvancedCustomization] = useState(false);
   
   // Advanced customization settings
   const [advancedSettings, setAdvancedSettings] = useState({
