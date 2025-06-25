@@ -180,15 +180,6 @@ function App() {
     fontFamily: 'Inter'
   });
   
-  // Advanced customization settings
-  const [advancedSettings, setAdvancedSettings] = useState({
-    theme: 'whatsapp',
-    animations: 'smooth',
-    soundPack: 'default',
-    fontSize: 'medium',
-    fontFamily: 'Inter'
-  });
-  
   // Screen sharing
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [screenStream, setScreenStream] = useState(null);
