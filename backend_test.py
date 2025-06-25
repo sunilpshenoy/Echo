@@ -2233,6 +2233,118 @@ def test_channels():
     logger.info("Channels functionality tests passed")
     return True
 
+def test_genie_command_processing():
+    """Test Genie command processing"""
+    logger.info("Testing Genie command processing...")
+    
+    # Test various commands
+    test_commands = [
+        {
+            "command": "create a chat with Bob",
+            "expected_intent": "create_chat"
+        },
+        {
+            "command": "add contact john.doe@example.com",
+            "expected_intent": "add_contact"
+        },
+        {
+            "command": "block user Charlie",
+            "expected_intent": "block_user"
+        },
+        {
+            "command": "show my chats",
+            "expected_intent": "list_chats"
+        },
+        {
+            "command": "help me",
+            "expected_intent": "show_help"
+        },
+        {
+            "command": "send message to Sarah saying hello",
+            "expected_intent": "send_message"
+        }
+    ]
+    
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    
+    for test_case in test_commands:
+        command = test_case["command"]
+        expected_intent = test_case["expected_intent"]
+        
+        response = requests.post(
+            f"{API_URL}/genie/process",
+            json={"command": command},
+            headers=headers
+        )
+        
+        if response.status_code != 200:
+            logger.error(f"Failed to process Genie command '{command}': {response.text}")
+            return False
+        
+        result = response.json()
+        actual_intent = result.get("intent")
+        
+        if actual_intent != expected_intent:
+            logger.error(f"Command '{command}' was identified as '{actual_intent}' intent, expected '{expected_intent}'")
+            return False
+        
+        logger.info(f"Command '{command}' correctly identified as '{actual_intent}' intent")
+    
+    logger.info("Genie command processing tests passed")
+    return True
+
+def test_genie_undo_functionality():
+    """Test Genie undo functionality"""
+    logger.info("Testing Genie undo functionality...")
+    
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    
+    # First, perform an action using Genie
+    action_command = "add contact test.user@example.com"
+    
+    action_response = requests.post(
+        f"{API_URL}/genie/process",
+        json={"command": action_command},
+        headers=headers
+    )
+    
+    if action_response.status_code != 200:
+        logger.error(f"Failed to process action command: {action_response.text}")
+        return False
+    
+    logger.info(f"Successfully processed action command: {action_command}")
+    
+    # Now try to undo the action
+    undo_response = requests.post(
+        f"{API_URL}/genie/undo",
+        headers=headers
+    )
+    
+    if undo_response.status_code != 200:
+        logger.error(f"Failed to process undo command: {undo_response.text}")
+        return False
+    
+    result = undo_response.json()
+    
+    if not result.get("success"):
+        logger.error(f"Undo operation failed: {result.get('message')}")
+        return False
+    
+    logger.info(f"Successfully undid action: {result.get('message')}")
+    
+    # Try another undo (should fail or indicate nothing to undo)
+    second_undo_response = requests.post(
+        f"{API_URL}/genie/undo",
+        headers=headers
+    )
+    
+    if second_undo_response.status_code != 200:
+        logger.error(f"Failed to process second undo command: {second_undo_response.text}")
+        # This is not a critical failure, so we'll continue
+    
+    logger.info("Genie undo functionality tests passed")
+    return True
+
 def run_all_tests():
     """Run all tests and return results"""
     test_results = {
@@ -2255,6 +2367,12 @@ def run_all_tests():
             "add_contacts": test_add_contacts(),
             "get_contacts": test_get_contacts(),
             "search_users": test_search_users()
+        },
+        "Genie Command Processing": {
+            "process_commands": test_genie_command_processing()
+        },
+        "Genie Undo Functionality": {
+            "undo_actions": test_genie_undo_functionality()
         },
         "File Upload API": {
             "upload": test_file_upload()
