@@ -12,7 +12,7 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 VIDEO_NAME="chatapp_pro_ultimate_demo_${TIMESTAMP}.mp4"
 
 # App URL
-APP_URL="https://8a189bda-4adc-4f05-81eb-c79a85bb522c.preview.emergentagent.com"
+APP_URL="https://1f08d9c4-28b0-437e-b8a1-ad0ba8b89e9a.preview.emergentagent.com"
 
 echo "📱 Target App URL: $APP_URL"
 echo "🎬 Output Video: $OUTPUT_DIR/$VIDEO_NAME"
@@ -109,7 +109,7 @@ def create_demo_video():
     5. ONLY app that's truly magical to use
     
     🌈 EXPERIENCE THE MAGIC:
-    Visit: https://8a189bda-4adc-4f05-81eb-c79a85bb522c.preview.emergentagent.com
+    Visit: https://1f08d9c4-28b0-437e-b8a1-ad0ba8b89e9a.preview.emergentagent.com
     
     ChatApp Pro Ultimate - Where Communication Meets Magic ✨
     """
@@ -128,7 +128,7 @@ def create_demo_video():
         f.write("3. Create comparison slides vs competitors\n")
         f.write("4. Add cosmic background music\n")
         f.write("5. Export as MP4 with 1080p quality\n")
-        f.write("\nApp URL: https://8a189bda-4adc-4f05-81eb-c79a85bb522c.preview.emergentagent.com\n")
+        f.write("\nApp URL: https://1f08d9c4-28b0-437e-b8a1-ad0ba8b89e9a.preview.emergentagent.com\n")
     
     print(f"📝 Demo script created: {output_file}")
     
@@ -251,7 +251,7 @@ This directory contains promotional content for ChatApp Pro Ultimate.
 5. **Export as MP4** in 1080p quality
 
 ## 🚀 App URL
-https://8a189bda-4adc-4f05-81eb-c79a85bb522c.preview.emergentagent.com
+https://1f08d9c4-28b0-437e-b8a1-ad0ba8b89e9a.preview.emergentagent.com
 
 ## 💎 Key Selling Points to Highlight
 
@@ -294,4 +294,4 @@ EOF
 echo ""
 echo "🎉 SUCCESS! Demo content generated in /app/videos/"
 echo "📖 Check DOWNLOAD_INSTRUCTIONS.md for video creation guide"
-echo "🌐 Live app: https://8a189bda-4adc-4f05-81eb-c79a85bb522c.preview.emergentagent.com"
+echo "🌐 Live app: https://1f08d9c4-28b0-437e-b8a1-ad0ba8b89e9a.preview.emergentagent.com"
