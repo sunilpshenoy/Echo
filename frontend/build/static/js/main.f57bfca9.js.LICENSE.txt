@@ -1,32 +1,3 @@
-/*!
- * The buffer module from node.js, for the browser.
- *
- * @author   Feross Aboukhadijeh <https://feross.org>
- * @license  MIT
- */
-
-/*! exports provided: default */
-
-/*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
-
-/*! no static exports found */
-
-/*! queue-microtask. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
-
-/*! react */
-
-/*! safe-buffer. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
-
-/*! simple-peer. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
-
-/*!******************************!*\
-      !*** ./src/react-webcam.tsx ***!
-      \******************************/
-
-/*!**************************************************************************************!*\
-      !*** external {"root":"React","commonjs2":"react","commonjs":"react","amd":"react"} ***!
-      \**************************************************************************************/
-
 /**
  * @license React
  * react-dom.production.min.js
