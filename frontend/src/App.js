@@ -9,7 +9,7 @@ import GameCenter from './components/GameCenter';
 import AdvancedCustomization from './components/AdvancedCustomization';
 import "./components/AdvancedCustomization.css";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://1f08d9c4-28b0-437e-b8a1-ad0ba8b89e9a.preview.emergentagent.com';
 const API = `${BACKEND_URL}/api`;
 
 // Initialize audio recorder
