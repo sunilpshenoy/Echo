@@ -150,6 +150,12 @@ function App() {
   });
   const [showProfileEditor, setShowProfileEditor] = useState(false);
   
+  // Workspace and Calendar state
+  const [workspaceMode, setWorkspaceMode] = useState('personal');
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [showTasks, setShowTasks] = useState(false);
+  const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
+  
   // Polls state
   const [showCreatePoll, setShowCreatePoll] = useState(false);
   const [pollForm, setPollForm] = useState({
