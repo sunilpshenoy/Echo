@@ -814,7 +814,7 @@ agent_communication:
     message: "Conducted verification testing of the ChatApp Pro Ultimate application. The application is accessible via the preview URL and the login page loads correctly with all UI elements displaying properly. The backend API is responding to requests as expected, and WebSocket connections are being established and closed properly according to the backend logs. The login page shows the ChatApp Pro Ultimate branding and features (Encryption, Calls, Stories, Channels, Voice Rooms, and Discovery). There are some warnings in the frontend logs, but they are not critical errors that would prevent the application from functioning. The application appears to be working correctly after resolving the compilation issues."
   - task: "Advanced Voice/Video Calls"
     implemented: true
-    working: false
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
@@ -826,6 +826,9 @@ agent_communication:
       - working: false
         agent: "testing"
         comment: "The Voice/Video Calls feature has the models and API endpoints defined in the backend, but testing failed because the chat endpoints (/api/chats) are not implemented. The VoiceCall model includes fields for call_type, status, participants, and duration. The /api/calls/initiate endpoint is properly defined but returns a 404 error when tested because it depends on the chat functionality."
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested the /api/calls/initiate endpoint. Created a test user, authenticated, created a chat between users, and tested both voice and video call initiation. The API correctly creates call records with the proper metadata including call_type, status, and participants. WebSocket notifications for incoming calls are also working properly, with notifications being sent to all participants in real-time."
 
   - task: "Voice Rooms (Discord-style)"
     implemented: true
