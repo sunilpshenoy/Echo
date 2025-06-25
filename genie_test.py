@@ -110,24 +110,41 @@ def test_genie_undo():
     headers = {"Authorization": f"Bearer {user_token}"}
     
     # First, create an action to undo (add a contact)
+    logger.info("Creating an action to undo (adding a contact)")
     command_data = {"command": "add contact test@example.com"}
-    requests.post(f"{API_URL}/genie/process", json=command_data, headers=headers)
     
-    # Now try to undo it
-    response = requests.post(f"{API_URL}/genie/undo", headers=headers)
-    
-    if response.status_code != 200:
-        logger.error(f"Failed to undo action: {response.text}")
+    try:
+        # Process the command first
+        process_response = requests.post(f"{API_URL}/genie/process", json=command_data, headers=headers)
+        logger.info(f"Process response status: {process_response.status_code}")
+        logger.info(f"Process response content: {process_response.text}")
+        
+        if process_response.status_code != 200:
+            logger.error("Failed to create an action to undo")
+            return False
+        
+        # Now try to undo it
+        logger.info("Attempting to undo the action")
+        undo_response = requests.post(f"{API_URL}/genie/undo", headers=headers)
+        
+        logger.info(f"Undo response status: {undo_response.status_code}")
+        logger.info(f"Undo response content: {undo_response.text}")
+        
+        if undo_response.status_code != 200:
+            logger.error(f"Failed to undo action: {undo_response.text}")
+            return False
+        
+        result = undo_response.json()
+        logger.info(f"Undo result: {result}")
+        
+        if not result.get('success'):
+            logger.error(f"Undo operation failed: {result.get('message')}")
+            return False
+        
+        return True
+    except Exception as e:
+        logger.error(f"Exception during undo test: {str(e)}")
         return False
-    
-    result = response.json()
-    logger.info(f"Undo result: {result.get('message')}")
-    
-    if not result.get('success'):
-        logger.error(f"Undo operation failed: {result.get('message')}")
-        return False
-    
-    return True
 
 def run_genie_tests():
     """Run all genie assistant tests"""
