@@ -1341,42 +1341,53 @@ function App() {
                 </button>
                 <button
                   onClick={() => setShowPrivacySettings(!showPrivacySettings)}
-                className="text-blue-200 hover:text-white p-2 rounded-lg hover:bg-white/20 transition-all"
-                title="Privacy"
-              >
-                🛡️
-              </button>
-              <button
-                onClick={() => setShowBackupRestore(!showBackupRestore)}
-                className="text-blue-200 hover:text-white p-2 rounded-lg hover:bg-white/20 transition-all"
-                title="Backup"
-              >
-                💾
-              </button>
-              <button
-                onClick={() => setShowProfileEditor(!showProfileEditor)}
-                className="text-blue-200 hover:text-white p-2 rounded-lg hover:bg-white/20 transition-all"
-                title="Profile"
-              >
-                👤
-              </button>
-              <button
-                onClick={logout}
-                className="text-blue-200 hover:text-white p-2 rounded-lg hover:bg-white/20 transition-all"
-                title="Logout"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-              </button>
+                <button
+                  onClick={() => setShowPrivacySettings(!showPrivacySettings)}
+                  className="group relative text-white/80 hover:text-white p-3 rounded-xl hover:bg-white/10 transition-all duration-300 transform hover:scale-110"
+                  title="Privacy"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                  <span className="text-xl relative z-10">🛡️</span>
+                </button>
+                <button
+                  onClick={() => setShowBackupRestore(!showBackupRestore)}
+                  className="group relative text-white/80 hover:text-white p-3 rounded-xl hover:bg-white/10 transition-all duration-300 transform hover:scale-110"
+                  title="Backup"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                  <span className="text-xl relative z-10">💾</span>
+                </button>
+                <button
+                  onClick={() => setShowProfileEditor(!showProfileEditor)}
+                  className="group relative text-white/80 hover:text-white p-3 rounded-xl hover:bg-white/10 transition-all duration-300 transform hover:scale-110"
+                  title="Profile"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                  <span className="text-xl relative z-10">👤</span>
+                </button>
+                <button
+                  onClick={logout}
+                  className="group relative text-white/80 hover:text-white p-3 rounded-xl hover:bg-white/10 transition-all duration-300 transform hover:scale-110"
+                  title="Logout"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                  <svg className="w-5 h-5 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Stories section */}
+        {/* Enhanced Stories section */}
         {stories.length > 0 && (
-          <div className="p-3 border-b border-gray-200/50">
-            <div className="flex space-x-3 overflow-x-auto scrollbar-hide">
+          <div className="p-4 border-b border-white/10">
+            <div className="flex items-center space-x-2 mb-3">
+              <span className="text-sm font-semibold text-white/80">✨ Stories</span>
+              <div className="w-2 h-2 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full animate-pulse"></div>
+            </div>
+            <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
               {stories.map(userStories => (
                 <div
                   key={userStories.user.user_id}
