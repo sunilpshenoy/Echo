@@ -489,6 +489,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Found a compilation error in App.js: 'Identifier 'existingToken' has already been declared'. There's a duplicate declaration of the token variable. The first one is at line 22: 'const [token, setToken] = useState(localStorage.getItem('token'));' and then there's another one at line 205: 'const existingToken = localStorage.getItem('token');'. This is causing the frontend to fail to compile properly, preventing the authentication flow from working."
+      - working: false
+        agent: "testing"
+        comment: "Fixed the duplicate token declaration in App.js by using the existing token state variable instead of declaring a new one. The frontend is now compiling successfully, but the login page still doesn't redirect to the chat interface after submitting credentials. The login form is visually correct and includes all required fields, but the form submission is not working as expected. This suggests there may be an issue with the event handlers or the API calls in the login/register functions."
 
   - task: "Genie Assistant Feature"
     implemented: true
