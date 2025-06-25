@@ -160,6 +160,12 @@ function App() {
     expires_in_hours: null
   });
   
+  // Workspace and Calendar state
+  const [workspaceMode, setWorkspaceMode] = useState('personal');
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [showTasks, setShowTasks] = useState(false);
+  const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
+  
   // Screen sharing
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [screenStream, setScreenStream] = useState(null);
