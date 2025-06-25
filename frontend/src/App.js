@@ -227,33 +227,6 @@ function App() {
         setCurrentView('login');
       });
     }
-    
-    // Check if user is already logged in
-    const existingToken = localStorage.getItem('token');
-    if (existingToken && !user) {
-      // Validate token by fetching user profile
-      axios.get(`${API}/users/me`, {
-        headers: { Authorization: `Bearer ${existingToken}` }
-      })
-      .then(response => {
-        setUser(response.data);
-        setToken(existingToken);
-        setCurrentView('chat');
-        // Fetch user data
-        fetchChats(existingToken);
-        fetchContacts(existingToken);
-        fetchBlockedUsers(existingToken);
-        fetchStories(existingToken);
-        fetchChannels(existingToken);
-        fetchVoiceRooms(existingToken);
-      })
-      .catch(error => {
-        console.error('Token validation failed:', error);
-        localStorage.removeItem('token');
-        setToken(null);
-        setCurrentView('login');
-      });
-    }
   }, []);
 
   useEffect(() => {
