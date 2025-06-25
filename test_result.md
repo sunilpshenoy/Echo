@@ -963,11 +963,11 @@ frontend:
 
   - task: "Calendar"
     implemented: true
-    working: false
+    working: true
     file: "components/Calendar.js"
     stuck_count: 2
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
@@ -978,6 +978,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Attempted to test the Calendar again but was unable to proceed past the login page. The login page loads correctly with proper styling and branding, but login attempts with both existing and new user credentials do not redirect to the chat interface. This suggests there may be an issue with the authentication flow or a problem with the backend API connection."
+      - working: true
+        agent: "testing"
+        comment: "After fixing the duplicate function declaration in App.js, successfully tested the Calendar feature. The Calendar button (📅) is visible in the header area and opens the Calendar modal when clicked. The modal displays a monthly calendar view with June 2025 shown by default. The UI includes options for month/week/day views and a 'New Event' button. The calendar is well-designed and functional."
 
   - task: "Task Manager"
     implemented: true
