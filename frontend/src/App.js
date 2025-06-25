@@ -169,6 +169,16 @@ function App() {
   const [showTasks, setShowTasks] = useState(false);
   const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
   const [showGameCenter, setShowGameCenter] = useState(false);
+  const [showAdvancedCustomization, setShowAdvancedCustomization] = useState(false);
+  
+  // Advanced customization settings
+  const [advancedSettings, setAdvancedSettings] = useState({
+    theme: 'whatsapp',
+    animations: 'smooth',
+    soundPack: 'default',
+    fontSize: 'medium',
+    fontFamily: 'Inter'
+  });
   
   // Screen sharing
   const [isScreenSharing, setIsScreenSharing] = useState(false);
