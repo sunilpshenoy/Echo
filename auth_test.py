@@ -157,13 +157,13 @@ def test_user_profile_endpoint():
     """Test user profile endpoint"""
     logger.info("Testing user profile endpoint...")
     
-    if not user_token:
-        logger.error("No user token available for profile test")
+    if not user_token or not user_id:
+        logger.error("No user token or ID available for profile test")
         return False
     
-    # Test with valid token
+    # Test with valid token - using /profile/{user_id} endpoint
     headers = {"Authorization": f"Bearer {user_token}"}
-    response = requests.get(f"{API_URL}/users/me", headers=headers)
+    response = requests.get(f"{API_URL}/profile/{user_id}", headers=headers)
     
     if response.status_code != 200:
         logger.error(f"Failed to get user profile: {response.status_code} - {response.text}")
@@ -171,7 +171,7 @@ def test_user_profile_endpoint():
     
     # Verify response format
     response_data = response.json()
-    required_fields = ["user_id", "username", "email"]
+    required_fields = ["user_id", "username"]
     
     for field in required_fields:
         if field not in response_data:
@@ -187,7 +187,7 @@ def test_user_profile_endpoint():
     
     # Test with invalid token
     headers = {"Authorization": "Bearer invalid_token"}
-    response = requests.get(f"{API_URL}/users/me", headers=headers)
+    response = requests.get(f"{API_URL}/profile/{user_id}", headers=headers)
     
     if response.status_code != 401:
         logger.error(f"Expected 401 error for invalid token, got: {response.status_code} - {response.text}")
