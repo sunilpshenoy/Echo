@@ -932,7 +932,7 @@ frontend:
     implemented: true
     working: false
     file: "components/Calendar.js"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: true
     status_history:
@@ -942,6 +942,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Attempted to test the Calendar but could not find the Calendar button in the header area. The button with the 📅 icon was not present in the UI. Code review shows that the Calendar component is implemented with support for month/week/day views and event creation, but the button to access it appears to be missing from the current UI."
+      - working: false
+        agent: "testing"
+        comment: "Attempted to test the Calendar again but was unable to proceed past the login page. The login page loads correctly with proper styling and branding, but login attempts with both existing and new user credentials do not redirect to the chat interface. This suggests there may be an issue with the authentication flow or a problem with the backend API connection."
 
   - task: "Task Manager"
     implemented: true
