@@ -200,6 +200,33 @@ function App() {
         document.body.setAttribute('data-theme', 'dark');
       }
     }
+    
+    // Check if user is already logged in
+    const savedToken = localStorage.getItem('token');
+    if (savedToken && !user) {
+      // Validate token by fetching user profile
+      axios.get(`${API}/users/me`, {
+        headers: { Authorization: `Bearer ${savedToken}` }
+      })
+      .then(response => {
+        setUser(response.data);
+        setToken(savedToken);
+        setCurrentView('chat');
+        // Fetch user data
+        fetchChats(savedToken);
+        fetchContacts(savedToken);
+        fetchBlockedUsers(savedToken);
+        fetchStories(savedToken);
+        fetchChannels(savedToken);
+        fetchVoiceRooms(savedToken);
+      })
+      .catch(error => {
+        console.error('Token validation failed:', error);
+        localStorage.removeItem('token');
+        setToken(null);
+        setCurrentView('login');
+      });
+    }
   }, []);
 
   useEffect(() => {
