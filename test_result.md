@@ -768,23 +768,11 @@ metadata:
 test_plan:
   current_focus:
     - "Advanced Voice/Video Calls"
-    - "Voice Rooms (Discord-style)"
-    - "Screen Sharing & Streaming"
-    - "Safety Number Verification"
-    - "Advanced Backup/Restore"
-    - "Enhanced Privacy Controls"
-    - "Public User Discovery"
-    - "Username System"
-  stuck_tasks:
-    - "Advanced Voice/Video Calls"
-    - "Voice Rooms (Discord-style)"
-    - "Screen Sharing & Streaming"
-    - "Safety Number Verification"
-    - "Advanced Backup/Restore"
-    - "Enhanced Privacy Controls"
-    - "Public User Discovery"
-    - "Username System"
-  test_all: true
+    - "Contact Management"
+    - "Group Chat Creation"
+    - "Genie Assistant"
+  stuck_tasks: []
+  test_all: false
   test_priority: "high_first"
 
 agent_communication:
