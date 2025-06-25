@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import './App.css';
+import EmojiPicker from 'emoji-picker-react';
+import Peer from 'simple-peer';
+import io from 'socket.io-client';
+import Webcam from 'react-webcam';
+import MicRecorder from 'mic-recorder-to-mp3';
 import GenieAssistant from './components/GenieAssistant';
-import Calendar from './components/Calendar';
-import TaskManager from './components/TaskManager';
-import WorkspaceSwitcher from './components/WorkspaceSwitcher';
+import './App.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -146,13 +148,6 @@ function App() {
     location: '',
     website: '',
     interests: [],
-
-  // Workspace and Calendar state
-  const [workspaceMode, setWorkspaceMode] = useState('personal');
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [showTasks, setShowTasks] = useState(false);
-  const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
-
     languages: []
   });
   const [showProfileEditor, setShowProfileEditor] = useState(false);
