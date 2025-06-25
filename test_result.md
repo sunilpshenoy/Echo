@@ -957,6 +957,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Unable to test the game center due to frontend compilation errors. The frontend is not loading properly, so the game center features cannot be evaluated."
+      - working: false
+        agent: "testing"
+        comment: "Attempted to test the Game Center but could not find the Game Center button in the header area. The button with the 🎮 icon was not present in the UI. Code review shows that the GameCenter component is implemented with support for Chess, Tic-Tac-Toe, and Word Guess games, but the button to access it appears to be missing from the current UI."
 
   - task: "Advanced Customization"
     implemented: true
