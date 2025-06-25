@@ -752,7 +752,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Genie Assistant Feature"
     - "Advanced Voice/Video Calls"
     - "Voice Rooms (Discord-style)"
     - "Screen Sharing & Streaming"
