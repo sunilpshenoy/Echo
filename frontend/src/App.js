@@ -6,6 +6,8 @@ import Calendar from './components/Calendar';
 import TaskManager from './components/TaskManager';
 import WorkspaceSwitcher from './components/WorkspaceSwitcher';
 import GameCenter from './components/GameCenter';
+import AdvancedCustomization from './components/AdvancedCustomization';
+import './components/AdvancedCustomization.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
