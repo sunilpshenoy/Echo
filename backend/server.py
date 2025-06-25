@@ -469,6 +469,133 @@ class MessageSchedule(BaseModel):
     scheduled_for: datetime
     message_type: str = "text"
 
+# Calendar and Workspace Models
+class CalendarEvent(BaseModel):
+    event_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    title: str
+    description: Optional[str] = None
+    start_time: datetime
+    end_time: datetime
+    event_type: str = "meeting"  # meeting, task, reminder, personal, work
+    location: Optional[str] = None
+    attendees: List[str] = Field(default_factory=list)
+    chat_id: Optional[str] = None  # Associated chat for meeting
+    reminder_minutes: int = 15
+    is_recurring: bool = False
+    recurrence_pattern: Optional[str] = None  # daily, weekly, monthly
+    workspace_mode: str = "personal"  # personal, business
+    priority: str = "medium"  # low, medium, high, urgent
+    status: str = "scheduled"  # scheduled, in_progress, completed, cancelled
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class Task(BaseModel):
+    task_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    title: str
+    description: Optional[str] = None
+    due_date: Optional[datetime] = None
+    priority: str = "medium"  # low, medium, high, urgent
+    status: str = "pending"  # pending, in_progress, completed, cancelled
+    assigned_to: Optional[str] = None  # For team tasks
+    assignee_user_id: Optional[str] = None
+    chat_id: Optional[str] = None  # Associated chat
+    workspace_mode: str = "personal"  # personal, business
+    tags: List[str] = Field(default_factory=list)
+    checklist: List[Dict[str, Any]] = Field(default_factory=list)
+    estimated_hours: Optional[float] = None
+    actual_hours: Optional[float] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    completed_at: Optional[datetime] = None
+
+class WorkspaceProfile(BaseModel):
+    profile_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    workspace_name: str
+    workspace_type: str = "business"  # business, team, organization
+    company_name: Optional[str] = None
+    department: Optional[str] = None
+    job_title: Optional[str] = None
+    work_email: Optional[str] = None
+    work_phone: Optional[str] = None
+    business_hours: Dict = Field(default_factory=lambda: {
+        "start": "09:00",
+        "end": "17:00",
+        "timezone": "UTC",
+        "days": ["monday", "tuesday", "wednesday", "thursday", "friday"]
+    })
+    notification_settings: Dict = Field(default_factory=lambda: {
+        "work_hours_only": True,
+        "urgent_always": True,
+        "weekend_off": True
+    })
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class Document(BaseModel):
+    document_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    title: str
+    content: str
+    document_type: str = "text"  # text, markdown, rich_text
+    workspace_mode: str = "personal"
+    chat_id: Optional[str] = None  # Associated chat
+    collaborators: List[str] = Field(default_factory=list)
+    permissions: Dict = Field(default_factory=lambda: {
+        "public_read": False,
+        "team_edit": False,
+        "owner_only": True
+    })
+    version_history: List[Dict] = Field(default_factory=list)
+    tags: List[str] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Request Models for Calendar/Workspace
+class CalendarEventCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    start_time: datetime
+    end_time: datetime
+    event_type: str = "meeting"
+    location: Optional[str] = None
+    attendees: List[str] = Field(default_factory=list)
+    chat_id: Optional[str] = None
+    reminder_minutes: int = 15
+    workspace_mode: str = "personal"
+    priority: str = "medium"
+
+class TaskCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    due_date: Optional[datetime] = None
+    priority: str = "medium"
+    assigned_to: Optional[str] = None
+    chat_id: Optional[str] = None
+    workspace_mode: str = "personal"
+    tags: List[str] = Field(default_factory=list)
+    estimated_hours: Optional[float] = None
+
+class WorkspaceProfileCreate(BaseModel):
+    workspace_name: str
+    workspace_type: str = "business"
+    company_name: Optional[str] = None
+    department: Optional[str] = None
+    job_title: Optional[str] = None
+    work_email: Optional[str] = None
+    work_phone: Optional[str] = None
+
+class DocumentCreate(BaseModel):
+    title: str
+    content: str
+    document_type: str = "text"
+    workspace_mode: str = "personal"
+    chat_id: Optional[str] = None
+    collaborators: List[str] = Field(default_factory=list)
+    tags: List[str] = Field(default_factory=list)
+
 # Helper functions
 def create_access_token(data: dict):
     to_encode = data.copy()
