@@ -369,8 +369,12 @@ function App() {
   // Authentication functions
   const login = async (e) => {
     e.preventDefault();
+    console.log('Login form submitted:', loginForm);
+    console.log('API URL:', API);
     try {
+      console.log('Attempting to login with:', loginForm);
       const response = await axios.post(`${API}/login`, loginForm);
+      console.log('Login response:', response.data);
       const { access_token, user } = response.data;
       
       setToken(access_token);
@@ -380,6 +384,7 @@ function App() {
       setCurrentView('chat');
       
       setTimeout(() => {
+        console.log('Fetching user data after login');
         fetchChats(access_token);
         fetchContacts(access_token);
         fetchBlockedUsers(access_token);
@@ -390,6 +395,7 @@ function App() {
       
     } catch (error) {
       console.error('Login error:', error);
+      console.error('Login error details:', error.response?.data);
       alert('Login failed: ' + (error.response?.data?.detail || error.message));
     }
   };
