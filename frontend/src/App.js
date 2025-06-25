@@ -1280,6 +1280,27 @@ function App() {
             >
               🚀 Launch ChatApp Pro
             </button>
+            
+            {/* Debug Test Button */}
+            <button
+              type="button"
+              onClick={async () => {
+                console.log('Debug test button clicked');
+                try {
+                  const testLogin = { email: 'test@example.com', password: 'password123' };
+                  console.log('Sending test request to:', `${API}/login`);
+                  const response = await axios.post(`${API}/login`, testLogin);
+                  console.log('Test response:', response.data);
+                  alert('Direct API call successful!');
+                } catch (error) {
+                  console.error('Direct API call failed:', error);
+                  alert('Direct API call failed: ' + error.message);
+                }
+              }}
+              className="w-full mt-2 bg-red-600 text-white py-2 rounded-xl text-sm"
+            >
+              🔧 Debug Test API Call
+            </button>
           </form>
         </div>
       </div>
