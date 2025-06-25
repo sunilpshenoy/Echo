@@ -7,6 +7,7 @@ import TaskManager from './components/TaskManager';
 import WorkspaceSwitcher from './components/WorkspaceSwitcher';
 import GameCenter from './components/GameCenter';
 import AdvancedCustomization from './components/AdvancedCustomization';
+import MicRecorder from "mic-recorder-to-mp3";
 import './components/AdvancedCustomization.css';
 import MicRecorder from 'mic-recorder-to-mp3';
 import MicRecorder from 'mic-recorder-to-mp3';
