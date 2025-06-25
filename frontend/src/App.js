@@ -1291,33 +1291,56 @@ function App() {
 
   // Main Chat View with Ultimate Features
   return (
-    <div className="h-screen flex bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="h-screen flex bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute top-20 left-20 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
+        <div className="absolute top-40 right-20 w-96 h-96 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-40 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
+      </div>
+
       {/* Ultimate Enhanced Sidebar */}
-      <div className="w-1/3 bg-white/80 backdrop-blur-lg border-r border-gray-200/50 flex flex-col shadow-xl">
+      <div className="w-1/3 bg-white/10 backdrop-blur-2xl border-r border-white/20 flex flex-col shadow-2xl relative z-10">
         {/* Ultimate Header */}
-        <div className="p-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full flex items-center justify-center shadow-lg">
-                <span className="font-bold text-lg">{user.username.charAt(0).toUpperCase()}</span>
+        <div className="p-6 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-600 text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-violet-600/50 via-fuchsia-600/50 to-cyan-600/50 animate-pulse"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="relative">
+                  <div className="w-14 h-14 bg-gradient-to-br from-cyan-400 via-purple-400 to-pink-400 rounded-2xl flex items-center justify-center shadow-xl transform hover:scale-110 transition-all duration-300 border-2 border-white/30">
+                    <span className="font-bold text-xl bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent">
+                      {user.username.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
+                </div>
+                <div className="ml-4">
+                  <div className="flex items-center space-x-2">
+                    <p className="font-bold text-xl bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent">
+                      {user.display_name || user.username}
+                    </p>
+                    <span className="text-2xl animate-bounce">🚀</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <p className="text-sm text-cyan-200 font-medium">
+                      {isConnected ? '✨ Ultimate Mode Active' : '🔄 Connecting...'}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="ml-3">
-                <p className="font-medium text-lg">{user.display_name || user.username} 🚀</p>
-                <p className="text-xs text-blue-200">
-                  {isConnected ? 'Ultimate Mode Active' : 'Connecting...'}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setShowDiscovery(!showDiscovery)}
-                className="text-blue-200 hover:text-white p-2 rounded-lg hover:bg-white/20 transition-all"
-                title="Discover"
-              >
-                🔍
-              </button>
-              <button
-                onClick={() => setShowPrivacySettings(!showPrivacySettings)}
+              <div className="flex items-center space-x-1">
+                <button
+                  onClick={() => setShowDiscovery(!showDiscovery)}
+                  className="group relative text-white/80 hover:text-white p-3 rounded-xl hover:bg-white/10 transition-all duration-300 transform hover:scale-110"
+                  title="Discover"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                  <span className="text-xl relative z-10">🔍</span>
+                </button>
+                <button
+                  onClick={() => setShowPrivacySettings(!showPrivacySettings)}
                 className="text-blue-200 hover:text-white p-2 rounded-lg hover:bg-white/20 transition-all"
                 title="Privacy"
               >
