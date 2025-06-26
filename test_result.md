@@ -612,6 +612,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "After fixing the duplicate function declaration in App.js, successfully tested the chat sidebar and navigation. The sidebar loads correctly with the search input and action buttons (Add, Group, Channel, Story, Voice, Poll). The user information is displayed correctly in the sidebar header, showing the username and 'Online' status. The welcome message and empty chat state are displayed properly. The sidebar is responsive and well-designed."
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested the chat sidebar and navigation with a newly registered user. The sidebar loads correctly with the search input and action buttons (Add, Group, Channel, Story, Voice, Poll). The user information is displayed correctly in the sidebar header, showing the username and 'Online' status. The welcome message and empty chat state are displayed properly. The sidebar is responsive across desktop, tablet, and mobile views."
 
   - task: "Modern UI Design"
     implemented: true
