@@ -634,7 +634,7 @@ frontend:
     file: "App.js"
     stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
@@ -645,6 +645,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Unable to test the file/image sharing functionality due to frontend compilation errors. The frontend is not loading properly, so the file upload features cannot be tested."
+      - working: false
+        agent: "testing"
+        comment: "The frontend loads properly now, but we couldn't test file/image sharing functionality as we couldn't access an active chat to test the file upload button. The file upload button is visible in the chat header, but without an active chat, we couldn't test its functionality."
 
   - task: "Message Read Receipts"
     implemented: true
