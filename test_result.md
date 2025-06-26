@@ -272,6 +272,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "Tested the Profile Editor functionality. The Profile button (👤 icon) exists in the header and is clickable, but clicking it doesn't open any modal. There's no Profile Editor modal implementation in the App.js file. No API calls to /api/profile were detected during testing. This is a critical issue as users cannot update their display name or other profile information."
+      - working: false
+        agent: "testing"
+        comment: "Attempted to test the Profile Editor modal again. The Profile button (👤 icon) is present in the header and is clickable, but the modal doesn't appear to open when clicked. Code review confirms that the Profile Editor modal is implemented in App.js (lines 2039-2100) with proper form fields for Display Name, Status Message, and Bio, but there may be an issue with the modal trigger or display logic. The backend API endpoint for updating profiles (/api/profile) is implemented correctly, but we couldn't test it due to the modal not opening."
 
   - task: "Message Encryption Features"
     implemented: true
