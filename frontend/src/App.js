@@ -1465,7 +1465,11 @@ function App() {
                 💾
               </button>
               <button
-                onClick={() => setShowProfileEditor(!showProfileEditor)}
+                onClick={() => {
+                  console.log('Profile button clicked, current state:', showProfileEditor);
+                  setShowProfileEditor(!showProfileEditor);
+                  console.log('Profile state should now be:', !showProfileEditor);
+                }}
                 className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all"
                 title="Profile"
               >
