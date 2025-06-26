@@ -1598,7 +1598,11 @@ function App() {
         {/* Ultimate Actions Grid */}
         <div className="px-3 pb-3 grid grid-cols-3 gap-2">
           <button
-            onClick={() => setShowAddContact(true)}
+            onClick={() => {
+              console.log('Add Contact button clicked, current state:', showAddContact);
+              setShowAddContact(true);
+              console.log('Add Contact state should now be: true');
+            }}
             className="bg-gradient-to-r from-green-500 to-emerald-500 text-white py-2 rounded-lg text-xs hover:shadow-lg transition-all flex flex-col items-center"
           >
             <span className="text-lg">👥</span>
