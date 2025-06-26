@@ -655,7 +655,7 @@ frontend:
     file: "App.js"
     stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
@@ -666,6 +666,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Unable to test the message read receipts functionality due to frontend compilation errors. The frontend is not loading properly, so the read receipt features cannot be tested."
+      - working: false
+        agent: "testing"
+        comment: "The frontend loads properly now, but we couldn't test message read receipts as we couldn't access an active chat with messages to test the read receipt functionality."
 
   - task: "Group Chat Creation"
     implemented: true
