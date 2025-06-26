@@ -254,9 +254,9 @@ backend:
 
   - task: "Enhanced User Profile"
     implemented: true
-    working: true
-    file: "server.py"
-    stuck_count: 0
+    working: false
+    file: "App.js"
+    stuck_count: 1
     priority: "medium"
     needs_retesting: false
     status_history:
@@ -266,6 +266,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Enhanced User Profile functionality is working correctly. Successfully updated user status messages and other profile fields via the /api/profile endpoint. The API correctly validates and applies changes to the user profile. Enhanced user data is properly included in API responses, showing status messages in chat listings."
+      - working: false
+        agent: "testing"
+        comment: "Tested the Profile Editor functionality. The Profile button (👤 icon) exists in the header and is clickable, but clicking it doesn't open any modal. There's no Profile Editor modal implementation in the App.js file. No API calls to /api/profile were detected during testing. This is a critical issue as users cannot update their display name or other profile information."
 
   - task: "Message Encryption Features"
     implemented: true
