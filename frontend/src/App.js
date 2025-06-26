@@ -2035,6 +2035,72 @@ function App() {
         )}
       </div>
 
+      {/* Profile Editor Modal */}
+      {showProfileEditor && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+            <h3 className="text-lg font-semibold mb-4">Edit Profile</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.target);
+              const profileData = {
+                display_name: formData.get('display_name'),
+                status_message: formData.get('status_message'),
+                bio: formData.get('bio')
+              };
+              
+              try {
+                const response = await axios.put(`${API}/profile`, profileData, getAuthHeaders());
+                setUser({...user, ...response.data});
+                setShowProfileEditor(false);
+                alert('Profile updated successfully!');
+              } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('Failed to update profile: ' + (error.response?.data?.detail || error.message));
+              }
+            }}>
+              <div className="space-y-4">
+                <input
+                  name="display_name"
+                  type="text"
+                  placeholder="Display Name"
+                  className="w-full p-3 border rounded-lg"
+                  defaultValue={user?.display_name || ''}
+                />
+                <input
+                  name="status_message"
+                  type="text"
+                  placeholder="Status Message"
+                  className="w-full p-3 border rounded-lg"
+                  defaultValue={user?.status_message || ''}
+                />
+                <textarea
+                  name="bio"
+                  placeholder="Bio"
+                  className="w-full p-3 border rounded-lg h-20"
+                  defaultValue={user?.bio || ''}
+                />
+              </div>
+              <div className="flex space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowProfileEditor(false)}
+                  className="flex-1 py-2 border rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Add Contact Modal */}
       {showAddContact && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
