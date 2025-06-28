@@ -206,7 +206,8 @@ def test_pin_connection_system():
     # Find direct chat with user2
     direct_chat = next((
         c for c in chats 
-        if c.get("chat_type") == "direct" and user_ids['user2'] in c.get("members", [])
+        if (c.get("chat_type") == "direct" or c.get("type") == "direct") and 
+        (user_ids['user2'] in c.get("members", []) or user_ids['user2'] in c.get("participants", []))
     ), None)
     
     if not direct_chat:
