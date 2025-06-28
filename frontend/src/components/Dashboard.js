@@ -158,6 +158,7 @@ const Dashboard = ({ user, token, api, onLogout }) => {
               <nav className="space-y-2">
                 {[
                   { id: 'profile', label: 'Profile', icon: '👤' },
+                  { id: 'authenticity', label: 'Authenticity', icon: '⭐' },
                   { id: 'discover', label: 'Discover People', icon: '🔍' },
                   { id: 'connections', label: 'Connections', icon: '💫' },
                   { id: 'settings', label: 'Settings', icon: '⚙️' }
