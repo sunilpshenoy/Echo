@@ -189,10 +189,10 @@ def test_pin_connection_system():
             chat_id = direct_chat.get('chat_id') or direct_chat.get('id')
         
         # Step 8: Testing message sending in new chat
-        chat_id = direct_chat.get('chat_id') or direct_chat.get('id')
+        logger.info("Step 8: Testing message sending in new chat...")
         
         message_data = {
-            "content": "Hello! This is a test message in our existing connection."
+            "content": "Hello! This is a test message in our new connection."
         }
         
         response = requests.post(
