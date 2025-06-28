@@ -21,6 +21,12 @@ const Dashboard = ({ user, token, api, onLogout }) => {
   const [authenticityDetails, setAuthenticityDetails] = useState(null);
   const [isLoadingAuthenticity, setIsLoadingAuthenticity] = useState(false);
   
+  // Connection management state
+  const [connections, setConnections] = useState([]);
+  const [isLoadingConnections, setIsLoadingConnections] = useState(false);
+  const [connectionFilter, setConnectionFilter] = useState('all');
+  const [selectedConnection, setSelectedConnection] = useState(null);
+  
   // Fetch authenticity details
   const fetchAuthenticityDetails = async () => {
     setIsLoadingAuthenticity(true);
