@@ -218,15 +218,119 @@ const Dashboard = ({ user, token, api, onLogout }) => {
                     
                     {/* Trust & Authenticity */}
                     <div className="bg-blue-50 p-6 rounded-lg">
-                      <h3 className="font-semibold text-gray-900 mb-4">Trust & Authenticity</h3>
+                      <h3 className="font-semibold text-gray-900 mb-6">Trust & Authenticity</h3>
+                      
+                      {/* 5-Layer Progressive Trust System */}
+                      <div className="mb-8">
+                        <h4 className="font-medium text-gray-900 mb-4">5-Layer Progressive Trust System</h4>
+                        <div className="space-y-4">
+                          {[
+                            {
+                              level: 1,
+                              title: "Anonymous Discovery",
+                              description: "Find compatible people through AI matching",
+                              icon: "🔍",
+                              status: (user?.trust_level || 1) >= 1 ? "unlocked" : "locked"
+                            },
+                            {
+                              level: 2,
+                              title: "Text Chat",
+                              description: "Start conversations with matched users",
+                              icon: "💬",
+                              status: (user?.trust_level || 1) >= 2 ? "unlocked" : "locked"
+                            },
+                            {
+                              level: 3,
+                              title: "Voice Call",
+                              description: "Hear each other's voices",
+                              icon: "🎙️",
+                              status: (user?.trust_level || 1) >= 3 ? "unlocked" : "locked"
+                            },
+                            {
+                              level: 4,
+                              title: "Video Call",
+                              description: "See each other face-to-face",
+                              icon: "📹",
+                              status: (user?.trust_level || 1) >= 4 ? "unlocked" : "locked"
+                            },
+                            {
+                              level: 5,
+                              title: "In-Person Meetup",
+                              description: "Meet in real life",
+                              icon: "🤝",
+                              status: (user?.trust_level || 1) >= 5 ? "unlocked" : "locked"
+                            }
+                          ].map((layer, index) => (
+                            <div
+                              key={layer.level}
+                              className={`flex items-center space-x-4 p-4 rounded-lg border-2 transition-all ${
+                                layer.status === "unlocked"
+                                  ? "border-green-200 bg-green-50"
+                                  : (user?.trust_level || 1) === layer.level - 1
+                                  ? "border-yellow-200 bg-yellow-50"
+                                  : "border-gray-200 bg-gray-50"
+                              }`}
+                            >
+                              <div className={`trust-level-indicator ${
+                                layer.status === "unlocked" 
+                                  ? `trust-level-${layer.level}` 
+                                  : "bg-gray-300"
+                              }`}>
+                                {layer.status === "unlocked" ? layer.icon : "🔒"}
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2">
+                                  <h5 className="font-medium text-gray-900">
+                                    Level {layer.level}: {layer.title}
+                                  </h5>
+                                  {layer.status === "unlocked" && (
+                                    <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+                                      Unlocked
+                                    </span>
+                                  )}
+                                  {(user?.trust_level || 1) === layer.level - 1 && layer.status === "locked" && (
+                                    <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-medium">
+                                      Next Level
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-gray-600 text-sm">{layer.description}</p>
+                                {layer.status === "locked" && (user?.trust_level || 1) === layer.level - 1 && (
+                                  <p className="text-yellow-700 text-xs mt-1 font-medium">
+                                    Complete more profile sections and build authentic connections to unlock
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Current Progress */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <p className="text-gray-600 text-sm mb-2">Trust Level</p>
+                          <p className="text-gray-600 text-sm mb-2">Current Trust Level</p>
                           <div className="flex items-center space-x-3">
-                            <div className="trust-level-indicator trust-level-1">{user?.trust_level || 1}</div>
+                            <div className={`trust-level-indicator trust-level-${user?.trust_level || 1}`}>
+                              {user?.trust_level || 1}
+                            </div>
                             <div>
-                              <p className="font-medium">New Member</p>
-                              <p className="text-gray-600 text-sm">Building Your Authenticity</p>
+                              <p className="font-medium">
+                                {user?.trust_level === 1 ? "Anonymous Discovery" :
+                                 user?.trust_level === 2 ? "Text Chat Unlocked" :
+                                 user?.trust_level === 3 ? "Voice Call Unlocked" :
+                                 user?.trust_level === 4 ? "Video Call Unlocked" :
+                                 user?.trust_level === 5 ? "Full Trust Achieved" :
+                                 "New Member"}
+                              </p>
+                              <p className="text-gray-600 text-sm">
+                                {user?.trust_level === 1 ? "Start by discovering compatible people" :
+                                 user?.trust_level === 2 ? "You can now chat with connections" :
+                                 user?.trust_level === 3 ? "Voice calls are now available" :
+                                 user?.trust_level === 4 ? "Video calls are now available" :
+                                 user?.trust_level === 5 ? "All features unlocked" :
+                                 "Building Your Authenticity"}
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -239,11 +343,33 @@ const Dashboard = ({ user, token, api, onLogout }) => {
                               </span>
                             </div>
                             <div>
-                              <p className="font-medium">Getting Started</p>
-                              <p className="text-gray-600 text-sm">Complete your profile to improve</p>
+                              <p className="font-medium">
+                                {(user?.authenticity_rating || 0) < 3 ? "Getting Started" :
+                                 (user?.authenticity_rating || 0) < 6 ? "Building Trust" :
+                                 (user?.authenticity_rating || 0) < 8 ? "Trusted Member" :
+                                 "Highly Authentic"}
+                              </p>
+                              <p className="text-gray-600 text-sm">
+                                {(user?.authenticity_rating || 0) < 3 ? "Complete your profile to improve" :
+                                 (user?.authenticity_rating || 0) < 6 ? "Keep engaging authentically" :
+                                 (user?.authenticity_rating || 0) < 8 ? "Well-established member" :
+                                 "Exemplary community member"}
+                              </p>
                             </div>
                           </div>
                         </div>
+                      </div>
+                      
+                      {/* Progress Tips */}
+                      <div className="mt-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                        <h5 className="font-medium text-indigo-900 mb-2">💡 How to Progress</h5>
+                        <ul className="text-indigo-800 text-sm space-y-1">
+                          <li>• Complete all sections of your profile</li>
+                          <li>• Engage in meaningful conversations</li>
+                          <li>• Be authentic and genuine in your interactions</li>
+                          <li>• Take time to build real connections</li>
+                          <li>• Both users must agree to progress to the next level</li>
+                        </ul>
                       </div>
                     </div>
                   </div>
