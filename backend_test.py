@@ -2719,6 +2719,480 @@ def run_all_tests():
     
     return test_results
 
+def test_authenticity_details():
+    """Test GET /api/authenticity/details endpoint"""
+    logger.info("Testing GET /api/authenticity/details endpoint...")
+    
+    # Get the auth user we created
+    if 'auth_user' not in user_tokens:
+        logger.error("Auth user not found, run test_authentic_connections_registration first")
+        return False
+    
+    headers = {"Authorization": f"Bearer {user_tokens['auth_user']}"}
+    
+    response = requests.get(f"{API_URL}/authenticity/details", headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get authenticity details: {response.text}")
+        return False
+    
+    # Verify response includes all required fields
+    details = response.json()
+    required_fields = [
+        "total_rating", "max_rating", "factors", "level", "next_milestone"
+    ]
+    
+    for field in required_fields:
+        if field not in details:
+            logger.error(f"Field '{field}' not included in authenticity details response")
+            return False
+    
+    # Verify factors are included
+    required_factors = [
+        "profile_completeness", "verification_status", "interaction_quality", 
+        "consistency", "community_feedback"
+    ]
+    
+    for factor in required_factors:
+        if factor not in details["factors"]:
+            logger.error(f"Factor '{factor}' not included in authenticity details")
+            return False
+        
+        # Check each factor has score, max_score, description, and tips
+        factor_data = details["factors"][factor]
+        if not all(k in factor_data for k in ["score", "max_score", "description", "tips"]):
+            logger.error(f"Factor '{factor}' missing required fields: {factor_data}")
+            return False
+    
+    # Verify rating level is one of the expected values
+    expected_levels = ["Getting Started", "Building Trust", "Trusted Member", "Highly Authentic"]
+    if details["level"] not in expected_levels:
+        logger.error(f"Unexpected rating level: {details['level']}")
+        return False
+    
+    logger.info(f"Authenticity rating: {details['total_rating']}, Level: {details['level']}")
+    logger.info("GET /api/authenticity/details test passed")
+    return True
+
+def test_authenticity_update():
+    """Test PUT /api/authenticity/update endpoint"""
+    logger.info("Testing PUT /api/authenticity/update endpoint...")
+    
+    # Get the auth user we created
+    if 'auth_user' not in user_tokens:
+        logger.error("Auth user not found, run test_authentic_connections_registration first")
+        return False
+    
+    headers = {"Authorization": f"Bearer {user_tokens['auth_user']}"}
+    
+    # First get current rating
+    response = requests.get(f"{API_URL}/authenticity/details", headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get current authenticity details: {response.text}")
+        return False
+    
+    current_rating = response.json()["total_rating"]
+    logger.info(f"Current authenticity rating: {current_rating}")
+    
+    # Update authenticity rating
+    response = requests.put(f"{API_URL}/authenticity/update", headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to update authenticity rating: {response.text}")
+        return False
+    
+    # Verify response includes new rating and level
+    update_result = response.json()
+    if "new_rating" not in update_result or "level" not in update_result:
+        logger.error(f"Update response missing required fields: {update_result}")
+        return False
+    
+    logger.info(f"Updated authenticity rating: {update_result['new_rating']}, Level: {update_result['level']}")
+    
+    # Verify with GET /users/me that rating was updated
+    me_response = requests.get(f"{API_URL}/users/me", headers=headers)
+    
+    if me_response.status_code != 200:
+        logger.error(f"Failed to get current user info after rating update: {me_response.text}")
+        return False
+    
+    me_data = me_response.json()
+    if "authenticity_rating" not in me_data:
+        logger.error(f"authenticity_rating not included in /users/me response")
+        return False
+    
+    logger.info(f"Verified authenticity_rating in /users/me: {me_data['authenticity_rating']}")
+    logger.info("PUT /api/authenticity/update test passed")
+    return True
+
+def test_connection_request():
+    """Test POST /api/connections/request endpoint"""
+    logger.info("Testing POST /api/connections/request endpoint...")
+    
+    # Get the auth user we created
+    if 'auth_user' not in user_tokens:
+        logger.error("Auth user not found, run test_authentic_connections_registration first")
+        return False
+    
+    # We need another user to send a connection request to
+    if len(user_tokens) < 2:
+        logger.error("Need at least two users for connection request test")
+        return False
+    
+    headers = {"Authorization": f"Bearer {user_tokens['auth_user']}"}
+    
+    # Send connection request to user1
+    connection_data = {
+        "user_id": user_ids['user1'],
+        "message": "I'd like to connect with you for testing purposes"
+    }
+    
+    response = requests.post(f"{API_URL}/connections/request", json=connection_data, headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to send connection request: {response.text}")
+        return False
+    
+    # Verify response includes connection details
+    connection = response.json()
+    if "connection_id" not in connection or "status" not in connection:
+        logger.error(f"Connection response missing required fields: {connection}")
+        return False
+    
+    if connection["status"] != "pending":
+        logger.error(f"Connection status should be 'pending', got: {connection['status']}")
+        return False
+    
+    connection_id = connection["connection_id"]
+    logger.info(f"Successfully sent connection request with ID: {connection_id}")
+    
+    # Store connection ID for other tests
+    if 'connections' not in globals():
+        global connections
+        connections = {}
+    
+    connections['test_connection'] = connection_id
+    
+    logger.info("POST /api/connections/request test passed")
+    return True
+
+def test_get_connections():
+    """Test GET /api/connections endpoint"""
+    logger.info("Testing GET /api/connections endpoint...")
+    
+    # Get the auth user we created
+    if 'auth_user' not in user_tokens:
+        logger.error("Auth user not found, run test_authentic_connections_registration first")
+        return False
+    
+    headers = {"Authorization": f"Bearer {user_tokens['auth_user']}"}
+    
+    # Get all connections
+    response = requests.get(f"{API_URL}/connections", headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get connections: {response.text}")
+        return False
+    
+    connections_list = response.json()
+    logger.info(f"Retrieved {len(connections_list)} connections")
+    
+    # Test with status filter
+    response = requests.get(f"{API_URL}/connections?status=pending", headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get connections with status filter: {response.text}")
+        return False
+    
+    pending_connections = response.json()
+    logger.info(f"Retrieved {len(pending_connections)} pending connections")
+    
+    # Verify each connection has required fields
+    for conn in connections_list:
+        required_fields = ["connection_id", "user_id", "connected_user_id", "status", "trust_level", "created_at"]
+        for field in required_fields:
+            if field not in conn:
+                logger.error(f"Connection missing required field '{field}': {conn}")
+                return False
+    
+    logger.info("GET /api/connections test passed")
+    return True
+
+def test_respond_to_connection():
+    """Test PUT /api/connections/{connection_id}/respond endpoint"""
+    logger.info("Testing PUT /api/connections/{connection_id}/respond endpoint...")
+    
+    # We need a connection ID from the previous test
+    if 'connections' not in globals() or 'test_connection' not in connections:
+        logger.error("No test connection found, run test_connection_request first")
+        return False
+    
+    connection_id = connections['test_connection']
+    
+    # User1 responds to the connection request
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    
+    response_data = {
+        "action": "accept"
+    }
+    
+    response = requests.put(
+        f"{API_URL}/connections/{connection_id}/respond", 
+        json=response_data, 
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to respond to connection request: {response.text}")
+        return False
+    
+    # Verify response includes updated connection details
+    connection = response.json()
+    if "status" not in connection:
+        logger.error(f"Connection response missing status field: {connection}")
+        return False
+    
+    if connection["status"] != "connected":
+        logger.error(f"Connection status should be 'connected', got: {connection['status']}")
+        return False
+    
+    logger.info(f"Successfully accepted connection request")
+    
+    # Test declining a connection
+    # First create another connection request
+    auth_headers = {"Authorization": f"Bearer {user_tokens['auth_user']}"}
+    
+    # Send connection request to user2
+    connection_data = {
+        "user_id": user_ids['user2'],
+        "message": "Another test connection request"
+    }
+    
+    request_response = requests.post(f"{API_URL}/connections/request", json=connection_data, headers=auth_headers)
+    
+    if request_response.status_code != 200:
+        logger.error(f"Failed to send second connection request: {request_response.text}")
+        return False
+    
+    second_connection_id = request_response.json()["connection_id"]
+    
+    # User2 declines the connection request
+    headers2 = {"Authorization": f"Bearer {user_tokens['user2']}"}
+    
+    decline_data = {
+        "action": "decline"
+    }
+    
+    decline_response = requests.put(
+        f"{API_URL}/connections/{second_connection_id}/respond", 
+        json=decline_data, 
+        headers=headers2
+    )
+    
+    if decline_response.status_code != 200:
+        logger.error(f"Failed to decline connection request: {decline_response.text}")
+        return False
+    
+    # Verify response includes updated connection details
+    declined_connection = decline_response.json()
+    if declined_connection.get("status") != "declined":
+        logger.error(f"Connection status should be 'declined', got: {declined_connection.get('status')}")
+        return False
+    
+    logger.info(f"Successfully declined connection request")
+    
+    logger.info("PUT /api/connections/{connection_id}/respond test passed")
+    return True
+
+def test_update_trust_level():
+    """Test PUT /api/connections/{connection_id}/trust-level endpoint"""
+    logger.info("Testing PUT /api/connections/{connection_id}/trust-level endpoint...")
+    
+    # We need a connection ID from the previous test
+    if 'connections' not in globals() or 'test_connection' not in connections:
+        logger.error("No test connection found, run test_connection_request first")
+        return False
+    
+    connection_id = connections['test_connection']
+    
+    # Update trust level
+    headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    
+    # Test each trust level (1-5)
+    for trust_level in range(1, 6):
+        trust_data = {
+            "trust_level": trust_level
+        }
+        
+        response = requests.put(
+            f"{API_URL}/connections/{connection_id}/trust-level", 
+            json=trust_data, 
+            headers=headers
+        )
+        
+        if response.status_code != 200:
+            logger.error(f"Failed to update trust level to {trust_level}: {response.text}")
+            return False
+        
+        # Verify response includes updated trust level
+        connection = response.json()
+        if "trust_level" not in connection:
+            logger.error(f"Connection response missing trust_level field: {connection}")
+            return False
+        
+        if connection["trust_level"] != trust_level:
+            logger.error(f"Trust level should be {trust_level}, got: {connection['trust_level']}")
+            return False
+        
+        logger.info(f"Successfully updated trust level to {trust_level}")
+    
+    # Test invalid trust level (should fail)
+    invalid_data = {
+        "trust_level": 6  # Invalid level (above 5)
+    }
+    
+    invalid_response = requests.put(
+        f"{API_URL}/connections/{connection_id}/trust-level", 
+        json=invalid_data, 
+        headers=headers
+    )
+    
+    if invalid_response.status_code != 400:
+        logger.error(f"Invalid trust level should return 400, got: {invalid_response.status_code}")
+        return False
+    
+    logger.info("Successfully verified invalid trust level is rejected")
+    
+    logger.info("PUT /api/connections/{connection_id}/trust-level test passed")
+    return True
+
+def test_integration_flow():
+    """Test complete user flow: register → profile setup → authenticity rating → connection requests"""
+    logger.info("Testing complete integration flow...")
+    
+    # 1. Register a new user
+    unique_id = str(uuid.uuid4())[:8]
+    test_user = {
+        "username": f"flow_user_{unique_id}",
+        "email": f"flow_{unique_id}@example.com",
+        "password": "FlowTest123!",
+        "phone": f"+1999{unique_id}"
+    }
+    
+    response = requests.post(f"{API_URL}/register", json=test_user)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to register user for integration flow: {response.text}")
+        return False
+    
+    user_data = response.json()
+    flow_token = user_data["access_token"]
+    flow_user_id = user_data["user"]["user_id"]
+    
+    logger.info(f"Successfully registered user for integration flow")
+    
+    # 2. Complete profile
+    headers = {"Authorization": f"Bearer {flow_token}"}
+    
+    profile_data = {
+        "age": 30,
+        "gender": "non-binary",
+        "location": "Integration Test City",
+        "current_mood": "focused",
+        "mood_reason": "Testing the integration flow",
+        "seeking_type": "friendship",
+        "seeking_age_range": "25-45",
+        "seeking_gender": "all",
+        "seeking_location_preference": "anywhere",
+        "connection_purpose": "Testing the complete user flow",
+        "bio": "I'm a test user for the integration flow",
+        "interests": ["testing", "integration", "software"],
+        "values": ["thoroughness", "reliability", "quality"]
+    }
+    
+    response = requests.put(f"{API_URL}/profile/complete", json=profile_data, headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to complete profile for integration flow: {response.text}")
+        return False
+    
+    logger.info(f"Successfully completed profile for integration flow")
+    
+    # 3. Check authenticity rating
+    response = requests.get(f"{API_URL}/authenticity/details", headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get authenticity details for integration flow: {response.text}")
+        return False
+    
+    initial_rating = response.json()["total_rating"]
+    logger.info(f"Initial authenticity rating: {initial_rating}")
+    
+    # 4. Send connection request to user1
+    connection_data = {
+        "user_id": user_ids['user1'],
+        "message": "Connection request from integration flow test"
+    }
+    
+    response = requests.post(f"{API_URL}/connections/request", json=connection_data, headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to send connection request in integration flow: {response.text}")
+        return False
+    
+    flow_connection_id = response.json()["connection_id"]
+    logger.info(f"Successfully sent connection request in integration flow")
+    
+    # 5. User1 accepts the connection
+    headers1 = {"Authorization": f"Bearer {user_tokens['user1']}"}
+    
+    response_data = {
+        "action": "accept"
+    }
+    
+    response = requests.put(
+        f"{API_URL}/connections/{flow_connection_id}/respond", 
+        json=response_data, 
+        headers=headers1
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to accept connection in integration flow: {response.text}")
+        return False
+    
+    logger.info(f"Successfully accepted connection in integration flow")
+    
+    # 6. User1 updates trust level
+    trust_data = {
+        "trust_level": 3  # Voice Call level
+    }
+    
+    response = requests.put(
+        f"{API_URL}/connections/{flow_connection_id}/trust-level", 
+        json=trust_data, 
+        headers=headers1
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to update trust level in integration flow: {response.text}")
+        return False
+    
+    logger.info(f"Successfully updated trust level in integration flow")
+    
+    # 7. Verify authenticity rating was affected
+    response = requests.get(f"{API_URL}/authenticity/details", headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get final authenticity details: {response.text}")
+        return False
+    
+    final_rating = response.json()["total_rating"]
+    logger.info(f"Final authenticity rating: {final_rating}")
+    
+    logger.info("Integration flow test passed")
+    return True
+
 if __name__ == "__main__":
     # Run all tests
     results = run_all_tests()
