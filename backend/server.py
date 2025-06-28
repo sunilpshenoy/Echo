@@ -1030,6 +1030,9 @@ async def complete_profile(profile_data: dict, current_user = Depends(get_curren
         "bio": updated_user.get("bio"),
         "interests": updated_user.get("interests", []),
         "values": updated_user.get("values", []),
+        "current_mood": updated_user.get("current_mood"),
+        "seeking_type": updated_user.get("seeking_type"),
+        "connection_purpose": updated_user.get("connection_purpose"),
         "authenticity_rating": updated_user.get("authenticity_rating", 0.0),
         "trust_level": updated_user.get("trust_level", 1)
     })
