@@ -2706,6 +2706,19 @@ def run_all_tests():
             "login_profile_completed": test_authentic_connections_login(),
             "get_current_user": test_get_current_user(),
             "complete_profile": test_complete_profile()
+        },
+        "Authenticity Rating System": {
+            "get_authenticity_details": test_authenticity_details(),
+            "update_authenticity_rating": test_authenticity_update()
+        },
+        "Enhanced Connection Management": {
+            "connection_request": test_connection_request(),
+            "get_connections": test_get_connections(),
+            "respond_to_connection": test_respond_to_connection(),
+            "update_trust_level": test_update_trust_level()
+        },
+        "Integration Tests": {
+            "complete_user_flow": test_integration_flow()
         }
     }
     
