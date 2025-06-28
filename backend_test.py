@@ -2070,53 +2070,58 @@ def test_complete_profile():
         "values": ["honesty", "authenticity", "curiosity", "reliability"]
     }
     
-    response = requests.put(f"{API_URL}/profile/complete", json=profile_data, headers=headers)
-    
-    if response.status_code != 200:
-        logger.error(f"Failed to complete profile: {response.text}")
-        return False
-    
-    # Verify response includes updated profile data
-    user_data = response.json()
-    
-    # Check profile_completed is now true
-    if "profile_completed" not in user_data or user_data["profile_completed"] != True:
-        logger.error(f"profile_completed should be true after completion, got: {user_data.get('profile_completed')}")
-        return False
-    
-    # Check authenticity_rating was calculated
-    if "authenticity_rating" not in user_data or not isinstance(user_data["authenticity_rating"], (int, float)):
-        logger.error(f"authenticity_rating not calculated correctly: {user_data.get('authenticity_rating')}")
-        return False
-    
-    logger.info(f"Profile completed with authenticity rating: {user_data['authenticity_rating']}")
-    
-    # Verify all fields were saved correctly
-    for key, value in profile_data.items():
-        if key not in user_data:
-            logger.error(f"Field '{key}' not included in response")
+    try:
+        response = requests.put(f"{API_URL}/profile/complete", json=profile_data, headers=headers)
+        
+        if response.status_code != 200:
+            logger.error(f"Failed to complete profile: {response.text}")
+            logger.error(f"Status code: {response.status_code}")
             return False
         
-        if user_data[key] != value and key != "authenticity_rating":  # Skip authenticity_rating as it's calculated
-            logger.error(f"Field '{key}' has incorrect value. Expected: {value}, Got: {user_data[key]}")
+        # Verify response includes updated profile data
+        user_data = response.json()
+        
+        # Check profile_completed is now true
+        if "profile_completed" not in user_data or user_data["profile_completed"] != True:
+            logger.error(f"profile_completed should be true after completion, got: {user_data.get('profile_completed')}")
             return False
-    
-    # Verify with GET /users/me that profile is now completed
-    me_response = requests.get(f"{API_URL}/users/me", headers=headers)
-    
-    if me_response.status_code != 200:
-        logger.error(f"Failed to get current user info after profile completion: {me_response.text}")
+        
+        # Check authenticity_rating was calculated
+        if "authenticity_rating" not in user_data or not isinstance(user_data["authenticity_rating"], (int, float)):
+            logger.error(f"authenticity_rating not calculated correctly: {user_data.get('authenticity_rating')}")
+            return False
+        
+        logger.info(f"Profile completed with authenticity rating: {user_data['authenticity_rating']}")
+        
+        # Verify all fields were saved correctly
+        for key, value in profile_data.items():
+            if key not in user_data:
+                logger.error(f"Field '{key}' not included in response")
+                return False
+            
+            if user_data[key] != value and key != "authenticity_rating":  # Skip authenticity_rating as it's calculated
+                logger.error(f"Field '{key}' has incorrect value. Expected: {value}, Got: {user_data[key]}")
+                return False
+        
+        # Verify with GET /users/me that profile is now completed
+        me_response = requests.get(f"{API_URL}/users/me", headers=headers)
+        
+        if me_response.status_code != 200:
+            logger.error(f"Failed to get current user info after profile completion: {me_response.text}")
+            return False
+        
+        me_data = me_response.json()
+        if me_data.get("profile_completed") != True:
+            logger.error(f"profile_completed should be true in /users/me after completion, got: {me_data.get('profile_completed')}")
+            return False
+        
+        logger.info("Successfully verified profile completion with GET /users/me")
+        
+        logger.info("PUT /api/profile/complete test passed")
+        return True
+    except Exception as e:
+        logger.error(f"Exception in test_complete_profile: {e}")
         return False
-    
-    me_data = me_response.json()
-    if me_data.get("profile_completed") != True:
-        logger.error(f"profile_completed should be true in /users/me after completion, got: {me_data.get('profile_completed')}")
-        return False
-    
-    logger.info("Successfully verified profile completion with GET /users/me")
-    
-    logger.info("PUT /api/profile/complete test passed")
-    return True
 
 def test_edit_message():
     """Test message editing functionality"""
