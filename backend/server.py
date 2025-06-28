@@ -1703,6 +1703,190 @@ async def add_contact(contact_data: dict, current_user = Depends(get_current_use
     
     return serialize_mongo_doc(contact)
 
+# Enhanced Connection Management for Authentic Connections
+@api_router.post("/connections/request")
+async def send_connection_request(request_data: dict, current_user = Depends(get_current_user)):
+    """Send a connection request to another user"""
+    target_user_id = request_data.get("user_id")
+    message = request_data.get("message", "")
+    
+    if not target_user_id:
+        raise HTTPException(status_code=400, detail="User ID required")
+    
+    # Check if target user exists
+    target_user = await db.users.find_one({"user_id": target_user_id})
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if target_user_id == current_user["user_id"]:
+        raise HTTPException(status_code=400, detail="Cannot connect to yourself")
+    
+    # Check if already connected or request exists
+    existing = await db.connections.find_one({
+        "$or": [
+            {"user_id": current_user["user_id"], "connected_user_id": target_user_id},
+            {"user_id": target_user_id, "connected_user_id": current_user["user_id"]}
+        ]
+    })
+    if existing:
+        if existing["status"] == "connected":
+            raise HTTPException(status_code=400, detail="Already connected")
+        elif existing["status"] == "pending":
+            raise HTTPException(status_code=400, detail="Connection request already sent")
+    
+    # Check if blocked
+    blocked = await check_user_blocked(current_user["user_id"], target_user_id)
+    if blocked:
+        raise HTTPException(status_code=403, detail="Cannot send connection request to blocked user")
+    
+    # Create connection request
+    connection = {
+        "connection_id": str(uuid.uuid4()),
+        "user_id": current_user["user_id"],
+        "connected_user_id": target_user_id,
+        "status": "pending",
+        "trust_level": 1,
+        "initiated_by": current_user["user_id"],
+        "message": message,
+        "requested_at": datetime.utcnow(),
+        "last_activity": datetime.utcnow()
+    }
+    
+    await db.connections.insert_one(connection)
+    
+    return {
+        "message": "Connection request sent successfully",
+        "connection_id": connection["connection_id"],
+        "status": "pending"
+    }
+
+@api_router.get("/connections")
+async def get_connections(status: str = None, current_user = Depends(get_current_user)):
+    """Get all connections for the current user"""
+    query = {
+        "$or": [
+            {"user_id": current_user["user_id"]},
+            {"connected_user_id": current_user["user_id"]}
+        ]
+    }
+    
+    if status:
+        query["status"] = status
+    
+    connections = await db.connections.find(query).to_list(100)
+    
+    # Enrich with user details
+    for connection in connections:
+        # Determine the other user
+        other_user_id = (connection["connected_user_id"] 
+                        if connection["user_id"] == current_user["user_id"] 
+                        else connection["user_id"])
+        
+        other_user = await db.users.find_one({"user_id": other_user_id})
+        if other_user:
+            connection["other_user"] = {
+                "user_id": other_user["user_id"],
+                "username": other_user["username"],
+                "display_name": other_user.get("display_name"),
+                "avatar": other_user.get("avatar"),
+                "status_message": other_user.get("status_message"),
+                "is_online": other_user.get("is_online", False),
+                "trust_level": other_user.get("trust_level", 1),
+                "authenticity_rating": other_user.get("authenticity_rating", 0.0)
+            }
+    
+    return serialize_mongo_doc(connections)
+
+@api_router.put("/connections/{connection_id}/respond")
+async def respond_to_connection(connection_id: str, response_data: dict, current_user = Depends(get_current_user)):
+    """Accept or decline a connection request"""
+    action = response_data.get("action")  # "accept" or "decline"
+    
+    if action not in ["accept", "decline"]:
+        raise HTTPException(status_code=400, detail="Action must be 'accept' or 'decline'")
+    
+    # Find the connection
+    connection = await db.connections.find_one({"connection_id": connection_id})
+    if not connection:
+        raise HTTPException(status_code=404, detail="Connection request not found")
+    
+    # Check if user is the target of this request
+    if connection["connected_user_id"] != current_user["user_id"]:
+        raise HTTPException(status_code=403, detail="You can only respond to requests sent to you")
+    
+    if connection["status"] != "pending":
+        raise HTTPException(status_code=400, detail="Connection request is no longer pending")
+    
+    if action == "accept":
+        # Accept the connection
+        await db.connections.update_one(
+            {"connection_id": connection_id},
+            {
+                "$set": {
+                    "status": "connected",
+                    "connected_at": datetime.utcnow(),
+                    "last_activity": datetime.utcnow()
+                }
+            }
+        )
+        return {"message": "Connection accepted successfully", "status": "connected"}
+    else:
+        # Decline the connection
+        await db.connections.delete_one({"connection_id": connection_id})
+        return {"message": "Connection request declined", "status": "declined"}
+
+@api_router.put("/connections/{connection_id}/trust-level")
+async def update_trust_level(connection_id: str, trust_data: dict, current_user = Depends(get_current_user)):
+    """Update trust level for a connection (both users must agree)"""
+    new_level = trust_data.get("trust_level")
+    
+    if not isinstance(new_level, int) or new_level < 1 or new_level > 5:
+        raise HTTPException(status_code=400, detail="Trust level must be between 1 and 5")
+    
+    # Find the connection
+    connection = await db.connections.find_one({"connection_id": connection_id})
+    if not connection:
+        raise HTTPException(status_code=404, detail="Connection not found")
+    
+    # Check if user is part of this connection
+    if (connection["user_id"] != current_user["user_id"] and 
+        connection["connected_user_id"] != current_user["user_id"]):
+        raise HTTPException(status_code=403, detail="You are not part of this connection")
+    
+    if connection["status"] != "connected":
+        raise HTTPException(status_code=400, detail="Connection must be active to update trust level")
+    
+    current_level = connection.get("trust_level", 1)
+    
+    # Can only progress one level at a time
+    if new_level > current_level + 1:
+        raise HTTPException(status_code=400, detail="Can only progress one trust level at a time")
+    
+    # Check if both users agree (simplified - in real app, would require both to vote)
+    await db.connections.update_one(
+        {"connection_id": connection_id},
+        {
+            "$set": {
+                "trust_level": new_level,
+                "last_activity": datetime.utcnow(),
+                f"trust_level_updated_by": current_user["user_id"],
+                f"trust_level_updated_at": datetime.utcnow()
+            }
+        }
+    )
+    
+    return {
+        "message": f"Trust level updated to {new_level}",
+        "trust_level": new_level,
+        "level_name": [
+            "Anonymous Discovery",
+            "Text Chat", 
+            "Voice Call",
+            "Video Call", 
+            "In-Person Meetup"
+        ][new_level - 1]
+    }
+
 # User Blocking Management
 @api_router.get("/users/blocked")
 async def get_blocked_users(current_user = Depends(get_current_user)):
