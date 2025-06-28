@@ -179,6 +179,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Successfully tested the PUT /api/profile/complete endpoint. The endpoint correctly saves all profile completion data including basic info (age, gender, location), compatibility questions (current_mood, seeking_type, connection_purpose, etc.), and personal details (bio, interests, values). It sets profile_completed=true and calculates an authenticity rating based on profile completeness. The response includes all updated profile fields."
+      - working: true
+        agent: "testing"
+        comment: "Conducted comprehensive testing of the display name update issue. Created a new test file (profile_update_test.py) to specifically test the profile update functionality. Successfully verified that: 1) Initial profile setup with display_name works correctly, 2) Updating just the display_name via PUT /api/profile/complete works correctly, 3) Updating other profile fields preserves the display_name, 4) All profile fields can be updated simultaneously. The display_name persists correctly after all updates and is properly returned in the GET /api/users/me endpoint. The issue has been resolved."
 
   - task: "Authenticity Rating System"
     implemented: true
