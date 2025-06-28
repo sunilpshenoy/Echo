@@ -740,22 +740,184 @@ const Dashboard = ({ user, token, api, onLogout }) => {
               
               {activeTab === 'connections' && (
                 <div>
-                  <h2 className="heading-md mb-6">Your Connections</h2>
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">💫</div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                      No Connections Yet
-                    </h3>
-                    <p className="text-subtle mb-4">
-                      Start discovering people and build your first authentic connection.
-                    </p>
-                    <button 
-                      onClick={() => setActiveTab('discover')}
-                      className="btn-primary"
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="heading-md">Your Connections</h2>
+                    <button
+                      onClick={fetchConnections}
+                      disabled={isLoadingConnections}
+                      className="btn-secondary"
                     >
-                      Start Discovering
+                      {isLoadingConnections ? (
+                        <div className="flex items-center">
+                          <div className="loading-spinner w-4 h-4 mr-2"></div>
+                          Loading...
+                        </div>
+                      ) : (
+                        '🔄 Refresh'
+                      )}
                     </button>
                   </div>
+                  
+                  {updateMessage && (
+                    <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+                      {updateMessage}
+                    </div>
+                  )}
+                  
+                  {/* Connection Status Tabs */}
+                  <div className="flex space-x-4 mb-6">
+                    {['all', 'connected', 'pending'].map(status => (
+                      <button
+                        key={status}
+                        onClick={() => setConnectionFilter(status)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          connectionFilter === status
+                            ? 'bg-trust-gradient text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                        {connections.filter(c => status === 'all' || c.status === status).length > 0 && (
+                          <span className="ml-2 bg-white bg-opacity-30 px-2 py-1 rounded-full text-xs">
+                            {connections.filter(c => status === 'all' || c.status === status).length}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {connections && connections.length > 0 ? (
+                    <div className="space-y-4">
+                      {connections
+                        .filter(connection => connectionFilter === 'all' || connection.status === connectionFilter)
+                        .map(connection => (
+                        <div key={connection.connection_id} className="bg-white p-6 rounded-lg border hover:border-blue-200 transition-all">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              <div className="w-12 h-12 bg-trust-gradient rounded-full flex items-center justify-center">
+                                <span className="text-white font-bold">
+                                  {connection.other_user?.display_name?.[0]?.toUpperCase() || 
+                                   connection.other_user?.username?.[0]?.toUpperCase() || '?'}
+                                </span>
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-gray-900">
+                                  {connection.other_user?.display_name || connection.other_user?.username || 'Unknown User'}
+                                </h3>
+                                <p className="text-gray-600 text-sm">
+                                  {connection.other_user?.status_message || 'No status message'}
+                                </p>
+                                <div className="flex items-center space-x-2 mt-1">
+                                  <span className={`w-2 h-2 rounded-full ${
+                                    connection.other_user?.is_online ? 'bg-green-400' : 'bg-gray-400'
+                                  }`}></span>
+                                  <span className="text-xs text-gray-500">
+                                    {connection.other_user?.is_online ? 'Online' : 'Offline'}
+                                  </span>
+                                  <span className="text-xs text-gray-400">•</span>
+                                  <span className="text-xs text-gray-500">
+                                    Authenticity: {(connection.other_user?.authenticity_rating || 0).toFixed(1)}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-4">
+                              {/* Connection Status */}
+                              <div className="text-center">
+                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                                  connection.status === 'connected' 
+                                    ? 'bg-green-100 text-green-700'
+                                    : connection.status === 'pending'
+                                    ? 'bg-yellow-100 text-yellow-700'
+                                    : 'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {connection.status === 'connected' ? 'Connected' :
+                                   connection.status === 'pending' ? 'Pending' : connection.status}
+                                </span>
+                                {connection.status === 'connected' && (
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    Since {new Date(connection.connected_at).toLocaleDateString()}
+                                  </p>
+                                )}
+                              </div>
+                              
+                              {/* Trust Level Indicator */}
+                              {connection.status === 'connected' && (
+                                <div className="text-center">
+                                  <div className={`trust-level-indicator trust-level-${connection.trust_level || 1} mx-auto`}>
+                                    {connection.trust_level || 1}
+                                  </div>
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    {[
+                                      'Anonymous',
+                                      'Chat',
+                                      'Voice',
+                                      'Video',
+                                      'Meetup'
+                                    ][connection.trust_level - 1] || 'Unknown'}
+                                  </p>
+                                </div>
+                              )}
+                              
+                              {/* Action Buttons */}
+                              <div className="flex space-x-2">
+                                {connection.status === 'pending' && 
+                                 connection.connected_user_id === user?.user_id && (
+                                  <>
+                                    <button
+                                      onClick={() => respondToConnection(connection.connection_id, 'accept')}
+                                      className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600"
+                                    >
+                                      Accept
+                                    </button>
+                                    <button
+                                      onClick={() => respondToConnection(connection.connection_id, 'decline')}
+                                      className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
+                                    >
+                                      Decline
+                                    </button>
+                                  </>
+                                )}
+                                
+                                {connection.status === 'connected' && (
+                                  <button
+                                    onClick={() => setSelectedConnection(connection)}
+                                    className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+                                  >
+                                    Manage
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Connection Message */}
+                          {connection.message && (
+                            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                              <p className="text-gray-700 text-sm italic">"{connection.message}"</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="text-6xl mb-4">💫</div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                        No Connections Yet
+                      </h3>
+                      <p className="text-subtle mb-4">
+                        Start discovering people and build your first authentic connection.
+                      </p>
+                      <button 
+                        onClick={() => setActiveTab('discover')}
+                        className="btn-primary"
+                      >
+                        Start Discovering
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
               
