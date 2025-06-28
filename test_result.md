@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Build a comprehensive chat app with WhatsApp-like capabilities including real-time messaging, user authentication, direct and group chats, contact management, and media sharing"
+user_problem_statement: "Build an authentic connections app centered around a 5-layer progressive trust system (Anonymous → Chat → Voice → Video → Meetup) with AI-powered compatibility matching and authenticity ratings. The app focuses on genuine relationships through gradual trust building, moving away from superficial interactions to meaningful connections."
 
 backend:
   - task: "User Authentication System"
