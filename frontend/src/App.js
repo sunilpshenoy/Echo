@@ -117,6 +117,7 @@ const App = () => {
           token={token}
           api={API}
           onLogout={handleLogout}
+          onUserUpdate={handleUserUpdate}
         />
       )}
     </div>
