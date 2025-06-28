@@ -989,7 +989,7 @@ async def get_current_user_info(current_user = Depends(get_current_user)):
 async def complete_profile(profile_data: dict, current_user = Depends(get_current_user)):
     # Fields allowed for profile completion
     allowed_fields = [
-        "age", "gender", "location", "current_mood", "mood_reason", 
+        "display_name", "age", "gender", "location", "current_mood", "mood_reason", 
         "seeking_type", "seeking_age_range", "seeking_gender", 
         "seeking_location_preference", "connection_purpose", 
         "additional_requirements", "bio", "interests", "values", "profile_completed"
