@@ -1,7 +1,8 @@
 {
   "name": "chatapp-pro",
   "version": "1.0.0",
-  "description": "Advanced secure messaging platform with comprehensive features",
+  "description": "Authentic Connections - A trust-based relationship platform with progressive connection stages",
+  "license": "MIT",
   "main": "src/index.js",
   "scripts": {
     "dev": "yarn start",
