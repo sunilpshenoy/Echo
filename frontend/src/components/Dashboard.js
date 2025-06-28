@@ -126,20 +126,124 @@ const Dashboard = ({ user, token, api, onLogout }) => {
             <div className="card">
               {activeTab === 'profile' && (
                 <div>
-                  <h2 className="heading-md mb-6">Your Profile</h2>
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="heading-md">Your Profile</h2>
+                    <button
+                      onClick={() => setIsEditingProfile(true)}
+                      className="btn-primary"
+                    >
+                      ✏️ Edit Profile
+                    </button>
+                  </div>
+                  
+                  {updateMessage && (
+                    <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+                      {updateMessage}
+                    </div>
+                  )}
+                  
                   <div className="space-y-6">
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h3 className="font-semibold text-gray-900 mb-2">Basic Information</h3>
-                      <p><strong>Age:</strong> {user?.age || 'Not set'}</p>
-                      <p><strong>Location:</strong> {user?.location || 'Not set'}</p>
-                      <p><strong>Bio:</strong> {user?.bio || 'Not set'}</p>
+                    {/* Basic Information */}
+                    <div className="bg-gray-50 p-6 rounded-lg">
+                      <h3 className="font-semibold text-gray-900 mb-4">Basic Information</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-gray-600 text-sm">Display Name</p>
+                          <p className="font-medium">{user?.display_name || user?.username || 'Not set'}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600 text-sm">Age</p>
+                          <p className="font-medium">{user?.age || 'Not set'}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600 text-sm">Gender</p>
+                          <p className="font-medium">{user?.gender || 'Not set'}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600 text-sm">Location</p>
+                          <p className="font-medium">{user?.location || 'Not set'}</p>
+                        </div>
+                      </div>
+                      <div className="mt-4">
+                        <p className="text-gray-600 text-sm">Bio</p>
+                        <p className="font-medium">{user?.bio || 'Tell us about yourself...'}</p>
+                      </div>
                     </div>
                     
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <h3 className="font-semibold text-gray-900 mb-2">Trust Level</h3>
-                      <div className="flex items-center space-x-2">
-                        <div className="trust-level-indicator trust-level-1">1</div>
-                        <p className="text-gray-700">New Member - Building Your Authenticity</p>
+                    {/* Interests & Values */}
+                    <div className="bg-purple-50 p-6 rounded-lg">
+                      <h3 className="font-semibold text-gray-900 mb-4">Interests & Values</h3>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-gray-600 text-sm">Interests</p>
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {user?.interests?.length > 0 ? user.interests.map((interest, index) => (
+                              <span key={index} className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm">
+                                {interest}
+                              </span>
+                            )) : <p className="text-gray-500 italic">No interests added yet</p>}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-gray-600 text-sm">Values</p>
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {user?.values?.length > 0 ? user.values.map((value, index) => (
+                              <span key={index} className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm">
+                                {value}
+                              </span>
+                            )) : <p className="text-gray-500 italic">No values added yet</p>}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Connection Preferences */}
+                    <div className="bg-green-50 p-6 rounded-lg">
+                      <h3 className="font-semibold text-gray-900 mb-4">Connection Preferences</h3>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-gray-600 text-sm">Current Mood</p>
+                          <p className="font-medium">{user?.current_mood || 'Not shared'}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600 text-sm">Seeking</p>
+                          <p className="font-medium">{user?.seeking_type || 'Not specified'}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600 text-sm">Connection Purpose</p>
+                          <p className="font-medium">{user?.connection_purpose || 'Not specified'}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Trust & Authenticity */}
+                    <div className="bg-blue-50 p-6 rounded-lg">
+                      <h3 className="font-semibold text-gray-900 mb-4">Trust & Authenticity</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <p className="text-gray-600 text-sm mb-2">Trust Level</p>
+                          <div className="flex items-center space-x-3">
+                            <div className="trust-level-indicator trust-level-1">{user?.trust_level || 1}</div>
+                            <div>
+                              <p className="font-medium">New Member</p>
+                              <p className="text-gray-600 text-sm">Building Your Authenticity</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-gray-600 text-sm mb-2">Authenticity Rating</p>
+                          <div className="flex items-center space-x-3">
+                            <div className="w-16 h-16 bg-trust-gradient rounded-full flex items-center justify-center">
+                              <span className="text-white font-bold text-lg">
+                                {(user?.authenticity_rating || 0).toFixed(1)}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="font-medium">Getting Started</p>
+                              <p className="text-gray-600 text-sm">Complete your profile to improve</p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
