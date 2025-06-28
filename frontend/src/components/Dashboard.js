@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState('chats');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editProfileData, setEditProfileData] = useState({
     display_name: user?.display_name || user?.username || '',
@@ -26,6 +26,21 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const [isLoadingConnections, setIsLoadingConnections] = useState(false);
   const [connectionFilter, setConnectionFilter] = useState('all');
   const [selectedConnection, setSelectedConnection] = useState(null);
+  
+  // Chat state
+  const [selectedChat, setSelectedChat] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [isLoadingChats, setIsLoadingChats] = useState(false);
+  const [chats, setChats] = useState([]);
+  
+  // Teams state
+  const [teams, setTeams] = useState([]);
+  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [isLoadingTeams, setIsLoadingTeams] = useState(false);
+  
+  // Premium state
+  const [isPremium, setIsPremium] = useState(user?.premium || false);
   
   // Fetch authenticity details
   const fetchAuthenticityDetails = async () => {
