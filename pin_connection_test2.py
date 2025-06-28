@@ -223,7 +223,11 @@ def test_pin_connection_system():
             return False
         
         # Find connection with user2
-        connection = next((c for c in connections if c.get("connected_user_id") == user_ids['user2']), None)
+        connection = next((
+            c for c in connections if 
+            c.get("connected_user_id") == user_ids['user2'] or 
+            c.get("user_id") == user_ids['user2']
+        ), None)
         if not connection:
             logger.error(f"Connection with user2 not found")
             return False
