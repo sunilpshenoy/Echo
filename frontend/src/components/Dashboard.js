@@ -112,10 +112,15 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
       setUpdateMessage('Profile updated successfully! 🎉');
       setIsEditingProfile(false);
       
-      // Refresh the page to get updated user data
+      // Update user data in parent component instead of reloading
+      if (onUserUpdate && response.data) {
+        onUserUpdate(response.data);
+      }
+      
+      // Clear the message after a delay
       setTimeout(() => {
-        window.location.reload();
-      }, 1500);
+        setUpdateMessage('');
+      }, 3000);
       
     } catch (error) {
       setUpdateMessage('Failed to update profile. Please try again.');
