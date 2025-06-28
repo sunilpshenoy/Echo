@@ -228,6 +228,7 @@ class User(BaseModel):
     verified: bool = False
     premium: bool = False
     profile_completed: bool = False  # For authentic connections flow
+    connection_pin: Optional[str] = None  # PIN for easy connections (like BlackBerry)
     # Authentic connections profile fields
     age: Optional[int] = None
     gender: Optional[str] = None
