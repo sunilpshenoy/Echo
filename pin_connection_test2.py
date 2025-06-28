@@ -172,8 +172,24 @@ def test_pin_connection_system():
         
         logger.info(f"Found existing direct chat with ID: {direct_chat.get('chat_id') or direct_chat.get('id')}")
         
-        # Skip to step 8
-        logger.info("Step 8: Testing message sending in existing chat...")
+        # Create a chat directly since one doesn't exist
+        logger.info("Creating a direct chat between the users...")
+        headers = {"Authorization": f"Bearer {user_tokens['user1']}"}
+        chat_data = {
+            "chat_type": "direct",
+            "other_user_id": user_ids['user2']
+        }
+        
+        response = requests.post(f"{API_URL}/chats", json=chat_data, headers=headers)
+        
+        if response.status_code != 200:
+            logger.error(f"Failed to create direct chat: {response.text}")
+            return False
+        
+        chat_id = response.json()["chat_id"]
+        logger.info(f"Created direct chat with ID: {chat_id}")
+        
+        # Step 8: Testing message sending in new chat
         chat_id = direct_chat.get('chat_id') or direct_chat.get('id')
         
         message_data = {
