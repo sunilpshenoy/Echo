@@ -1618,6 +1618,113 @@ def test_user_discovery():
     logger.info("User discovery tests passed")
     return True
 
+def test_genie_command_processing():
+    """Test Genie command processing"""
+    logger.info("Testing Genie command processing...")
+    
+    # Get the auth user we created or use user1
+    headers = {"Authorization": f"Bearer {user_tokens.get('auth_user', user_tokens['user1'])}"}
+    
+    # Test various commands
+    commands = [
+        "create a chat with Bob",
+        "add contact john.doe@example.com",
+        "block user Charlie",
+        "show my chats",
+        "help me",
+        "send message to Sarah saying hello"
+    ]
+    
+    for command in commands:
+        response = requests.post(
+            f"{API_URL}/genie/process",
+            json={"command": command},
+            headers=headers
+        )
+        
+        if response.status_code != 200:
+            logger.error(f"Failed to process command '{command}': {response.text}")
+            return False
+        
+        result = response.json()
+        if "intent" not in result or "action" not in result:
+            logger.error(f"Command response missing required fields: {result}")
+            return False
+        
+        logger.info(f"Successfully processed command '{command}' with intent '{result['intent']}'")
+    
+    logger.info("Genie command processing tests passed")
+    return True
+
+def test_genie_undo_functionality():
+    """Test Genie undo functionality"""
+    logger.info("Testing Genie undo functionality...")
+    
+    # Get the auth user we created or use user1
+    headers = {"Authorization": f"Bearer {user_tokens.get('auth_user', user_tokens['user1'])}"}
+    
+    # First, execute a command that can be undone (like adding a contact)
+    unique_email = f"undo_test_{str(uuid.uuid4())[:8]}@example.com"
+    
+    # Register this user first so the contact can be added
+    test_user = {
+        "username": f"undo_test_{str(uuid.uuid4())[:8]}",
+        "email": unique_email,
+        "password": "UndoTest123!",
+        "phone": f"+1999{str(uuid.uuid4())[:8]}"
+    }
+    
+    reg_response = requests.post(f"{API_URL}/register", json=test_user)
+    if reg_response.status_code != 200:
+        logger.error(f"Failed to register test user for undo test: {reg_response.text}")
+        return False
+    
+    # Now use Genie to add this contact
+    add_command = f"add contact {unique_email}"
+    
+    response = requests.post(
+        f"{API_URL}/genie/process",
+        json={"command": add_command},
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to process add contact command: {response.text}")
+        return False
+    
+    logger.info(f"Successfully processed add contact command")
+    
+    # Now try to undo the action
+    undo_response = requests.post(
+        f"{API_URL}/genie/undo",
+        headers=headers
+    )
+    
+    if undo_response.status_code != 200:
+        logger.error(f"Failed to undo action: {undo_response.text}")
+        return False
+    
+    undo_result = undo_response.json()
+    if "success" not in undo_result or not undo_result["success"]:
+        logger.error(f"Undo action failed: {undo_result}")
+        return False
+    
+    logger.info(f"Successfully undid action: {undo_result.get('message')}")
+    
+    # Verify the contact was removed by trying to add it again (should succeed)
+    verify_response = requests.post(
+        f"{API_URL}/genie/process",
+        json={"command": add_command},
+        headers=headers
+    )
+    
+    if verify_response.status_code != 200:
+        logger.error(f"Failed to verify undo by re-adding contact: {verify_response.text}")
+        return False
+    
+    logger.info("Genie undo functionality tests passed")
+    return True
+
 def test_enhanced_websocket_features():
     """Test enhanced WebSocket features like typing indicators"""
     logger.info("Testing enhanced WebSocket features...")
