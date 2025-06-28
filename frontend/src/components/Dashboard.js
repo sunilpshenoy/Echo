@@ -54,6 +54,36 @@ const Dashboard = ({ user, token, api, onLogout }) => {
     }
   };
   
+  // Connection management functions
+  const fetchConnections = async () => {
+    setIsLoadingConnections(true);
+    try {
+      const response = await axios.get(`${api}/connections`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setConnections(response.data);
+    } catch (error) {
+      console.error('Failed to fetch connections:', error);
+    } finally {
+      setIsLoadingConnections(false);
+    }
+  };
+
+  const respondToConnection = async (connectionId, action) => {
+    try {
+      await axios.put(`${api}/connections/${connectionId}/respond`, {
+        action: action
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUpdateMessage(`Connection ${action}ed successfully! 🎉`);
+      await fetchConnections(); // Refresh connections
+    } catch (error) {
+      console.error(`Failed to ${action} connection:`, error);
+      setUpdateMessage(`Failed to ${action} connection. Please try again.`);
+    }
+  };
+  
   // Profile editing functions
   const handleEditProfileChange = (field, value) => {
     setEditProfileData(prev => ({
