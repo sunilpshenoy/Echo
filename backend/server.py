@@ -227,6 +227,24 @@ class User(BaseModel):
     username_handle: Optional[str] = None  # @username for public discovery
     verified: bool = False
     premium: bool = False
+    profile_completed: bool = False  # For authentic connections flow
+    # Authentic connections profile fields
+    age: Optional[int] = None
+    gender: Optional[str] = None
+    location: Optional[str] = None
+    current_mood: Optional[str] = None
+    mood_reason: Optional[str] = None
+    seeking_type: Optional[str] = None
+    seeking_age_range: Optional[str] = None
+    seeking_gender: Optional[str] = None
+    seeking_location_preference: Optional[str] = None
+    connection_purpose: Optional[str] = None
+    additional_requirements: Optional[str] = None
+    bio: Optional[str] = None
+    interests: List[str] = Field(default_factory=list)
+    values: List[str] = Field(default_factory=list)
+    authenticity_rating: float = 0.0  # 0-10 scale
+    trust_level: int = 1  # 1-5 progressive trust levels
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class UserCreate(BaseModel):
