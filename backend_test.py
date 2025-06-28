@@ -2581,6 +2581,12 @@ def run_all_tests():
         },
         "Enhanced WebSocket Features": {
             "websocket_features": test_enhanced_websocket_features()
+        },
+        "Authentic Connections Features": {
+            "registration_profile_completed": test_authentic_connections_registration(),
+            "login_profile_completed": test_authentic_connections_login(),
+            "get_current_user": test_get_current_user(),
+            "complete_profile": test_complete_profile()
         }
     }
     
