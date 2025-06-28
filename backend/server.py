@@ -1846,6 +1846,167 @@ async def respond_to_connection(connection_id: str, response_data: dict, current
         await db.connections.delete_one({"connection_id": connection_id})
         return {"message": "Connection request declined", "status": "declined"}
 
+# PIN-based connection system
+@api_router.post("/connections/request-by-pin")
+async def send_connection_request_by_pin(request_data: dict, current_user = Depends(get_current_user)):
+    """Send a connection request using target user's PIN"""
+    target_pin = request_data.get("target_pin")
+    message = request_data.get("message", "")
+    
+    if not target_pin:
+        raise HTTPException(status_code=400, detail="Target PIN required")
+    
+    # Find user by PIN
+    target_user = await db.users.find_one({"connection_pin": target_pin})
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found with this PIN")
+    
+    if target_user["user_id"] == current_user["user_id"]:
+        raise HTTPException(status_code=400, detail="Cannot connect to yourself")
+    
+    # Check if already connected or request exists
+    existing = await db.connection_requests.find_one({
+        "$or": [
+            {"sender_id": current_user["user_id"], "receiver_id": target_user["user_id"]},
+            {"sender_id": target_user["user_id"], "receiver_id": current_user["user_id"]}
+        ]
+    })
+    if existing:
+        if existing["status"] == "pending":
+            raise HTTPException(status_code=400, detail="Connection request already sent")
+        elif existing["status"] == "accepted":
+            raise HTTPException(status_code=400, detail="Already connected")
+    
+    # Create connection request
+    connection_request = {
+        "request_id": str(uuid.uuid4()),
+        "sender_id": current_user["user_id"],
+        "receiver_id": target_user["user_id"],
+        "message": message,
+        "status": "pending",
+        "created_at": datetime.utcnow()
+    }
+    
+    await db.connection_requests.insert_one(connection_request)
+    
+    return {
+        "message": "Connection request sent successfully",
+        "request_id": connection_request["request_id"]
+    }
+
+@api_router.get("/connections/requests")
+async def get_connection_requests(current_user = Depends(get_current_user)):
+    """Get pending connection requests for current user"""
+    requests = await db.connection_requests.find({
+        "receiver_id": current_user["user_id"],
+        "status": "pending"
+    }).to_list(100)
+    
+    # Enrich with sender details
+    for request in requests:
+        sender = await db.users.find_one({"user_id": request["sender_id"]})
+        if sender:
+            request["sender"] = {
+                "user_id": sender["user_id"],
+                "username": sender["username"],
+                "display_name": sender.get("display_name"),
+                "avatar": sender.get("avatar")
+            }
+    
+    return serialize_mongo_doc(requests)
+
+@api_router.put("/connections/requests/{request_id}")
+async def respond_to_connection_request(request_id: str, response_data: dict, current_user = Depends(get_current_user)):
+    """Accept or decline a connection request"""
+    action = response_data.get("action")  # "accept" or "decline"
+    
+    if action not in ["accept", "decline"]:
+        raise HTTPException(status_code=400, detail="Action must be 'accept' or 'decline'")
+    
+    # Find the request
+    request = await db.connection_requests.find_one({"request_id": request_id})
+    if not request:
+        raise HTTPException(status_code=404, detail="Connection request not found")
+    
+    # Check if user is the receiver
+    if request["receiver_id"] != current_user["user_id"]:
+        raise HTTPException(status_code=403, detail="You can only respond to requests sent to you")
+    
+    if request["status"] != "pending":
+        raise HTTPException(status_code=400, detail="Request is no longer pending")
+    
+    if action == "accept":
+        # Accept the request - create connection and chat
+        connection = {
+            "connection_id": str(uuid.uuid4()),
+            "user_id": request["sender_id"],
+            "connected_user_id": current_user["user_id"],
+            "status": "connected",
+            "trust_level": 1,
+            "initiated_by": request["sender_id"],
+            "connected_at": datetime.utcnow(),
+            "last_activity": datetime.utcnow()
+        }
+        
+        await db.connections.insert_one(connection)
+        
+        # Create chat room
+        chat = {
+            "chat_id": str(uuid.uuid4()),
+            "type": "direct",
+            "participants": [request["sender_id"], current_user["user_id"]],
+            "created_by": request["sender_id"],
+            "created_at": datetime.utcnow(),
+            "last_activity": datetime.utcnow()
+        }
+        
+        await db.chats.insert_one(chat)
+        
+        # Update request status
+        await db.connection_requests.update_one(
+            {"request_id": request_id},
+            {"$set": {"status": "accepted", "responded_at": datetime.utcnow()}}
+        )
+        
+        return {"message": "Connection request accepted", "status": "accepted"}
+    else:
+        # Decline the request
+        await db.connection_requests.update_one(
+            {"request_id": request_id},
+            {"$set": {"status": "declined", "responded_at": datetime.utcnow()}}
+        )
+        
+        return {"message": "Connection request declined", "status": "declined"}
+
+@api_router.get("/users/qr-code")
+async def get_user_qr_code(current_user = Depends(get_current_user)):
+    """Generate QR code for user's connection PIN"""
+    connection_pin = current_user.get("connection_pin")
+    if not connection_pin:
+        # Generate PIN if doesn't exist
+        connection_pin = f"PIN-{str(uuid.uuid4())[:6].upper()}"
+        await db.users.update_one(
+            {"user_id": current_user["user_id"]},
+            {"$set": {"connection_pin": connection_pin}}
+        )
+    
+    # Generate QR code
+    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr.add_data(connection_pin)
+    qr.make(fit=True)
+    
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Convert to base64
+    buffer = BytesIO()
+    qr_img.save(buffer, format='PNG')
+    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode()
+    
+    return {
+        "connection_pin": connection_pin,
+        "qr_code": f"data:image/png;base64,{qr_code_base64}"
+    }
+
 @api_router.put("/connections/{connection_id}/trust-level")
 async def update_trust_level(connection_id: str, trust_data: dict, current_user = Depends(get_current_user)):
     """Update trust level for a connection (both users must agree)"""
