@@ -234,9 +234,13 @@ def test_pin_connection_system():
         
         connection_id = connection.get("connection_id")
         
-        # Update trust level to 3 (Voice Call)
+        # Get current trust level
+        current_trust_level = connection.get("trust_level", 1)
+        
+        # Update trust level by 1
+        new_trust_level = min(5, current_trust_level + 1)
         trust_data = {
-            "trust_level": 3
+            "trust_level": new_trust_level
         }
         
         response = requests.put(
