@@ -1535,10 +1535,8 @@ test_plan:
     - "Real-time Chat Interface"
     - "Chat Sidebar and Navigation"
     - "Modern UI Design"
-    - "Enhanced User Profile"
     - "Contact Management"
   stuck_tasks:
-    - "Enhanced User Profile"
     - "Contact Management"
   test_all: false
   test_priority: "high_first"
