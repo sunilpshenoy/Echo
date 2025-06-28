@@ -732,6 +732,7 @@ async def register(user_data: UserCreate):
             "phone": user.phone,
             "avatar": user.avatar,
             "status_message": user.status_message,
+            "profile_completed": user.profile_completed,
             "encryption_key": user.encryption_key,
             "safety_number": user.safety_number,
             "backup_phrase": backup_phrase
