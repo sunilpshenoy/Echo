@@ -1,0 +1,165 @@
+import React from 'react';
+
+const TeamsInterface = ({ 
+  user, 
+  token, 
+  api, 
+  teams, 
+  selectedTeam, 
+  isLoading 
+}) => {
+  return (
+    <div className="flex w-full h-full">
+      {/* Teams List Sidebar */}
+      <div className="w-1/3 bg-white border-r border-gray-200 flex flex-col">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Teams</h2>
+              <p className="text-sm text-gray-600">Groups & workspaces</p>
+            </div>
+            <button className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors">
+              ➕
+            </button>
+          </div>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="loading-spinner w-6 h-6"></div>
+            </div>
+          ) : teams && teams.length > 0 ? (
+            <div className="space-y-1 p-2">
+              {teams.map(team => (
+                <button
+                  key={team.team_id}
+                  className={`w-full p-3 rounded-lg text-left hover:bg-gray-50 transition-colors ${
+                    selectedTeam?.team_id === team.team_id ? 'bg-blue-50 border border-blue-200' : ''
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
+                      <span className="text-white font-medium text-sm">
+                        {team.name?.[0]?.toUpperCase() || 'T'}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 truncate">
+                        {team.name || 'Unnamed Team'}
+                      </p>
+                      <p className="text-sm text-gray-600 truncate">
+                        {team.member_count || 0} members
+                      </p>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {team.last_activity && 
+                        new Date(team.last_activity).toLocaleDateString()
+                      }
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-64 text-center p-4">
+              <div className="text-6xl mb-4">👥</div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No teams yet</h3>
+              <p className="text-gray-600 text-sm mb-4">
+                Create or join teams to collaborate
+              </p>
+              <button className="btn-primary">
+                Create Team
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Team Content Area */}
+      <div className="flex-1 flex flex-col">
+        {selectedTeam ? (
+          <>
+            {/* Team Header */}
+            <div className="bg-white p-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white font-medium text-lg">
+                      {selectedTeam.name?.[0]?.toUpperCase() || 'T'}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {selectedTeam.name || 'Unnamed Team'}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {selectedTeam.member_count || 0} members • {selectedTeam.type || 'General'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button className="text-gray-600 hover:text-gray-800 p-2">
+                    🔍
+                  </button>
+                  <button className="text-gray-600 hover:text-gray-800 p-2">
+                    ⚙️
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Team Content */}
+            <div className="flex-1 bg-gray-50 p-6">
+              <div className="max-w-2xl mx-auto text-center">
+                <div className="text-6xl mb-4">🚧</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Teams Coming Soon
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Team collaboration features are being developed. You'll be able to:
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                  <div className="bg-white p-4 rounded-lg border">
+                    <div className="text-2xl mb-2">💬</div>
+                    <h4 className="font-medium text-gray-900 mb-1">Group Chats</h4>
+                    <p className="text-sm text-gray-600">Team messaging with channels</p>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg border">
+                    <div className="text-2xl mb-2">📅</div>
+                    <h4 className="font-medium text-gray-900 mb-1">Shared Calendar</h4>
+                    <p className="text-sm text-gray-600">Team events and scheduling</p>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg border">
+                    <div className="text-2xl mb-2">📋</div>
+                    <h4 className="font-medium text-gray-900 mb-1">Task Management</h4>
+                    <p className="text-sm text-gray-600">Collaborative project tracking</p>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg border">
+                    <div className="text-2xl mb-2">📁</div>
+                    <h4 className="font-medium text-gray-900 mb-1">File Sharing</h4>
+                    <p className="text-sm text-gray-600">Team document repository</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-full bg-gray-50">
+            <div className="text-center">
+              <div className="text-6xl mb-4">👥</div>
+              <h3 className="text-xl font-medium text-gray-900 mb-2">
+                Select a team to collaborate
+              </h3>
+              <p className="text-gray-600">
+                Choose a team from the sidebar to start collaborating
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default TeamsInterface;
