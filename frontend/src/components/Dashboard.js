@@ -202,32 +202,124 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   };
   
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
+    <div className="min-h-screen bg-gray-50">
+      {/* WhatsApp-style Header */}
+      <div className="bg-white border-b shadow-sm">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-trust-gradient rounded-full flex items-center justify-center">
-                <span className="text-white font-bold">
-                  {user?.username?.[0]?.toUpperCase() || '?'}
+              <div className="w-10 h-10 bg-trust-gradient rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-lg">
+                  {user?.display_name?.[0]?.toUpperCase() || user?.username?.[0]?.toUpperCase() || '?'}
                 </span>
               </div>
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">
-                  Welcome, {user?.display_name || user?.username}
+                  {user?.display_name || user?.username || 'User'}
                 </h1>
-                <p className="text-subtle text-sm">Ready for authentic connections</p>
+                <p className="text-sm text-gray-600">
+                  Trust Level {user?.trust_level || 1} • Authenticity {(user?.authenticity_rating || 0).toFixed(1)}
+                </p>
               </div>
             </div>
             
-            <button
-              onClick={onLogout}
-              className="btn-secondary"
-            >
-              Sign Out
-            </button>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setIsEditingProfile(true)}
+                className="text-gray-600 hover:text-gray-800 p-2"
+                title="Edit Profile"
+              >
+                ⚙️
+              </button>
+              <button
+                onClick={onLogout}
+                className="text-gray-600 hover:text-gray-800 p-2"
+                title="Sign Out"
+              >
+                🚪
+              </button>
+            </div>
           </div>
+          
+          {/* Top Tabs - WhatsApp Style */}
+          <div className="flex border-b">
+            {[
+              { id: 'chats', label: 'Chats', icon: '💬', description: 'Direct messages' },
+              { id: 'teams', label: 'Teams', icon: '👥', description: 'Groups & workspaces' },
+              { 
+                id: 'discover', 
+                label: 'Discover', 
+                icon: '⭐', 
+                description: 'Meet new people',
+                premium: true 
+              }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 px-6 py-3 text-sm font-medium border-b-2 transition-all ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600 bg-blue-50'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <span className="text-lg">{tab.icon}</span>
+                <span>{tab.label}</span>
+                {tab.premium && !isPremium && (
+                  <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-medium">
+                    Premium
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="max-w-7xl mx-auto flex h-[calc(100vh-120px)]">
+        {/* Tab Content */}
+        <div className="flex-1 flex">
+          {activeTab === 'chats' && (
+            <ChatsInterface 
+              user={user}
+              token={token}
+              api={api}
+              chats={chats}
+              selectedChat={selectedChat}
+              chatMessages={chatMessages}
+              newMessage={newMessage}
+              setNewMessage={setNewMessage}
+              onSelectChat={selectChat}
+              onSendMessage={sendMessage}
+              isLoading={isLoadingChats}
+            />
+          )}
+          
+          {activeTab === 'teams' && (
+            <TeamsInterface 
+              user={user}
+              token={token}
+              api={api}
+              teams={teams}
+              selectedTeam={selectedTeam}
+              isLoading={isLoadingTeams}
+            />
+          )}
+          
+          {activeTab === 'discover' && (
+            <DiscoverInterface 
+              user={user}
+              token={token}
+              api={api}
+              isPremium={isPremium}
+              authenticityDetails={authenticityDetails}
+              fetchAuthenticityDetails={fetchAuthenticityDetails}
+              isLoadingAuthenticity={isLoadingAuthenticity}
+              connections={connections}
+              fetchConnections={fetchConnections}
+            />
+          )}
         </div>
       </div>
       
