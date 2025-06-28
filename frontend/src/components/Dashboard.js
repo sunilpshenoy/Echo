@@ -1,7 +1,23 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const Dashboard = ({ user, token, api, onLogout }) => {
   const [activeTab, setActiveTab] = useState('profile');
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editProfileData, setEditProfileData] = useState({
+    display_name: user?.display_name || user?.username || '',
+    age: user?.age || '',
+    gender: user?.gender || '',
+    location: user?.location || '',
+    bio: user?.bio || '',
+    interests: user?.interests?.join(', ') || '',
+    values: user?.values?.join(', ') || '',
+    current_mood: user?.current_mood || '',
+    seeking_type: user?.seeking_type || '',
+    connection_purpose: user?.connection_purpose || ''
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [updateMessage, setUpdateMessage] = useState('');
   
   return (
     <div className="min-h-screen">
