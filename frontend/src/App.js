@@ -75,6 +75,13 @@ const App = () => {
     localStorage.removeItem('token');
     setCurrentStep('auth');
   };
+
+  const handleUserUpdate = (updatedUserData) => {
+    setUser(prevUser => ({
+      ...prevUser,
+      ...updatedUserData
+    }));
+  };
   
   // Loading state
   if (isLoading) {
