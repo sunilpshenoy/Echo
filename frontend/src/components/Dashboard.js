@@ -47,35 +47,6 @@ const Dashboard = ({ user, token, api, onLogout }) => {
       console.error('Failed to update authenticity rating:', error);
     }
   };
-  const [authenticityDetails, setAuthenticityDetails] = useState(null);
-  const [isLoadingAuthenticity, setIsLoadingAuthenticity] = useState(false);
-  
-  // Fetch authenticity details
-  const fetchAuthenticityDetails = async () => {
-    setIsLoadingAuthenticity(true);
-    try {
-      const response = await axios.get(`${api}/authenticity/details`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setAuthenticityDetails(response.data);
-    } catch (error) {
-      console.error('Failed to fetch authenticity details:', error);
-    } finally {
-      setIsLoadingAuthenticity(false);
-    }
-  };
-
-  const updateAuthenticityRating = async () => {
-    try {
-      await axios.put(`${api}/authenticity/update`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      await fetchAuthenticityDetails();
-      setUpdateMessage('Authenticity rating updated! 🎉');
-    } catch (error) {
-      console.error('Failed to update authenticity rating:', error);
-    }
-  };
   
   // Profile editing functions
   const handleEditProfileChange = (field, value) => {
