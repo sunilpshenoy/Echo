@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const Dashboard = ({ user, token, api, onLogout }) => {
+const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editProfileData, setEditProfileData] = useState({
