@@ -310,7 +310,10 @@ const Dashboard = ({ user, token, api, onLogout }) => {
                     
                     <div>
                       <h3 className="font-semibold text-gray-900 mb-4">Account</h3>
-                      <button className="btn-secondary mr-4">
+                      <button 
+                        onClick={() => setIsEditingProfile(true)}
+                        className="btn-secondary mr-4"
+                      >
                         Edit Profile
                       </button>
                       <button className="text-red-600 hover:text-red-800">
@@ -324,6 +327,208 @@ const Dashboard = ({ user, token, api, onLogout }) => {
           </div>
         </div>
       </div>
+      
+      {/* Profile Editing Modal */}
+      {isEditingProfile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 rounded-t-2xl">
+              <div className="flex justify-between items-center">
+                <h2 className="heading-md">Edit Your Profile</h2>
+                <button
+                  onClick={() => setIsEditingProfile(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-8">
+              {/* Basic Information */}
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-4">Basic Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Display Name
+                    </label>
+                    <input
+                      type="text"
+                      value={editProfileData.display_name}
+                      onChange={(e) => handleEditProfileChange('display_name', e.target.value)}
+                      className="input-field"
+                      placeholder="How should others see your name?"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Age
+                    </label>
+                    <input
+                      type="number"
+                      min="18"
+                      max="100"
+                      value={editProfileData.age}
+                      onChange={(e) => handleEditProfileChange('age', e.target.value)}
+                      className="input-field"
+                      placeholder="Your age"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Gender
+                    </label>
+                    <select
+                      value={editProfileData.gender}
+                      onChange={(e) => handleEditProfileChange('gender', e.target.value)}
+                      className="input-field"
+                    >
+                      <option value="">Select your gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="non-binary">Non-binary</option>
+                      <option value="prefer-not-to-say">Prefer not to say</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Location
+                    </label>
+                    <input
+                      type="text"
+                      value={editProfileData.location}
+                      onChange={(e) => handleEditProfileChange('location', e.target.value)}
+                      className="input-field"
+                      placeholder="City, Country"
+                    />
+                  </div>
+                </div>
+                
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Bio
+                  </label>
+                  <textarea
+                    value={editProfileData.bio}
+                    onChange={(e) => handleEditProfileChange('bio', e.target.value)}
+                    className="input-field h-24"
+                    placeholder="Tell others about yourself, your passions, what makes you unique..."
+                    maxLength="500"
+                  />
+                  <p className="text-gray-500 text-sm mt-1">
+                    {editProfileData.bio.length}/500 characters
+                  </p>
+                </div>
+              </div>
+              
+              {/* Interests & Values */}
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-4">Interests & Values</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Interests (comma-separated)
+                    </label>
+                    <input
+                      type="text"
+                      value={editProfileData.interests}
+                      onChange={(e) => handleEditProfileChange('interests', e.target.value)}
+                      className="input-field"
+                      placeholder="e.g., photography, hiking, cooking, philosophy, music"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Values (comma-separated)
+                    </label>
+                    <input
+                      type="text"
+                      value={editProfileData.values}
+                      onChange={(e) => handleEditProfileChange('values', e.target.value)}
+                      className="input-field"
+                      placeholder="e.g., honesty, creativity, kindness, adventure, growth"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Connection Preferences */}
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-4">Connection Preferences</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Current Mood & Why
+                    </label>
+                    <textarea
+                      value={editProfileData.current_mood}
+                      onChange={(e) => handleEditProfileChange('current_mood', e.target.value)}
+                      className="input-field h-20"
+                      placeholder="How are you feeling today and what's influencing that mood?"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      What are you seeking?
+                    </label>
+                    <select
+                      value={editProfileData.seeking_type}
+                      onChange={(e) => handleEditProfileChange('seeking_type', e.target.value)}
+                      className="input-field"
+                    >
+                      <option value="">Select what you're looking for</option>
+                      <option value="friendship">New friends</option>
+                      <option value="romantic">Romantic connection</option>
+                      <option value="activity-partner">Activity partners</option>
+                      <option value="professional">Professional networking</option>
+                      <option value="open">Open to anything genuine</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Connection Purpose
+                    </label>
+                    <textarea
+                      value={editProfileData.connection_purpose}
+                      onChange={(e) => handleEditProfileChange('connection_purpose', e.target.value)}
+                      className="input-field h-20"
+                      placeholder="What do you hope to achieve through new connections?"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-2xl border-t">
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={() => setIsEditingProfile(false)}
+                  className="btn-secondary"
+                  disabled={isLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveProfile}
+                  disabled={isLoading}
+                  className="btn-primary"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center">
+                      <div className="loading-spinner w-5 h-5 mr-2"></div>
+                      Saving...
+                    </div>
+                  ) : (
+                    'Save Changes'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
