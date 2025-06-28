@@ -325,38 +325,22 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
           )}
         </div>
       </div>
-      
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Sidebar Navigation */}
-          <div className="lg:col-span-1">
-            <div className="card">
-              <h2 className="heading-md mb-4">Your Journey</h2>
-              <nav className="space-y-2">
-                {[
-                  { id: 'profile', label: 'Profile', icon: '👤' },
-                  { id: 'authenticity', label: 'Authenticity', icon: '⭐' },
-                  { id: 'discover', label: 'Discover People', icon: '🔍' },
-                  { id: 'connections', label: 'Connections', icon: '💫' },
-                  { id: 'settings', label: 'Settings', icon: '⚙️' }
-                ].map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`w-full text-left p-3 rounded-lg transition-all ${
-                      activeTab === tab.id
-                        ? 'bg-trust-gradient text-white'
-                        : 'text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className="mr-3">{tab.icon}</span>
-                    {tab.label}
-                  </button>
-                ))}
-              </nav>
+
+      {/* Profile Editing Modal */}
+      {isEditingProfile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 rounded-t-2xl">
+              <div className="flex justify-between items-center">
+                <h2 className="heading-md">Edit Your Profile</h2>
+                <button
+                  onClick={() => setIsEditingProfile(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
-          </div>
           
           {/* Main Content Area */}
           <div className="lg:col-span-2">
