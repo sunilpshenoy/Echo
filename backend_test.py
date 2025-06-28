@@ -1798,6 +1798,219 @@ def test_message_reactions():
     logger.info("Message reactions tests passed")
     return True
 
+def test_authentic_connections_registration():
+    """Test user registration with profile_completed=false by default"""
+    logger.info("Testing authentic connections registration...")
+    
+    # Register a new test user with a unique email
+    unique_id = str(uuid.uuid4())[:8]
+    test_user = {
+        "username": f"authentic_user_{unique_id}",
+        "email": f"authentic_{unique_id}@example.com",
+        "password": "AuthenticPass123!",
+        "phone": f"+1777{unique_id}"
+    }
+    
+    response = requests.post(f"{API_URL}/register", json=test_user)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to register test user for authentic connections test: {response.text}")
+        return False
+    
+    # Verify profile_completed is false by default
+    user_data = response.json()
+    if "profile_completed" not in user_data["user"]:
+        logger.error("profile_completed field not included in user registration response")
+        return False
+    
+    if user_data["user"]["profile_completed"] != False:
+        logger.error(f"profile_completed should be false by default, got: {user_data['user']['profile_completed']}")
+        return False
+    
+    logger.info("Successfully verified profile_completed=false by default")
+    
+    # Store token for further tests
+    auth_token = user_data["access_token"]
+    auth_user_id = user_data["user"]["user_id"]
+    
+    # Add to global variables for other tests
+    user_tokens['auth_user'] = auth_token
+    user_ids['auth_user'] = auth_user_id
+    
+    logger.info("Authentic connections registration test passed")
+    return True
+
+def test_authentic_connections_login():
+    """Test login returns profile_completed status"""
+    logger.info("Testing authentic connections login...")
+    
+    # Get the auth user we just created
+    if 'auth_user' not in user_tokens:
+        logger.error("Auth user not found, run test_authentic_connections_registration first")
+        return False
+    
+    # Find the user data from the previous test
+    auth_user_id = user_ids['auth_user']
+    
+    # Get the user's email from the test_users list or create a new login
+    unique_id = str(uuid.uuid4())[:8]
+    test_user = {
+        "username": f"login_user_{unique_id}",
+        "email": f"login_{unique_id}@example.com",
+        "password": "LoginPass123!",
+        "phone": f"+1888{unique_id}"
+    }
+    
+    # Register the user first
+    reg_response = requests.post(f"{API_URL}/register", json=test_user)
+    if reg_response.status_code != 200:
+        logger.error(f"Failed to register test user for login test: {reg_response.text}")
+        return False
+    
+    # Now login with the same user
+    login_data = {
+        "email": test_user["email"],
+        "password": test_user["password"]
+    }
+    
+    response = requests.post(f"{API_URL}/login", json=login_data)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to login for authentic connections test: {response.text}")
+        return False
+    
+    # Verify profile_completed is included in login response
+    user_data = response.json()
+    if "profile_completed" not in user_data["user"]:
+        logger.error("profile_completed field not included in user login response")
+        return False
+    
+    logger.info(f"Login response includes profile_completed: {user_data['user']['profile_completed']}")
+    
+    logger.info("Authentic connections login test passed")
+    return True
+
+def test_get_current_user():
+    """Test GET /api/users/me returns full user data including profile_completed"""
+    logger.info("Testing GET /api/users/me endpoint...")
+    
+    # Get the auth user we created
+    if 'auth_user' not in user_tokens:
+        logger.error("Auth user not found, run test_authentic_connections_registration first")
+        return False
+    
+    headers = {"Authorization": f"Bearer {user_tokens['auth_user']}"}
+    
+    response = requests.get(f"{API_URL}/users/me", headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to get current user info: {response.text}")
+        return False
+    
+    # Verify response includes profile_completed and other authentic connections fields
+    user_data = response.json()
+    required_fields = [
+        "profile_completed", "age", "gender", "location", "bio", 
+        "interests", "values", "authenticity_rating", "trust_level"
+    ]
+    
+    for field in required_fields:
+        if field not in user_data:
+            logger.error(f"Field '{field}' not included in /users/me response")
+            return False
+    
+    logger.info("Successfully verified /users/me includes all required fields")
+    
+    # Verify token validation works
+    invalid_headers = {"Authorization": "Bearer invalid_token"}
+    invalid_response = requests.get(f"{API_URL}/users/me", headers=invalid_headers)
+    
+    if invalid_response.status_code != 401:
+        logger.error(f"Invalid token should return 401, got: {invalid_response.status_code}")
+        return False
+    
+    logger.info("Successfully verified token validation")
+    
+    logger.info("GET /api/users/me test passed")
+    return True
+
+def test_complete_profile():
+    """Test PUT /api/profile/complete endpoint"""
+    logger.info("Testing PUT /api/profile/complete endpoint...")
+    
+    # Get the auth user we created
+    if 'auth_user' not in user_tokens:
+        logger.error("Auth user not found, run test_authentic_connections_registration first")
+        return False
+    
+    headers = {"Authorization": f"Bearer {user_tokens['auth_user']}"}
+    
+    # Create profile completion data
+    profile_data = {
+        "age": random.randint(18, 65),
+        "gender": random.choice(["male", "female", "non-binary", "other"]),
+        "location": random.choice(["New York", "San Francisco", "London", "Tokyo", "Sydney"]),
+        "current_mood": random.choice(["happy", "excited", "curious", "relaxed", "focused"]),
+        "mood_reason": "Testing the authentic connections app",
+        "seeking_type": random.choice(["friendship", "dating", "networking", "mentorship"]),
+        "seeking_age_range": "25-45",
+        "seeking_gender": "all",
+        "seeking_location_preference": "nearby",
+        "connection_purpose": "Finding authentic connections through testing",
+        "additional_requirements": "Must enjoy software testing",
+        "bio": "I'm a test user exploring the authentic connections platform",
+        "interests": ["technology", "testing", "software development", "AI"],
+        "values": ["honesty", "authenticity", "curiosity", "reliability"]
+    }
+    
+    response = requests.put(f"{API_URL}/profile/complete", json=profile_data, headers=headers)
+    
+    if response.status_code != 200:
+        logger.error(f"Failed to complete profile: {response.text}")
+        return False
+    
+    # Verify response includes updated profile data
+    user_data = response.json()
+    
+    # Check profile_completed is now true
+    if "profile_completed" not in user_data or user_data["profile_completed"] != True:
+        logger.error(f"profile_completed should be true after completion, got: {user_data.get('profile_completed')}")
+        return False
+    
+    # Check authenticity_rating was calculated
+    if "authenticity_rating" not in user_data or not isinstance(user_data["authenticity_rating"], (int, float)):
+        logger.error(f"authenticity_rating not calculated correctly: {user_data.get('authenticity_rating')}")
+        return False
+    
+    logger.info(f"Profile completed with authenticity rating: {user_data['authenticity_rating']}")
+    
+    # Verify all fields were saved correctly
+    for key, value in profile_data.items():
+        if key not in user_data:
+            logger.error(f"Field '{key}' not included in response")
+            return False
+        
+        if user_data[key] != value and key != "authenticity_rating":  # Skip authenticity_rating as it's calculated
+            logger.error(f"Field '{key}' has incorrect value. Expected: {value}, Got: {user_data[key]}")
+            return False
+    
+    # Verify with GET /users/me that profile is now completed
+    me_response = requests.get(f"{API_URL}/users/me", headers=headers)
+    
+    if me_response.status_code != 200:
+        logger.error(f"Failed to get current user info after profile completion: {me_response.text}")
+        return False
+    
+    me_data = me_response.json()
+    if me_data.get("profile_completed") != True:
+        logger.error(f"profile_completed should be true in /users/me after completion, got: {me_data.get('profile_completed')}")
+        return False
+    
+    logger.info("Successfully verified profile completion with GET /users/me")
+    
+    logger.info("PUT /api/profile/complete test passed")
+    return True
+
 def test_edit_message():
     """Test message editing functionality"""
     logger.info("Testing message editing...")
