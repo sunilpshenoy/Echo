@@ -57,17 +57,73 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
     }
   };
 
-  const updateAuthenticityRating = async () => {
+  // Chat management functions
+  const fetchChats = async () => {
+    setIsLoadingChats(true);
     try {
-      await axios.put(`${api}/authenticity/update`, {}, {
+      const response = await axios.get(`${api}/chats`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      await fetchAuthenticityDetails();
-      setUpdateMessage('Authenticity rating updated! 🎉');
+      setChats(response.data);
     } catch (error) {
-      console.error('Failed to update authenticity rating:', error);
+      console.error('Failed to fetch chats:', error);
+    } finally {
+      setIsLoadingChats(false);
     }
   };
+
+  const selectChat = async (chat) => {
+    setSelectedChat(chat);
+    try {
+      const response = await axios.get(`${api}/chats/${chat.chat_id}/messages`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setChatMessages(response.data);
+    } catch (error) {
+      console.error('Failed to fetch messages:', error);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !selectedChat) return;
+    
+    try {
+      await axios.post(`${api}/chats/${selectedChat.chat_id}/messages`, {
+        content: newMessage,
+        message_type: 'text'
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setNewMessage('');
+      // Refresh messages
+      await selectChat(selectedChat);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    }
+  };
+
+  const fetchTeams = async () => {
+    setIsLoadingTeams(true);
+    try {
+      const response = await axios.get(`${api}/teams`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setTeams(response.data);
+    } catch (error) {
+      console.error('Failed to fetch teams:', error);
+    } finally {
+      setIsLoadingTeams(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'chats') {
+      fetchChats();
+    } else if (activeTab === 'teams') {
+      fetchTeams();
+    }
+  }, [activeTab]);
   
   // Connection management functions
   const fetchConnections = async () => {
