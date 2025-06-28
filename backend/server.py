@@ -859,6 +859,80 @@ async def update_extended_profile(profile_data: dict, current_user = Depends(get
     
     return {"status": "success"}
 
+# Get current user info
+@api_router.get("/users/me")
+async def get_current_user_info(current_user = Depends(get_current_user)):
+    return serialize_mongo_doc({
+        "user_id": current_user["user_id"],
+        "username": current_user["username"],
+        "display_name": current_user.get("display_name"),
+        "email": current_user["email"],
+        "phone": current_user.get("phone"),
+        "avatar": current_user.get("avatar"),
+        "status_message": current_user.get("status_message", "Available"),
+        "profile_completed": current_user.get("profile_completed", False),
+        "age": current_user.get("age"),
+        "gender": current_user.get("gender"),
+        "location": current_user.get("location"),
+        "bio": current_user.get("bio"),
+        "interests": current_user.get("interests", []),
+        "values": current_user.get("values", []),
+        "authenticity_rating": current_user.get("authenticity_rating", 0.0),
+        "trust_level": current_user.get("trust_level", 1),
+        "verified": current_user.get("verified", False),
+        "premium": current_user.get("premium", False)
+    })
+
+# Complete authentic connections profile
+@api_router.put("/profile/complete")
+async def complete_profile(profile_data: dict, current_user = Depends(get_current_user)):
+    # Fields allowed for profile completion
+    allowed_fields = [
+        "age", "gender", "location", "current_mood", "mood_reason", 
+        "seeking_type", "seeking_age_range", "seeking_gender", 
+        "seeking_location_preference", "connection_purpose", 
+        "additional_requirements", "bio", "interests", "values", "profile_completed"
+    ]
+    
+    update_data = {k: v for k, v in profile_data.items() if k in allowed_fields}
+    
+    # Ensure profile is marked as completed
+    update_data["profile_completed"] = True
+    
+    # Calculate initial authenticity rating based on profile completeness
+    profile_completeness = 0
+    required_fields = ["age", "gender", "location", "bio", "seeking_type", "connection_purpose"]
+    for field in required_fields:
+        if update_data.get(field):
+            profile_completeness += 1
+    
+    # Initial authenticity rating (0-10 scale)
+    update_data["authenticity_rating"] = min(10.0, (profile_completeness / len(required_fields)) * 5.0)
+    
+    if update_data:
+        await db.users.update_one(
+            {"user_id": current_user["user_id"]},
+            {"$set": update_data}
+        )
+    
+    # Return updated user
+    updated_user = await db.users.find_one({"user_id": current_user["user_id"]})
+    return serialize_mongo_doc({
+        "user_id": updated_user["user_id"],
+        "username": updated_user["username"],
+        "display_name": updated_user.get("display_name"),
+        "email": updated_user["email"],
+        "profile_completed": updated_user.get("profile_completed", False),
+        "age": updated_user.get("age"),
+        "gender": updated_user.get("gender"),
+        "location": updated_user.get("location"),
+        "bio": updated_user.get("bio"),
+        "interests": updated_user.get("interests", []),
+        "values": updated_user.get("values", []),
+        "authenticity_rating": updated_user.get("authenticity_rating", 0.0),
+        "trust_level": updated_user.get("trust_level", 1)
+    })
+
 # Privacy and Security Features
 @api_router.put("/privacy/settings")
 async def update_privacy_settings(settings_data: PrivacySettingsUpdate, current_user = Depends(get_current_user)):
