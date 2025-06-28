@@ -579,6 +579,150 @@ const Dashboard = ({ user, token, api, onLogout }) => {
                 </div>
               )}
               
+              {activeTab === 'authenticity' && (
+                <div>
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="heading-md">Authenticity Details</h2>
+                    <button
+                      onClick={() => {
+                        fetchAuthenticityDetails();
+                        updateAuthenticityRating();
+                      }}
+                      disabled={isLoadingAuthenticity}
+                      className="btn-primary"
+                    >
+                      {isLoadingAuthenticity ? (
+                        <div className="flex items-center">
+                          <div className="loading-spinner w-5 h-5 mr-2"></div>
+                          Updating...
+                        </div>
+                      ) : (
+                        '🔄 Refresh Rating'
+                      )}
+                    </button>
+                  </div>
+                  
+                  {updateMessage && (
+                    <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+                      {updateMessage}
+                    </div>
+                  )}
+                  
+                  {authenticityDetails ? (
+                    <div className="space-y-6">
+                      {/* Overall Rating */}
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg border border-blue-200">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="font-semibold text-gray-900">Overall Authenticity Rating</h3>
+                          <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+                            {authenticityDetails.level}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-6">
+                          <div className="w-24 h-24 bg-trust-gradient rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-2xl">
+                              {authenticityDetails.total_rating}
+                            </span>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex justify-between text-sm text-gray-600 mb-2">
+                              <span>Progress</span>
+                              <span>{authenticityDetails.total_rating} / {authenticityDetails.max_rating}</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-3">
+                              <div 
+                                className="bg-trust-gradient h-3 rounded-full transition-all duration-500"
+                                style={{ width: `${(authenticityDetails.total_rating / authenticityDetails.max_rating) * 100}%` }}
+                              ></div>
+                            </div>
+                            <p className="text-gray-600 text-sm mt-2">
+                              Next milestone: {authenticityDetails.next_milestone} points
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Factor Breakdown */}
+                      <div className="bg-white p-6 rounded-lg border">
+                        <h3 className="font-semibold text-gray-900 mb-4">Rating Breakdown</h3>
+                        <div className="space-y-4">
+                          {Object.entries(authenticityDetails.factors).map(([key, factor]) => (
+                            <div key={key} className="border-l-4 border-blue-200 pl-4">
+                              <div className="flex justify-between items-center mb-2">
+                                <h4 className="font-medium text-gray-900 capitalize">
+                                  {key.replace('_', ' ')}
+                                </h4>
+                                <span className="text-sm font-medium text-gray-600">
+                                  {factor.score} / {factor.max_score}
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                                <div 
+                                  className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                                  style={{ width: `${(factor.score / factor.max_score) * 100}%` }}
+                                ></div>
+                              </div>
+                              <p className="text-gray-600 text-sm mb-2">{factor.description}</p>
+                              {factor.tips && factor.tips.length > 0 && (
+                                <details className="mt-2">
+                                  <summary className="text-blue-600 cursor-pointer text-sm hover:text-blue-800">
+                                    💡 Tips to improve
+                                  </summary>
+                                  <ul className="mt-2 text-sm text-gray-600 list-disc list-inside space-y-1">
+                                    {factor.tips.map((tip, index) => (
+                                      <li key={index}>{tip}</li>
+                                    ))}
+                                  </ul>
+                                </details>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Improvement Guide */}
+                      <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
+                        <h3 className="font-semibold text-gray-900 mb-4">🌟 How to Improve Your Rating</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <h4 className="font-medium text-gray-900 mb-2">Quick Wins:</h4>
+                            <ul className="text-gray-700 space-y-1">
+                              <li>• Complete all profile sections</li>
+                              <li>• Add detailed bio and interests</li>
+                              <li>• Upload a profile photo</li>
+                            </ul>
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900 mb-2">Long-term Growth:</h4>
+                            <ul className="text-gray-700 space-y-1">
+                              <li>• Engage in meaningful conversations</li>
+                              <li>• Build genuine connections</li>
+                              <li>• Be consistent and authentic</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="text-6xl mb-4">⭐</div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                        Authenticity Rating
+                      </h3>
+                      <p className="text-subtle mb-4">
+                        Click "Refresh Rating" to see your detailed authenticity breakdown.
+                      </p>
+                      <button
+                        onClick={fetchAuthenticityDetails}
+                        className="btn-primary"
+                      >
+                        View My Rating
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+              
               {activeTab === 'discover' && (
                 <div>
                   <h2 className="heading-md mb-6">Discover Authentic People</h2>
