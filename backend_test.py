@@ -2071,7 +2071,14 @@ def test_complete_profile():
     }
     
     try:
+        logger.info(f"Sending profile completion request to {API_URL}/profile/complete")
+        logger.info(f"Headers: {headers}")
+        logger.info(f"Profile data: {profile_data}")
+        
         response = requests.put(f"{API_URL}/profile/complete", json=profile_data, headers=headers)
+        
+        logger.info(f"Response status code: {response.status_code}")
+        logger.info(f"Response content: {response.text}")
         
         if response.status_code != 200:
             logger.error(f"Failed to complete profile: {response.text}")
