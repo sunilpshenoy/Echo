@@ -18,21 +18,47 @@ const Dashboard = ({ user, token, api, onLogout }) => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [updateMessage, setUpdateMessage] = useState('');
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [editProfileData, setEditProfileData] = useState({
-    display_name: user?.display_name || user?.username || '',
-    age: user?.age || '',
-    gender: user?.gender || '',
-    location: user?.location || '',
-    bio: user?.bio || '',
-    interests: user?.interests?.join(', ') || '',
-    values: user?.values?.join(', ') || '',
-    current_mood: user?.current_mood || '',
-    seeking_type: user?.seeking_type || '',
-    connection_purpose: user?.connection_purpose || ''
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [updateMessage, setUpdateMessage] = useState('');
+  
+  // Profile editing functions
+  const handleEditProfileChange = (field, value) => {
+    setEditProfileData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSaveProfile = async () => {
+    setIsLoading(true);
+    setUpdateMessage('');
+    
+    try {
+      // Prepare data for API
+      const updateData = {
+        ...editProfileData,
+        interests: editProfileData.interests.split(',').map(item => item.trim()).filter(item => item),
+        values: editProfileData.values.split(',').map(item => item.trim()).filter(item => item),
+        age: editProfileData.age ? parseInt(editProfileData.age) : null
+      };
+
+      const response = await axios.put(`${api}/profile/complete`, updateData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setUpdateMessage('Profile updated successfully! 🎉');
+      setIsEditingProfile(false);
+      
+      // Refresh the page to get updated user data
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      
+    } catch (error) {
+      setUpdateMessage('Failed to update profile. Please try again.');
+      console.error('Profile update error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   return (
     <div className="min-h-screen">
