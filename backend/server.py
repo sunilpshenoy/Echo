@@ -809,6 +809,105 @@ async def update_profile(profile_data: dict, current_user = Depends(get_current_
         "username_handle": updated_user.get("username_handle")
     })
 
+# Advanced Authenticity Rating System
+@api_router.get("/authenticity/details")
+async def get_authenticity_details(current_user = Depends(get_current_user)):
+    """Get detailed breakdown of authenticity rating"""
+    user = current_user
+    
+    # Calculate detailed authenticity factors
+    factors = {
+        "profile_completeness": 0,
+        "interaction_quality": 0,
+        "consistency": 0,
+        "verification_status": 0,
+        "community_feedback": 0
+    }
+    
+    # Profile completeness (0-2 points)
+    required_fields = ["age", "gender", "location", "bio", "interests", "values", "current_mood", "seeking_type"]
+    completed_fields = sum(1 for field in required_fields if user.get(field))
+    factors["profile_completeness"] = min(2.0, (completed_fields / len(required_fields)) * 2.0)
+    
+    # Verification status (0-1 point)
+    factors["verification_status"] = 1.0 if user.get("verified", False) else 0.0
+    
+    # Base interaction quality (0-2 points) - can be enhanced with actual interaction data
+    factors["interaction_quality"] = min(2.0, (user.get("trust_level", 1) - 1) * 0.5)
+    
+    # Consistency (0-2 points) - based on profile updates and activity
+    days_since_creation = (datetime.utcnow() - user.get("created_at", datetime.utcnow())).days
+    factors["consistency"] = min(2.0, min(days_since_creation / 30, 1.0) * 2.0)
+    
+    # Community feedback (0-3 points) - placeholder, can be enhanced with actual feedback system
+    factors["community_feedback"] = min(3.0, user.get("authenticity_rating", 0.0) * 0.3)
+    
+    total_rating = sum(factors.values())
+    
+    return {
+        "total_rating": round(total_rating, 1),
+        "max_rating": 10.0,
+        "factors": {
+            "profile_completeness": {
+                "score": round(factors["profile_completeness"], 1),
+                "max_score": 2.0,
+                "description": "How complete is your profile",
+                "tips": ["Add missing profile information", "Write a detailed bio", "List your interests and values"]
+            },
+            "interaction_quality": {
+                "score": round(factors["interaction_quality"], 1),
+                "max_score": 2.0,
+                "description": "Quality of your interactions",
+                "tips": ["Engage in meaningful conversations", "Build genuine connections", "Progress through trust levels"]
+            },
+            "consistency": {
+                "score": round(factors["consistency"], 1),
+                "max_score": 2.0,
+                "description": "Account age and activity consistency",
+                "tips": ["Stay active on the platform", "Maintain consistent profile information"]
+            },
+            "verification_status": {
+                "score": round(factors["verification_status"], 1),
+                "max_score": 1.0,
+                "description": "Account verification",
+                "tips": ["Complete profile verification process"]
+            },
+            "community_feedback": {
+                "score": round(factors["community_feedback"], 1),
+                "max_score": 3.0,
+                "description": "Feedback from other users",
+                "tips": ["Be authentic in all interactions", "Help others feel comfortable", "Respect boundaries"]
+            }
+        },
+        "level": "Getting Started" if total_rating < 3 else
+                "Building Trust" if total_rating < 6 else
+                "Trusted Member" if total_rating < 8 else
+                "Highly Authentic",
+        "next_milestone": 3 if total_rating < 3 else
+                        6 if total_rating < 6 else
+                        8 if total_rating < 8 else
+                        10
+    }
+
+@api_router.put("/authenticity/update")
+async def update_authenticity_rating(current_user = Depends(get_current_user)):
+    """Recalculate and update user's authenticity rating"""
+    # Get detailed authenticity breakdown
+    details_response = await get_authenticity_details(current_user)
+    new_rating = details_response["total_rating"]
+    
+    # Update the user's authenticity rating
+    await db.users.update_one(
+        {"user_id": current_user["user_id"]},
+        {"$set": {"authenticity_rating": new_rating}}
+    )
+    
+    return {
+        "message": "Authenticity rating updated successfully",
+        "new_rating": new_rating,
+        "level": details_response["level"]
+    }
+
 @api_router.get("/profile/{user_id}")
 async def get_user_profile(user_id: str, current_user = Depends(get_current_user)):
     user = await db.users.find_one({"user_id": user_id})
