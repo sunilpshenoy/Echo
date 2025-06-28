@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import ChatsInterface from './ChatsInterface';
+import TeamsInterface from './TeamsInterface';
+import DiscoverInterface from './DiscoverInterface';
 
 const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const [activeTab, setActiveTab] = useState('chats');
