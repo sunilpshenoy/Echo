@@ -985,7 +985,8 @@ async def get_current_user_info(current_user = Depends(get_current_user)):
         "authenticity_rating": current_user.get("authenticity_rating", 0.0),
         "trust_level": current_user.get("trust_level", 1),
         "verified": current_user.get("verified", False),
-        "premium": current_user.get("premium", False)
+        "premium": current_user.get("premium", False),
+        "connection_pin": current_user.get("connection_pin")
     })
 
 # Complete authentic connections profile
