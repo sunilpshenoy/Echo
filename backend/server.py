@@ -765,6 +765,7 @@ async def login(login_data: UserLogin):
             "phone": user.get("phone"),
             "avatar": user.get("avatar"),
             "status_message": user.get("status_message", "Available"),
+            "profile_completed": user.get("profile_completed", False),
             "encryption_key": user.get("encryption_key"),
             "safety_number": user.get("safety_number"),
             "privacy_settings": user.get("privacy_settings", {}),
