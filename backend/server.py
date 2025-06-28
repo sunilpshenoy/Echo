@@ -1003,6 +1003,11 @@ async def complete_profile(profile_data: dict, current_user = Depends(get_curren
     # Ensure profile is marked as completed
     update_data["profile_completed"] = True
     
+    # Generate connection PIN if not exists
+    if not current_user.get("connection_pin"):
+        connection_pin = f"PIN-{str(uuid.uuid4())[:6].upper()}"
+        update_data["connection_pin"] = connection_pin
+    
     # Calculate initial authenticity rating based on profile completeness
     profile_completeness = 0
     required_fields = ["age", "gender", "location", "bio", "seeking_type", "connection_purpose"]
