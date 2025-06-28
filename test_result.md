@@ -501,7 +501,7 @@ backend:
         agent: "testing"
         comment: "Comprehensive testing of the /api/genie/process endpoint confirms it's working correctly. Successfully tested various commands including 'create a chat with Bob', 'add contact john.doe@example.com', 'block user Charlie', 'show my chats', 'help me', and 'send message to Sarah saying hello'. All commands are correctly identified with their proper intents, and the API returns appropriate responses with action data."
 
-  - task: "Genie Undo Functionality"
+  - task: "Foundation Backend Endpoints"
     implemented: true
     working: true
     file: "server.py"
@@ -511,16 +511,10 @@ backend:
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Implemented undo functionality for genie actions with action logging"
-      - working: false
-        agent: "testing"
-        comment: "The Genie Undo functionality (/api/genie/undo) is not working correctly. When attempting to undo an action (like adding a contact), the endpoint returns a failure message: 'This magic is beyond my powers to reverse, master.' The perform_undo function appears to be unable to find the action to undo, possibly because the action is not being properly logged in the database or the undo logic has an implementation issue."
-      - working: false
-        agent: "testing"
-        comment: "Further testing of the Genie Undo functionality confirms the issue. When a command is processed by the Genie, it correctly logs the interaction in the database, but when trying to undo the action, it fails to find the relevant record to undo. The specific error message received is '🧞‍♂️ *Mystical interference detected* No recent contact found to undo!' This suggests that while the command is being processed and the intent is recognized, the actual action (like adding a contact) is not being executed, so there's nothing to undo. The issue could be in the perform_undo function or in the action execution logic."
+        comment: "Added profile_completed field to User model, implemented /api/users/me and /api/profile/complete endpoints for authentic connections flow"
       - working: true
         agent: "testing"
-        comment: "Successfully tested the /api/genie/undo endpoint. The endpoint now works correctly for undoing actions like adding contacts. When a contact is added using the Genie command 'add contact test.contact@example.com', the undo endpoint successfully removes the contact and returns a success message: '🧞‍♂️ *Waves magical hands* ✨ The friendship bond has been gently severed!'. The issue was fixed by ensuring that actions are properly logged in the database with the interaction_id, allowing the perform_undo function to find and reverse the action."
+        comment: "Successfully tested all foundation endpoints: POST /api/register creates users with profile_completed=false, POST /api/login returns profile_completed status, GET /api/users/me validates tokens and returns full user data, PUT /api/profile/complete saves profile data and calculates authenticity rating. All tests passed."
 
 frontend:
   - task: "User Authentication UI"
