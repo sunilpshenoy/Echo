@@ -42,7 +42,11 @@ const TeamsInterface = ({
               <h2 className="text-lg font-semibold text-gray-900">Teams</h2>
               <p className="text-sm text-gray-600">Groups & workspaces</p>
             </div>
-            <button className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors">
+            <button 
+              onClick={() => setShowCreateTeam(true)}
+              className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors"
+              title="Create New Team"
+            >
               ➕
             </button>
           </div>
