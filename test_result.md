@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Build an authentic connections app centered around a 5-layer progressive trust system (Anonymous → Chat → Voice → Video → Meetup) with AI-powered compatibility matching and authenticity ratings. The app focuses on genuine relationships through gradual trust building, moving away from superficial interactions to meaningful connections."
+user_problem_statement: "Build an authentic connections app centered around a 5-layer progressive trust system (Anonymous → Chat → Voice → Video → Meetup) with AI-powered compatibility matching and authenticity ratings. The app focuses on genuine relationships through gradual trust building, moving away from superficial interactions to meaningful connections. USER REPORTED CRITICAL FRONTEND ISSUES: Buttons not working, QR code not generated, cannot create new groups, Discover tab getting stuck, upgrade to premium button not working."
 
 backend:
   - task: "User Authentication System"
