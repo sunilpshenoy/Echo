@@ -96,7 +96,10 @@ const TeamsInterface = ({
               <p className="text-gray-600 text-sm mb-4">
                 Create or join teams to collaborate
               </p>
-              <button className="btn-primary">
+              <button 
+                onClick={() => setShowCreateTeam(true)}
+                className="btn-primary"
+              >
                 Create Team
               </button>
             </div>
