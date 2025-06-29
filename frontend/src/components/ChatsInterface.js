@@ -97,57 +97,6 @@ const ChatsInterface = ({
     setShowQRScanner(false);
   };
 
-  // Add contact by email
-  const addContactByEmail = async () => {
-    if (!contactEmail.trim()) return;
-    
-    try {
-      await axios.post(`${api}/contacts`, {
-        email: contactEmail
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      setContactEmail('');
-      setShowAddContact(false);
-      alert('Contact added successfully! 🎉');
-    } catch (error) {
-      console.error('Failed to add contact:', error);
-      alert('Failed to add contact. Please check the email address.');
-    }
-  };
-
-  // Add contact by phone (placeholder - would need phone lookup)
-  const addContactByPhone = async () => {
-    if (!contactPhone.trim()) return;
-    
-    try {
-      // For now, show placeholder message
-      alert('Phone contact addition will be implemented soon! 📱');
-      setContactPhone('');
-      setShowAddContact(false);
-    } catch (error) {
-      console.error('Failed to add contact:', error);
-      alert('Failed to add contact. Please try again.');
-    }
-  };
-
-  // Handle QR code scan result
-  const handleQRScan = (result) => {
-    if (result) {
-      setContactPin(result);
-      setShowQRScanner(false);
-      sendConnectionRequest();
-    }
-  };
-
-  // Handle QR scan error
-  const handleQRError = (error) => {
-    console.error('QR Scan Error:', error);
-    alert('Camera access denied or QR scan failed. Please enter PIN manually.');
-    setShowQRScanner(false);
-  };
-
   // Fetch pending connection requests
   const fetchConnectionRequests = async () => {
     try {
