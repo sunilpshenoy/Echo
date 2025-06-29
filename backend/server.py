@@ -18,6 +18,7 @@ from bson import ObjectId
 from fastapi.encoders import jsonable_encoder
 import base64
 import mimetypes
+import bcrypt
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
