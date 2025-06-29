@@ -567,11 +567,14 @@ backend:
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added missing /api/teams GET and POST endpoints to prevent 404 errors causing frontend Teams tab to malfunction"
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested the Teams API endpoints. GET /api/teams returns an empty array as expected. POST /api/teams returns a placeholder response with the correct structure. Both endpoints require proper authentication. These endpoints should now prevent the 404 errors that were causing the Teams tab to malfunction in the frontend."
   - task: "Foundation Backend Endpoints"
     implemented: true
     working: true
