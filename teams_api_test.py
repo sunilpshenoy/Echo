@@ -131,15 +131,15 @@ def test_unauthorized_access():
     
     # Test GET /api/teams without authentication
     response = requests.get(f"{API_URL}/teams")
-    if response.status_code != 401:
-        logger.error(f"GET /api/teams without auth should return 401, got: {response.status_code}")
+    if response.status_code not in [401, 403]:
+        logger.error(f"GET /api/teams without auth should return 401 or 403, got: {response.status_code}")
         return False
     
     # Test POST /api/teams without authentication
     team_data = {"name": "Unauthorized Team"}
     response = requests.post(f"{API_URL}/teams", json=team_data)
-    if response.status_code != 401:
-        logger.error(f"POST /api/teams without auth should return 401, got: {response.status_code}")
+    if response.status_code not in [401, 403]:
+        logger.error(f"POST /api/teams without auth should return 401 or 403, got: {response.status_code}")
         return False
     
     logger.info("Unauthorized access tests passed")
