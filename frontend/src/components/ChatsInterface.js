@@ -756,6 +756,58 @@ const ChatsInterface = ({
           </div>
         </div>
       )}
+
+      {/* QR Scanner Modal */}
+      {showQRScanner && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Scan QR Code</h2>
+              <button
+                onClick={() => setShowQRScanner(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-gray-100 p-8 rounded-2xl mb-4">
+                <div className="text-6xl mb-4">📷</div>
+                <p className="text-gray-600 mb-4">
+                  Camera access is required to scan QR codes
+                </p>
+                <button
+                  onClick={() => {
+                    // Try to access camera
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                        .then(stream => {
+                          alert('Camera access granted! QR scanning will be implemented soon. 📷');
+                          stream.getTracks().forEach(track => track.stop());
+                          setShowQRScanner(false);
+                        })
+                        .catch(error => {
+                          console.error('Camera access error:', error);
+                          alert('Camera access denied. Please enable camera permissions and try again.');
+                        });
+                    } else {
+                      alert('Camera not supported on this device/browser.');
+                    }
+                  }}
+                  className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
+                >
+                  📷 Enable Camera
+                </button>
+              </div>
+              
+              <p className="text-xs text-gray-500">
+                Point your camera at a QR code to scan
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
