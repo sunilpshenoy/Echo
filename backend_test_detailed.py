@@ -196,7 +196,7 @@ def test_detailed_pin_connection():
         if "display_name" not in request["sender"] or not request["sender"]["display_name"]:
             logger.warning(f"Connection request sender missing display_name: {request['sender']['email']}")
         else:
-            logger.info(f"Connection request from {request['sender']['email']} has display_name: {request['sender']['display_name']}")
+            logger.info(f"Connection request from {request['sender']['username']} has display_name: {request['sender']['display_name']}")
     
     logger.info("Detailed PIN-based connection test completed")
     return True
