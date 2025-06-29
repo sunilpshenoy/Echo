@@ -209,6 +209,13 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
       fetchChats();
     } else if (activeTab === 'teams') {
       fetchTeams();
+    } else if (activeTab === 'discover') {
+      // Fetch authenticity details when discover tab is opened
+      if (!authenticityDetails) {
+        fetchAuthenticityDetails();
+      }
+      // Fetch connections for discover tab
+      fetchConnections();
     }
   }, [activeTab]);
 
