@@ -1637,6 +1637,27 @@ async def send_message(chat_id: str, message_data: dict, current_user = Depends(
     
     return serialize_mongo_doc(message_dict)
 
+# Teams Management Endpoints
+@api_router.get("/teams")
+async def get_teams(current_user = Depends(get_current_user)):
+    """Get all teams for the current user"""
+    # For now, return empty list as teams feature is in development
+    # This prevents 404 errors in the frontend
+    return []
+
+@api_router.post("/teams")
+async def create_team(
+    team_data: dict,
+    current_user = Depends(get_current_user)
+):
+    """Create a new team (placeholder for future implementation)"""
+    # Placeholder implementation
+    return {
+        "message": "Team creation will be implemented soon",
+        "team_data": team_data,
+        "status": "placeholder"
+    }
+
 # Contact Management Endpoints
 @api_router.get("/contacts")
 async def get_contacts(current_user = Depends(get_current_user)):
