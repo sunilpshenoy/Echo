@@ -74,10 +74,10 @@ const ChatsInterface = ({
       setShowAddContact(false);
       alert('Contact added successfully! 🎉');
       
-      // Refresh chats to show new contact
-      if (window.location.reload) {
-        setTimeout(() => window.location.reload(), 1000);
-      }
+      // Refresh chats to show new contact immediately
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       console.error('Failed to add contact:', error);
       const errorMessage = error.response?.data?.detail || 'Failed to add contact. Please check the email address.';
