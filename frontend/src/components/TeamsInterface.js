@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const TeamsInterface = ({ 
   user, 
@@ -8,6 +8,30 @@ const TeamsInterface = ({
   selectedTeam, 
   isLoading 
 }) => {
+  const [showCreateTeam, setShowCreateTeam] = useState(false);
+  const [newTeamName, setNewTeamName] = useState('');
+  const [newTeamDescription, setNewTeamDescription] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+
+  const handleCreateTeam = async () => {
+    if (!newTeamName.trim()) return;
+    
+    setIsCreating(true);
+    try {
+      // TODO: Implement team creation API call
+      console.log('Creating team:', { name: newTeamName, description: newTeamDescription });
+      alert(`Team "${newTeamName}" creation will be implemented soon! 👥`);
+      
+      setNewTeamName('');
+      setNewTeamDescription('');
+      setShowCreateTeam(false);
+    } catch (error) {
+      console.error('Failed to create team:', error);
+      alert('Failed to create team. Please try again.');
+    } finally {
+      setIsCreating(false);
+    }
+  };
   return (
     <div className="flex w-full h-full">
       {/* Teams List Sidebar */}
