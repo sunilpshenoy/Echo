@@ -1737,6 +1737,7 @@ async def add_contact(
     # Create a direct chat between the users
     chat = {
         "chat_id": str(uuid.uuid4()),
+        "chat_type": "direct",
         "type": "direct",
         "members": [current_user["user_id"], contact_user["user_id"]],
         "created_at": datetime.utcnow(),
