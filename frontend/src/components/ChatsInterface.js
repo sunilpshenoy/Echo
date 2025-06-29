@@ -403,21 +403,52 @@ const ChatsInterface = ({
               
               <div className="flex space-x-3">
                 <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(user?.connection_pin || 'PIN-' + (user?.user_id?.slice(-6) || '123456'));
-                    alert('PIN copied to clipboard! 📋');
+                  onClick={async () => {
+                    try {
+                      const pinText = user?.connection_pin || 'PIN-' + (user?.user_id?.slice(-6) || '123456');
+                      if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(pinText);
+                        alert('PIN copied to clipboard! 📋');
+                      } else {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = pinText;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        alert('PIN copied to clipboard! 📋');
+                      }
+                    } catch (error) {
+                      console.error('Failed to copy PIN:', error);
+                      alert('Failed to copy PIN. Please copy manually: ' + (user?.connection_pin || 'PIN-' + (user?.user_id?.slice(-6) || '123456')));
+                    }
                   }}
                   className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
                 >
                   📋 Copy PIN
                 </button>
                 <button
-                  onClick={() => {
-                    if (navigator.share) {
-                      navigator.share({
-                        title: 'Connect with me!',
-                        text: `My connection PIN: ${user?.connection_pin || 'PIN-' + (user?.user_id?.slice(-6) || '123456')}`,
-                      });
+                  onClick={async () => {
+                    try {
+                      const pinText = user?.connection_pin || 'PIN-' + (user?.user_id?.slice(-6) || '123456');
+                      if (navigator.share) {
+                        await navigator.share({
+                          title: 'Connect with me!',
+                          text: `My connection PIN: ${pinText}`,
+                        });
+                      } else {
+                        // Fallback for browsers without native sharing
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                          await navigator.clipboard.writeText(`My connection PIN: ${pinText}`);
+                          alert('PIN copied to clipboard for sharing! 📤');
+                        } else {
+                          alert(`Share this PIN: ${pinText}`);
+                        }
+                      }
+                    } catch (error) {
+                      console.error('Failed to share PIN:', error);
+                      alert('Sharing not available. PIN: ' + (user?.connection_pin || 'PIN-' + (user?.user_id?.slice(-6) || '123456')));
                     }
                   }}
                   className="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600"
