@@ -46,6 +46,11 @@ const ChatsInterface = ({
       setContactPin('');
       setShowAddContact(false);
       alert('Connection request sent! 🎉');
+      
+      // Refresh page to show new connection/chat
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       console.error('Failed to send connection request:', error);
       const errorMessage = error.response?.data?.detail || 'Failed to send request. Please check the PIN.';
