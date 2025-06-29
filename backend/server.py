@@ -1667,76 +1667,172 @@ async def get_contacts(current_user = Depends(get_current_user)):
         "user_id": current_user["user_id"]
     }).to_list(100)
     
-    # Get contact user details
+    # Get user details for each contact
     for contact in contacts:
-        user = await db.users.find_one({"user_id": contact["contact_user_id"]})
-        if user:
+        contact_user = await db.users.find_one({"user_id": contact["contact_user_id"]})
+        if contact_user:
             contact["contact_user"] = {
-                "user_id": user["user_id"],
-                "username": user["username"],
-                "display_name": user.get("display_name"),
-                "avatar": user.get("avatar"),
-                "status_message": user.get("status_message"),
-                "is_online": user.get("is_online", False)
+                "user_id": contact_user["user_id"],
+                "username": contact_user["username"],
+                "email": contact_user["email"],
+                "display_name": contact_user.get("display_name"),
+                "is_online": contact_user.get("is_online", False)
             }
     
     return serialize_mongo_doc(contacts)
 
 @api_router.post("/contacts")
-async def add_contact(contact_data: dict, current_user = Depends(get_current_user)):
-    """Add a new contact"""
+async def add_contact(
+    contact_data: dict,
+    current_user = Depends(get_current_user)
+):
+    """Add a new contact by email"""
     email = contact_data.get("email")
+    
     if not email:
-        raise HTTPException(status_code=400, detail="Email required")
+        raise HTTPException(status_code=400, detail="Email is required")
     
     # Find user by email
     contact_user = await db.users.find_one({"email": email})
     if not contact_user:
         raise HTTPException(status_code=404, detail="User not found")
     
+    # Check if user is trying to add themselves
     if contact_user["user_id"] == current_user["user_id"]:
         raise HTTPException(status_code=400, detail="Cannot add yourself as contact")
     
-    # Check if already a contact
-    existing = await db.contacts.find_one({
+    # Check if contact already exists
+    existing_contact = await db.contacts.find_one({
         "user_id": current_user["user_id"],
         "contact_user_id": contact_user["user_id"]
     })
-    if existing:
-        raise HTTPException(status_code=400, detail="Already a contact")
     
-    # Check if blocked
-    block_check = await db.blocked_users.find_one({
-        "$or": [
-            {"user_id": current_user["user_id"], "blocked_user_id": contact_user["user_id"]},
-            {"user_id": contact_user["user_id"], "blocked_user_id": current_user["user_id"]}
-        ]
-    })
-    if block_check:
-        raise HTTPException(status_code=403, detail="Cannot add blocked user as contact")
+    if existing_contact:
+        raise HTTPException(status_code=400, detail="Contact already exists")
     
     # Create contact
     contact = {
         "contact_id": str(uuid.uuid4()),
         "user_id": current_user["user_id"],
         "contact_user_id": contact_user["user_id"],
-        "contact_name": contact_data.get("contact_name", contact_user["username"]),
-        "added_at": datetime.utcnow()
+        "contact_name": contact_data.get("name", contact_user.get("display_name", contact_user["username"])),
+        "created_at": datetime.utcnow(),
+        "is_favorite": False
     }
     
     await db.contacts.insert_one(contact)
     
-    # Add contact user details for response
-    contact["contact_user"] = {
+    # Create reciprocal contact
+    reciprocal_contact = {
+        "contact_id": str(uuid.uuid4()),
         "user_id": contact_user["user_id"],
-        "username": contact_user["username"],
-        "display_name": contact_user.get("display_name"),
-        "avatar": contact_user.get("avatar"),
-        "status_message": contact_user.get("status_message"),
-        "is_online": contact_user.get("is_online", False)
+        "contact_user_id": current_user["user_id"],
+        "contact_name": current_user.get("display_name", current_user["username"]),
+        "created_at": datetime.utcnow(),
+        "is_favorite": False
     }
     
+    await db.contacts.insert_one(reciprocal_contact)
+    
+    # Create a direct chat between the users
+    chat = {
+        "chat_id": str(uuid.uuid4()),
+        "type": "direct",
+        "members": [current_user["user_id"], contact_user["user_id"]],
+        "created_at": datetime.utcnow(),
+        "created_by": current_user["user_id"],
+        "last_message": None,
+        "last_activity": datetime.utcnow()
+    }
+    
+    await db.chats.insert_one(chat)
+    
     return serialize_mongo_doc(contact)
+
+@api_router.post("/contacts/create-test-users")
+async def create_test_users_for_contact_testing(current_user = Depends(get_current_user)):
+    """Create test users for contact testing purposes"""
+    
+    test_users = [
+        {
+            "user_id": str(uuid.uuid4()),
+            "username": "testuser_alice",
+            "email": "alice@test.com",
+            "password": bcrypt.hashpw("password123".encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
+            "phone": "+1234567001",
+            "display_name": "Alice Johnson",
+            "profile_completed": True,
+            "age": 28,
+            "gender": "female",
+            "location": "San Francisco, CA",
+            "bio": "Love hiking and photography. Always up for coffee chats!",
+            "interests": ["photography", "hiking", "coffee", "travel"],
+            "values": ["honesty", "adventure", "creativity"],
+            "authenticity_rating": 7.5,
+            "trust_level": 2,
+            "connection_pin": "PIN-ALI001",
+            "is_online": True,
+            "created_at": datetime.utcnow()
+        },
+        {
+            "user_id": str(uuid.uuid4()),
+            "username": "testuser_bob",
+            "email": "bob@test.com",
+            "password": bcrypt.hashpw("password123".encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
+            "phone": "+1234567002",
+            "display_name": "Bob Smith",
+            "profile_completed": True,
+            "age": 32,
+            "gender": "male",
+            "location": "New York, NY",
+            "bio": "Tech enthusiast and basketball player. Let's connect!",
+            "interests": ["technology", "basketball", "movies", "cooking"],
+            "values": ["integrity", "teamwork", "innovation"],
+            "authenticity_rating": 8.2,
+            "trust_level": 3,
+            "connection_pin": "PIN-BOB002",
+            "is_online": False,
+            "created_at": datetime.utcnow()
+        },
+        {
+            "user_id": str(uuid.uuid4()),
+            "username": "testuser_carol",
+            "email": "carol@test.com",
+            "password": bcrypt.hashpw("password123".encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
+            "phone": "+1234567003",
+            "display_name": "Carol Davis",
+            "profile_completed": True,
+            "age": 26,
+            "gender": "female",
+            "location": "Austin, TX",
+            "bio": "Artist and yoga instructor. Seeking meaningful connections.",
+            "interests": ["yoga", "art", "meditation", "reading"],
+            "values": ["mindfulness", "compassion", "growth"],
+            "authenticity_rating": 9.1,
+            "trust_level": 4,
+            "connection_pin": "PIN-CAR003",
+            "is_online": True,
+            "created_at": datetime.utcnow()
+        }
+    ]
+    
+    created_users = []
+    for user_data in test_users:
+        # Check if user already exists
+        existing_user = await db.users.find_one({"email": user_data["email"]})
+        if not existing_user:
+            await db.users.insert_one(user_data)
+            created_users.append({
+                "email": user_data["email"],
+                "display_name": user_data["display_name"],
+                "connection_pin": user_data["connection_pin"]
+            })
+    
+    return {
+        "message": f"Created {len(created_users)} test users for contact testing",
+        "created_users": created_users,
+        "instructions": "You can now add these users as contacts using their email addresses or PINs"
+    }
 
 # Enhanced Connection Management for Authentic Connections
 @api_router.post("/connections/request")
