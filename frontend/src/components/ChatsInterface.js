@@ -1,12 +1,368 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-const ChatsInterface = () => {
+const ChatsInterface = ({ 
+  user, 
+  token, 
+  api, 
+  chats, 
+  selectedChat, 
+  chatMessages, 
+  newMessage, 
+  setNewMessage, 
+  onSelectChat, 
+  onSendMessage, 
+  isLoading 
+}) => {
+  const [showAddContact, setShowAddContact] = useState(false);
+  const [showMyPin, setShowMyPin] = useState(false);
+  const [contactPin, setContactPin] = useState('');
+  const [contactRequests, setContactRequests] = useState([]);
+  const [showContactOptions, setShowContactOptions] = useState(null);
+
+  // Send connection request using PIN
+  const sendConnectionRequest = async () => {
+    if (!contactPin.trim()) return;
+    
+    try {
+      await axios.post(`${api}/connections/request-by-pin`, {
+        target_pin: contactPin,
+        message: "Hi! I'd like to connect with you."
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setContactPin('');
+      setShowAddContact(false);
+      alert('Connection request sent! 🎉');
+    } catch (error) {
+      console.error('Failed to send connection request:', error);
+      alert('Failed to send request. Please check the PIN.');
+    }
+  };
+
+  // Fetch pending connection requests
+  const fetchConnectionRequests = async () => {
+    try {
+      const response = await axios.get(`${api}/connections/requests`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setContactRequests(response.data);
+    } catch (error) {
+      console.error('Failed to fetch connection requests:', error);
+    }
+  };
+
+  // Handle connection request response
+  const handleConnectionRequest = async (requestId, action) => {
+    try {
+      await axios.put(`${api}/connections/requests/${requestId}`, {
+        action: action
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      fetchConnectionRequests();
+      alert(`Connection request ${action}ed! ${action === 'accept' ? '🎉' : '👋'}`);
+    } catch (error) {
+      console.error(`Failed to ${action} connection request:`, error);
+    }
+  };
+
+  useEffect(() => {
+    fetchConnectionRequests();
+  }, []);
+
   return (
-    <div>
-      <div>
-        {/* Your existing content */}
-        {someCondition && (
-          <div>
+    <div className="flex w-full h-full">
+      {/* Chat List Sidebar */}
+      <div className="w-1/3 bg-white border-r border-gray-200 flex flex-col">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Chats</h2>
+              <p className="text-sm text-gray-600">Your connections</p>
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setShowMyPin(true)}
+                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                title="My PIN & QR Code"
+              >
+                📱
+              </button>
+              <button
+                onClick={() => setShowAddContact(true)}
+                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                title="Add Contact"
+              >
+                ➕
+              </button>
+            </div>
+          </div>
+
+          {/* Connection Requests */}
+          {contactRequests && contactRequests.length > 0 && (
+            <div className="mb-4">
+              <h3 className="text-sm font-medium text-gray-900 mb-2">
+                Connection Requests ({contactRequests.length})
+              </h3>
+              <div className="space-y-2">
+                {contactRequests.map(request => (
+                  <div key={request.request_id} className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                          <span className="text-yellow-700 text-sm font-medium">
+                            {request.sender?.display_name?.[0] || request.sender?.username?.[0] || '?'}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {request.sender?.display_name || request.sender?.username}
+                          </p>
+                          <p className="text-xs text-gray-600">{request.message}</p>
+                        </div>
+                      </div>
+                      <div className="flex space-x-1">
+                        <button
+                          onClick={() => handleConnectionRequest(request.request_id, 'accept')}
+                          className="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
+                        >
+                          ✓
+                        </button>
+                        <button
+                          onClick={() => handleConnectionRequest(request.request_id, 'decline')}
+                          className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <div className="flex-1 overflow-y-auto">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+            </div>
+          ) : chats && chats.length > 0 ? (
+            <div className="space-y-1 p-2">
+              {chats.map(chat => (
+                <div key={chat.chat_id} className="relative">
+                  <button
+                    onClick={() => onSelectChat(chat)}
+                    className={`w-full p-3 rounded-lg text-left hover:bg-gray-50 transition-colors ${
+                      selectedChat?.chat_id === chat.chat_id ? 'bg-blue-50 border border-blue-200' : ''
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-medium text-sm">
+                          {chat.other_user?.display_name?.[0]?.toUpperCase() || 
+                           chat.other_user?.username?.[0]?.toUpperCase() || '?'}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <p className="font-medium text-gray-900 truncate">
+                            {chat.other_user?.display_name || chat.other_user?.username || 'Unknown User'}
+                          </p>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowContactOptions(showContactOptions === chat.chat_id ? null : chat.chat_id);
+                            }}
+                            className="p-1 text-gray-400 hover:text-gray-600"
+                          >
+                            ⋯
+                          </button>
+                        </div>
+                        <p className="text-sm text-gray-600 truncate">
+                          {chat.last_message?.content || 'No messages yet'}
+                        </p>
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-xs text-gray-500">
+                            {chat.last_message?.timestamp && 
+                              new Date(chat.last_message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                            }
+                          </span>
+                          <div className="flex items-center space-x-1">
+                            {chat.other_user?.is_online && (
+                              <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Contact Options Dropdown */}
+                  {showContactOptions === chat.chat_id && (
+                    <div className="absolute right-2 top-12 bg-white border border-gray-200 rounded-lg shadow-lg z-10 w-48">
+                      <button
+                        onClick={() => {
+                          onSelectChat(chat);
+                          setShowContactOptions(null);
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2"
+                      >
+                        <span>💬</span>
+                        <span>Chat</span>
+                      </button>
+                      <button
+                        onClick={() => setShowContactOptions(null)}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2"
+                      >
+                        <span>📎</span>
+                        <span>Share Files</span>
+                      </button>
+                      <button
+                        onClick={() => setShowContactOptions(null)}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2"
+                      >
+                        <span>🎙️</span>
+                        <span>Voice Call</span>
+                      </button>
+                      <button
+                        onClick={() => setShowContactOptions(null)}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2"
+                      >
+                        <span>📹</span>
+                        <span>Video Call</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-64 text-center p-4">
+              <div className="text-6xl mb-4">💬</div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No chats yet</h3>
+              <p className="text-gray-600 text-sm mb-4">
+                Add contacts using PIN or QR code to start chatting
+              </p>
+              <button
+                onClick={() => setShowAddContact(true)}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+              >
+                Add First Contact
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Chat Messages Area */}
+      <div className="flex-1 flex flex-col">
+        {selectedChat ? (
+          <>
+            {/* Chat Header */}
+            <div className="bg-white p-4 border-b border-gray-200">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-medium">
+                    {selectedChat.other_user?.display_name?.[0]?.toUpperCase() || 
+                     selectedChat.other_user?.username?.[0]?.toUpperCase() || '?'}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">
+                    {selectedChat.other_user?.display_name || selectedChat.other_user?.username || 'Unknown User'}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {selectedChat.other_user?.is_online ? (
+                      <span className="flex items-center">
+                        <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                        Online
+                      </span>
+                    ) : (
+                      `Last seen ${selectedChat.other_user?.last_seen ? 
+                        new Date(selectedChat.other_user.last_seen).toLocaleDateString() : 'recently'}`
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+              {chatMessages && chatMessages.length > 0 ? (
+                <div className="space-y-4">
+                  {chatMessages.map((message, index) => (
+                    <div
+                      key={message.message_id || index}
+                      className={`flex ${message.sender_id === user.user_id ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                          message.sender_id === user.user_id
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-white text-gray-900 border'
+                        }`}
+                      >
+                        <p className="text-sm">{message.content}</p>
+                        <p className={`text-xs mt-1 ${
+                          message.sender_id === user.user_id ? 'text-blue-100' : 'text-gray-500'
+                        }`}>
+                          {new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <div className="text-4xl mb-2">👋</div>
+                    <p className="text-gray-600">Start your conversation!</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Message Input */}
+            <div className="bg-white p-4 border-t border-gray-200">
+              <div className="flex items-center space-x-3">
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && onSendMessage()}
+                  placeholder="Type a message..."
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <button
+                  onClick={onSendMessage}
+                  disabled={!newMessage.trim()}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                    newMessage.trim()
+                      ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  ➤
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-full bg-gray-50">
+            <div className="text-center">
+              <div className="text-6xl mb-4">💬</div>
+              <h3 className="text-xl font-medium text-gray-900 mb-2">
+                Select a chat to start messaging
+              </h3>
+              <p className="text-gray-600">
+                Choose a conversation from the sidebar to begin
+              </p>
+            </div>
           </div>
         )}
       </div>
@@ -31,7 +387,6 @@ const ChatsInterface = () => {
                   {user?.connection_pin || 'PIN-' + (user?.user_id?.slice(-6) || '123456')}
                 </div>
                 <div className="bg-white p-4 rounded-lg mb-4">
-                  {/* QR Code would go here */}
                   <div className="w-32 h-32 mx-auto bg-gray-200 rounded-lg flex items-center justify-center">
                     <span className="text-gray-500">QR Code</span>
                   </div>
