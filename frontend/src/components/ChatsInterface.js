@@ -402,25 +402,32 @@ const ChatsInterface = ({
                         <span>Chat</span>
                       </button>
                       <button
-                        onClick={() => setShowContactOptions(null)}
+                        onClick={() => startFileShare(chat)}
                         className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2"
                       >
                         <span>📎</span>
                         <span>Share Files</span>
                       </button>
                       <button
-                        onClick={() => setShowContactOptions(null)}
+                        onClick={() => startVoiceCall(chat)}
                         className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2"
                       >
                         <span>🎙️</span>
                         <span>Voice Call</span>
                       </button>
                       <button
-                        onClick={() => setShowContactOptions(null)}
+                        onClick={() => startVideoCall(chat)}
                         className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2"
                       >
                         <span>📹</span>
                         <span>Video Call</span>
+                      </button>
+                      <button
+                        onClick={() => deleteContact(chat)}
+                        className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 flex items-center space-x-2 border-t border-gray-200"
+                      >
+                        <span>🗑️</span>
+                        <span>Delete Contact</span>
                       </button>
                     </div>
                   )}
