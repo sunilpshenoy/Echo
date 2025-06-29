@@ -42,8 +42,10 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [isLoadingTeams, setIsLoadingTeams] = useState(false);
   
-  // Premium state
-  const [isPremium, setIsPremium] = useState(user?.premium || false);
+  // Premium state (check for both user premium and demo mode)
+  const [isPremium, setIsPremium] = useState(
+    user?.premium || localStorage.getItem('demo_premium') === 'true'
+  );
   
   // Fetch authenticity details
   const fetchAuthenticityDetails = async () => {
