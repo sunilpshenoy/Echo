@@ -561,6 +561,17 @@ backend:
         agent: "testing"
         comment: "Comprehensive testing of the /api/genie/process endpoint confirms it's working correctly. Successfully tested various commands including 'create a chat with Bob', 'add contact john.doe@example.com', 'block user Charlie', 'show my chats', 'help me', and 'send message to Sarah saying hello'. All commands are correctly identified with their proper intents, and the API returns appropriate responses with action data."
 
+  - task: "Teams API Endpoints"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added missing /api/teams GET and POST endpoints to prevent 404 errors causing frontend Teams tab to malfunction"
   - task: "Foundation Backend Endpoints"
     implemented: true
     working: true
