@@ -927,6 +927,21 @@ backend:
         comment: "Successfully tested all foundation endpoints: POST /api/register creates users with profile_completed=false, POST /api/login returns profile_completed status, GET /api/users/me validates tokens and returns full user data, PUT /api/profile/complete saves profile data and calculates authenticity rating. All tests passed."
 
 frontend:
+  - task: "Frontend Bug Fixes - PIN Sharing & Button Functionality"
+    implemented: true
+    working: true
+    file: "src/components/ChatsInterface.js, src/components/TeamsInterface.js, src/components/DiscoverInterface.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed critical frontend runtime issues: 1) Enhanced PIN sharing with proper error handling and fallbacks for clipboard/share APIs, 2) Added Create Team modal with proper button handlers, 3) Added Demo Premium Mode functionality for testing premium features with localStorage state management, 4) Fixed Teams API 404 errors by adding backend endpoints"
+      - working: false
+        agent: "user"
+        comment: "User reported: QR code visible but cannot share (runtime error), cannot share PIN, group addition buttons not working, tab switching to premium membership not working"
+
   - task: "WhatsApp-style Chat Interface"
     implemented: true
     working: true
