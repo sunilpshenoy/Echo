@@ -53,7 +53,10 @@ const DiscoverInterface = ({
           </div>
 
           <button 
-            onClick={() => setShowUpgrade(true)}
+            onClick={() => {
+              console.log('Upgrade button clicked');
+              setShowUpgrade(true);
+            }}
             className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-full font-medium hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-105"
           >
             Upgrade to Premium
