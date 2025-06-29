@@ -48,21 +48,33 @@ const ChatsInterface = ({
 
   // Add contact by email
   const addContactByEmail = async () => {
-    if (!contactEmail.trim()) return;
+    console.log('addContactByEmail called with email:', contactEmail);
+    if (!contactEmail.trim()) {
+      alert('Please enter an email address');
+      return;
+    }
     
     try {
-      await axios.post(`${api}/contacts`, {
+      console.log('Making API call to add contact...');
+      const response = await axios.post(`${api}/contacts`, {
         email: contactEmail
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
+      console.log('Contact added successfully:', response.data);
       setContactEmail('');
       setShowAddContact(false);
       alert('Contact added successfully! 🎉');
+      
+      // Refresh chats to show new contact
+      if (window.location.reload) {
+        setTimeout(() => window.location.reload(), 1000);
+      }
     } catch (error) {
       console.error('Failed to add contact:', error);
-      alert('Failed to add contact. Please check the email address.');
+      const errorMessage = error.response?.data?.detail || 'Failed to add contact. Please check the email address.';
+      alert(errorMessage);
     }
   };
 
