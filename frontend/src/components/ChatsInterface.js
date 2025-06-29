@@ -582,52 +582,176 @@ const ChatsInterface = ({
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-900">Add Contact</h2>
               <button
-                onClick={() => setShowAddContact(false)}
+                onClick={() => {
+                  setShowAddContact(false);
+                  setAddContactMethod('pin');
+                  setContactPin('');
+                  setContactEmail('');
+                  setContactPhone('');
+                }}
                 className="text-gray-500 hover:text-gray-700 text-2xl"
               >
                 ✕
               </button>
             </div>
             
+            {/* Contact Method Selection */}
+            <div className="mb-4">
+              <div className="flex space-x-2 mb-4">
+                <button
+                  onClick={() => setAddContactMethod('pin')}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium ${
+                    addContactMethod === 'pin'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  📱 PIN
+                </button>
+                <button
+                  onClick={() => setAddContactMethod('email')}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium ${
+                    addContactMethod === 'email'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  📧 Email
+                </button>
+                <button
+                  onClick={() => setAddContactMethod('phone')}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium ${
+                    addContactMethod === 'phone'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  📞 Phone
+                </button>
+              </div>
+            </div>
+            
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Enter Contact's PIN
-                </label>
-                <input
-                  type="text"
-                  value={contactPin}
-                  onChange={(e) => setContactPin(e.target.value)}
-                  placeholder="PIN-123456"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-center tracking-widest"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Enter the PIN they shared with you
-                </p>
-              </div>
-              
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => setShowAddContact(false)}
-                  className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={sendConnectionRequest}
-                  disabled={!contactPin.trim()}
-                  className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
-                  Send Request
-                </button>
-              </div>
-              
-              <div className="text-center pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-600 mb-2">Or scan QR code</p>
-                <button className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600">
-                  📷 Scan QR Code
-                </button>
-              </div>
+              {/* PIN Method */}
+              {addContactMethod === 'pin' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Enter Contact's PIN
+                    </label>
+                    <input
+                      type="text"
+                      value={contactPin}
+                      onChange={(e) => setContactPin(e.target.value)}
+                      placeholder="PIN-123456"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-center tracking-widest"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Enter the PIN they shared with you
+                    </p>
+                  </div>
+                  
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => setShowAddContact(false)}
+                      className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={sendConnectionRequest}
+                      disabled={!contactPin.trim()}
+                      className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    >
+                      Send Request
+                    </button>
+                  </div>
+                  
+                  <div className="text-center pt-4 border-t border-gray-200">
+                    <p className="text-sm text-gray-600 mb-2">Or scan QR code</p>
+                    <button 
+                      onClick={() => setShowQRScanner(true)}
+                      className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600"
+                    >
+                      📷 Scan QR Code
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* Email Method */}
+              {addContactMethod === 'email' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Contact's Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={contactEmail}
+                      onChange={(e) => setContactEmail(e.target.value)}
+                      placeholder="friend@example.com"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Enter their registered email address
+                    </p>
+                  </div>
+                  
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => setShowAddContact(false)}
+                      className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={addContactByEmail}
+                      disabled={!contactEmail.trim()}
+                      className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    >
+                      Add Contact
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* Phone Method */}
+              {addContactMethod === 'phone' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Contact's Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={contactPhone}
+                      onChange={(e) => setContactPhone(e.target.value)}
+                      placeholder="+1234567890"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Enter their registered phone number
+                    </p>
+                  </div>
+                  
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => setShowAddContact(false)}
+                      className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={addContactByPhone}
+                      disabled={!contactPhone.trim()}
+                      className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    >
+                      Add Contact
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
