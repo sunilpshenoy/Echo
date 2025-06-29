@@ -121,59 +121,6 @@ const ChatsInterface = ({
     setShowQRScanner(false);
   };
 
-  // Delete contact function
-  const deleteContact = async (chat) => {
-    if (!window.confirm(`Are you sure you want to delete ${chat.other_user?.display_name || chat.other_user?.username || 'this contact'}? This will also delete your chat history.`)) {
-      return;
-    }
-    
-    try {
-      // Find the contact by user ID (since we don't have contact_id in chat object)
-      const contactsResponse = await axios.get(`${api}/contacts`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      const contact = contactsResponse.data.find(c => c.contact_user_id === chat.other_user?.user_id);
-      
-      if (contact) {
-        await axios.delete(`${api}/contacts/${contact.contact_id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        alert('Contact deleted successfully! 🗑️');
-        setShowContactOptions(null);
-        
-        // Refresh page to update contact list
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-      } else {
-        alert('Contact not found');
-      }
-    } catch (error) {
-      console.error('Failed to delete contact:', error);
-      alert('Failed to delete contact. Please try again.');
-    }
-  };
-
-  // Voice call function
-  const startVoiceCall = (chat) => {
-    setShowContactOptions(null);
-    alert(`Voice call to ${chat.other_user?.display_name || chat.other_user?.username || 'contact'} will be implemented soon! 🎙️\n\nThis feature is coming in the next update.`);
-  };
-
-  // Video call function
-  const startVideoCall = (chat) => {
-    setShowContactOptions(null);
-    alert(`Video call to ${chat.other_user?.display_name || chat.other_user?.username || 'contact'} will be implemented soon! 📹\n\nThis feature is coming in the next update.`);
-  };
-
-  // File sharing function
-  const startFileShare = (chat) => {
-    setShowContactOptions(null);
-    alert(`File sharing with ${chat.other_user?.display_name || chat.other_user?.username || 'contact'} will be implemented soon! 📎\n\nThis feature is coming in the next update.`);
-  };
-
   // Fetch pending connection requests
   const fetchConnectionRequests = async () => {
     try {
