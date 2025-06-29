@@ -1447,7 +1447,7 @@ async def get_chats(current_user = Depends(get_current_user)):
                 chat["last_message"] = serialize_mongo_doc(last_msg)
         
         # Get other chat member info for direct chats
-        if chat.get("chat_type") == "direct":
+        if chat.get("chat_type") == "direct" or chat.get("type") == "direct":
             other_member_id = next(
                 (member for member in chat["members"] if member != current_user["user_id"]), 
                 None
@@ -1459,6 +1459,7 @@ async def get_chats(current_user = Depends(get_current_user)):
                         "user_id": other_user["user_id"],
                         "username": other_user["username"],
                         "display_name": other_user.get("display_name"),
+                        "email": other_user.get("email"),
                         "avatar": other_user.get("avatar"),
                         "status_message": other_user.get("status_message"),
                         "is_online": other_user.get("is_online", False)
