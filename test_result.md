@@ -944,6 +944,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "Successfully tested PIN-based connection functionality. The PIN-based connection system works correctly with test PINs (PIN-CAR003). The connection request is sent successfully to the backend API. The Add Contact modal works properly and allows users to enter PINs."
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested the voice, video, and file sharing buttons. All three buttons show the expected 'coming soon' alert messages when clicked and do not produce any JavaScript errors. The File Sharing button displays a message about file sharing being implemented soon. The Voice Call button displays a message about voice calls being implemented soon. The Video Call button displays a message about video calls being implemented soon. All buttons function correctly without any JavaScript errors."
 
   - task: "WhatsApp-style Chat Interface"
     implemented: true
