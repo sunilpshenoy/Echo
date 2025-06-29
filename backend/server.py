@@ -1751,6 +1751,41 @@ async def add_contact(
     
     return serialize_mongo_doc(contact)
 
+@api_router.delete("/contacts/{contact_id}")
+async def delete_contact(
+    contact_id: str,
+    current_user = Depends(get_current_user)
+):
+    """Delete a contact and its associated chat"""
+    # Find the contact
+    contact = await db.contacts.find_one({
+        "contact_id": contact_id,
+        "user_id": current_user["user_id"]
+    })
+    
+    if not contact:
+        raise HTTPException(status_code=404, detail="Contact not found")
+    
+    # Delete the contact
+    await db.contacts.delete_one({
+        "contact_id": contact_id,
+        "user_id": current_user["user_id"]
+    })
+    
+    # Delete reciprocal contact
+    await db.contacts.delete_one({
+        "user_id": contact["contact_user_id"],
+        "contact_user_id": current_user["user_id"]
+    })
+    
+    # Delete associated direct chat
+    await db.chats.delete_many({
+        "members": {"$all": [current_user["user_id"], contact["contact_user_id"]]},
+        "$or": [{"chat_type": "direct"}, {"type": "direct"}]
+    })
+    
+    return {"message": "Contact deleted successfully"}
+
 @api_router.post("/contacts/create-test-users")
 async def create_test_users_for_contact_testing(current_user = Depends(get_current_user)):
     """Create test users for contact testing purposes"""
