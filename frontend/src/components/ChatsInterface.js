@@ -27,22 +27,29 @@ const ChatsInterface = ({
 
   // Send connection request using PIN
   const sendConnectionRequest = async () => {
-    if (!contactPin.trim()) return;
+    console.log('sendConnectionRequest called with PIN:', contactPin);
+    if (!contactPin.trim()) {
+      alert('Please enter a PIN');
+      return;
+    }
     
     try {
-      await axios.post(`${api}/connections/request-by-pin`, {
+      console.log('Making API call to send connection request...');
+      const response = await axios.post(`${api}/connections/request-by-pin`, {
         target_pin: contactPin,
         message: "Hi! I'd like to connect with you."
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
+      console.log('Connection request sent successfully:', response.data);
       setContactPin('');
       setShowAddContact(false);
       alert('Connection request sent! 🎉');
     } catch (error) {
       console.error('Failed to send connection request:', error);
-      alert('Failed to send request. Please check the PIN.');
+      const errorMessage = error.response?.data?.detail || 'Failed to send request. Please check the PIN.';
+      alert(errorMessage);
     }
   };
 
