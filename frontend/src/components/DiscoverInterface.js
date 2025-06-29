@@ -279,6 +279,18 @@ const DiscoverInterface = ({
                   Start Premium Subscription
                 </button>
                 <button
+                  onClick={() => {
+                    // Enable demo premium mode for testing
+                    if (window.confirm('Enable Premium Demo Mode? This is for testing purposes only.')) {
+                      localStorage.setItem('demo_premium', 'true');
+                      window.location.reload(); // Reload to apply premium state
+                    }
+                  }}
+                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-2 rounded-lg font-medium hover:from-yellow-600 hover:to-orange-600"
+                >
+                  🚀 Enable Demo Mode (Testing)
+                </button>
+                <button
                   onClick={() => setShowUpgrade(false)}
                   className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200"
                 >
