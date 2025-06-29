@@ -742,21 +742,34 @@ const ChatsInterface = ({
                   Camera access is required to scan QR codes
                 </p>
                 <button
-                  onClick={() => {
-                    // Try to access camera
-                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-                        .then(stream => {
-                          alert('Camera access granted! QR scanning will be implemented soon. 📷');
-                          stream.getTracks().forEach(track => track.stop());
-                          setShowQRScanner(false);
-                        })
-                        .catch(error => {
-                          console.error('Camera access error:', error);
-                          alert('Camera access denied. Please enable camera permissions and try again.');
+                  onClick={async () => {
+                    console.log('Camera access button clicked');
+                    try {
+                      // Try to access camera
+                      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        console.log('Requesting camera access...');
+                        const stream = await navigator.mediaDevices.getUserMedia({ 
+                          video: { 
+                            facingMode: 'environment',
+                            width: { ideal: 640 },
+                            height: { ideal: 480 }
+                          } 
                         });
-                    } else {
-                      alert('Camera not supported on this device/browser.');
+                        console.log('Camera access granted');
+                        
+                        // For now, show a message and stop the stream
+                        alert('Camera access granted! 📷\n\nQR scanning is being implemented. For now, please:\n1. Use the PIN method instead\n2. Try these test PINs:\n   • PIN-ALI001 (Alice)\n   • PIN-BOB002 (Bob)\n   • PIN-CAR003 (Carol)');
+                        
+                        // Stop the camera stream
+                        stream.getTracks().forEach(track => track.stop());
+                        setShowQRScanner(false);
+                      } else {
+                        console.log('Camera not supported');
+                        alert('Camera not supported on this device/browser.\n\nPlease use the PIN method instead:\n• PIN-ALI001 (Alice)\n• PIN-BOB002 (Bob)\n• PIN-CAR003 (Carol)');
+                      }
+                    } catch (error) {
+                      console.error('Camera access error:', error);
+                      alert('Camera access denied or error occurred.\n\nPlease:\n1. Enable camera permissions\n2. Try again, or\n3. Use PIN method instead\n\nTest PINs:\n• PIN-ALI001 (Alice)\n• PIN-BOB002 (Bob)\n• PIN-CAR003 (Carol)');
                     }
                   }}
                   className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
