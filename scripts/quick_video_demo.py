@@ -64,7 +64,7 @@ def create_demo_video():
     5. ONLY app that's truly magical to use
     
     🌈 EXPERIENCE THE MAGIC:
-    Visit: https://c07a86aa-98c0-40e6-a6c6-f5e5eb384e98.preview.emergentagent.com
+    Visit: https://e0ace9f7-0e4c-46c3-9a26-0a592ec88fc7.preview.emergentagent.com
     
     ChatApp Pro Ultimate - Where Communication Meets Magic ✨
     """
@@ -83,7 +83,7 @@ def create_demo_video():
         f.write("3. Create comparison slides vs competitors\n")
         f.write("4. Add cosmic background music\n")
         f.write("5. Export as MP4 with 1080p quality\n")
-        f.write("\nApp URL: https://c07a86aa-98c0-40e6-a6c6-f5e5eb384e98.preview.emergentagent.com\n")
+        f.write("\nApp URL: https://e0ace9f7-0e4c-46c3-9a26-0a592ec88fc7.preview.emergentagent.com\n")
     
     print(f"📝 Demo script created: {output_file}")
     

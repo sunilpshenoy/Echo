@@ -31,7 +31,7 @@ open video_storyboard.html
 ```
 
 ### Step 2: Capture Live Screenshots
-- **App URL:** https://c07a86aa-98c0-40e6-a6c6-f5e5eb384e98.preview.emergentagent.com
+- **App URL:** https://e0ace9f7-0e4c-46c3-9a26-0a592ec88fc7.preview.emergentagent.com
 - Capture: Landing page, Genie Assistant, Chat interface, Feature showcase
 
 ### Step 3: Create Video
@@ -123,7 +123,7 @@ open video_storyboard.html
 
 ## 📱 Live Demo Access
 
-**App URL:** https://c07a86aa-98c0-40e6-a6c6-f5e5eb384e98.preview.emergentagent.com
+**App URL:** https://e0ace9f7-0e4c-46c3-9a26-0a592ec88fc7.preview.emergentagent.com
 
 ### Key Screenshots to Capture
 1. **Landing Page** - Cosmic theme with animated backgrounds
@@ -183,4 +183,4 @@ open video_storyboard.html
 ---
 
 *Created with ChatApp Pro Ultimate Video Package Generator*
-*Live App: https://c07a86aa-98c0-40e6-a6c6-f5e5eb384e98.preview.emergentagent.com*
+*Live App: https://e0ace9f7-0e4c-46c3-9a26-0a592ec88fc7.preview.emergentagent.com*
