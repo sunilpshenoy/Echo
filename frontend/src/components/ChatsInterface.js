@@ -24,10 +24,6 @@ const ChatsInterface = ({
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [addContactMethod, setAddContactMethod] = useState('pin'); // 'pin', 'email', 'phone'
-  const [showQRScanner, setShowQRScanner] = useState(false);
-  const [contactEmail, setContactEmail] = useState('');
-  const [contactPhone, setContactPhone] = useState('');
-  const [addContactMethod, setAddContactMethod] = useState('pin'); // 'pin', 'email', 'phone'
 
   // Send connection request using PIN
   const sendConnectionRequest = async () => {
