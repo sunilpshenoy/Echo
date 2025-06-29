@@ -376,13 +376,6 @@ const ChatsInterface = ({
                         <span>🗑️</span>
                         <span>Delete Contact</span>
                       </button>
-                      <button
-                        onClick={() => deleteContact(chat)}
-                        className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 flex items-center space-x-2 border-t border-gray-200"
-                      >
-                        <span>🗑️</span>
-                        <span>Delete Contact</span>
-                      </button>
                     </div>
                   )}
                 </div>
