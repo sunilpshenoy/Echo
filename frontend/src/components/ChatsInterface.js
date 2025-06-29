@@ -388,8 +388,12 @@ const ChatsInterface = ({
                   {user?.connection_pin || 'PIN-' + (user?.user_id?.slice(-6) || '123456')}
                 </div>
                 <div className="bg-white p-4 rounded-lg mb-4">
-                  <div className="w-32 h-32 mx-auto bg-gray-200 rounded-lg flex items-center justify-center">
-                    <span className="text-gray-500">QR Code</span>
+                  <div className="w-32 h-32 mx-auto flex items-center justify-center">
+                    <QRCode 
+                      value={user?.connection_pin || 'PIN-' + (user?.user_id?.slice(-6) || '123456')}
+                      size={120}
+                      level="M"
+                    />
                   </div>
                 </div>
                 <p className="text-sm text-gray-600">
