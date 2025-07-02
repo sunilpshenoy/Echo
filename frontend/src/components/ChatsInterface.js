@@ -388,9 +388,149 @@ const ChatsInterface = ({
   };
 
   // File sharing function
-  const startFileShare = (chat) => {
+  const startFileShare = async (chat) => {
     setShowContactOptions(null);
-    alert(`📎 File sharing with ${chat.other_user?.display_name || chat.other_user?.username || 'contact'} will be implemented soon!\n\nThis feature is coming in the next update.`);
+    
+    // Create file input element
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*,video/*,audio/*,.pdf,.doc,.docx,.txt,.zip';
+    fileInput.multiple = true;
+    
+    fileInput.onchange = async (event) => {
+      const files = Array.from(event.target.files);
+      if (files.length === 0) return;
+      
+      try {
+        console.log('Selected files:', files);
+        
+        // Show upload progress
+        const uploadWindow = window.open(
+          '', 
+          'file_upload',
+          'width=450,height=300,resizable=yes,scrollbars=no'
+        );
+        
+        uploadWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>📎 Sharing Files</title>
+            <style>
+              body { 
+                font-family: Arial, sans-serif; 
+                margin: 0; 
+                padding: 20px; 
+                background: #f8fafc;
+              }
+              .container { max-width: 400px; margin: 0 auto; }
+              .file-item { 
+                background: white; 
+                border: 1px solid #e2e8f0; 
+                border-radius: 8px; 
+                padding: 12px; 
+                margin: 8px 0;
+              }
+              .progress-bar { 
+                width: 100%; 
+                height: 8px; 
+                background: #e2e8f0; 
+                border-radius: 4px; 
+                overflow: hidden;
+              }
+              .progress-fill { 
+                height: 100%; 
+                background: #3b82f6; 
+                transition: width 0.3s;
+              }
+              .status { margin: 8px 0; font-size: 14px; }
+              button { 
+                background: #10b981; 
+                color: white; 
+                border: none; 
+                padding: 8px 16px; 
+                border-radius: 4px; 
+                cursor: pointer; 
+                margin-top: 16px;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h3>📎 Sharing with ${chat.other_user?.display_name || 'Contact'}</h3>
+              <div id="fileList"></div>
+              <button onclick="window.close()">Close</button>
+            </div>
+          </body>
+          </html>
+        `);
+        
+        const fileListDiv = uploadWindow.document.getElementById('fileList');
+        
+        for (const file of files) {
+          // Create file item UI
+          const fileDiv = uploadWindow.document.createElement('div');
+          fileDiv.className = 'file-item';
+          fileDiv.innerHTML = \`
+            <div><strong>\${file.name}</strong> (\${(file.size / 1024 / 1024).toFixed(2)} MB)</div>
+            <div class="status">Preparing...</div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 0%"></div>
+            </div>
+          \`;
+          fileListDiv.appendChild(fileDiv);
+          
+          // Simulate file upload (in real implementation, use FormData)
+          const progressFill = fileDiv.querySelector('.progress-fill');
+          const statusDiv = fileDiv.querySelector('.status');
+          
+          // Convert file to base64 for storage (simple implementation)
+          const reader = new FileReader();
+          reader.onload = async function(e) {
+            try {
+              const fileData = {
+                filename: file.name,
+                size: file.size,
+                type: file.type,
+                data: e.target.result, // base64 data
+                chat_id: chat.chat_id
+              };
+              
+              // Simulate upload progress
+              for (let i = 0; i <= 100; i += 10) {
+                progressFill.style.width = i + '%';
+                statusDiv.textContent = \`Uploading... \${i}%\`;
+                await new Promise(resolve => setTimeout(resolve, 100));
+              }
+              
+              // Send file data to backend
+              await axios.post(\`\${api}/chats/\${chat.chat_id}/files\`, fileData, {
+                headers: { Authorization: \`Bearer \${token}\` }
+              });
+              
+              statusDiv.textContent = '✅ Sent successfully!';
+              statusDiv.style.color = '#10b981';
+              
+            } catch (error) {
+              console.error('File upload failed:', error);
+              statusDiv.textContent = '❌ Upload failed';
+              statusDiv.style.color = '#ef4444';
+            }
+          };
+          
+          reader.readAsDataURL(file);
+        }
+        
+        uploadWindow.document.close();
+        
+      } catch (error) {
+        console.error('File sharing failed:', error);
+        alert('Failed to share files. Please try again.');
+      }
+    };
+    
+    // Trigger file selection
+    fileInput.click();
   };
 
   // Fetch pending connection requests
