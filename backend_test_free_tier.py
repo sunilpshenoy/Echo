@@ -177,8 +177,8 @@ def test_file_sharing():
     logger.info(f"Successfully uploaded file to chat")
     
     # Verify file data in response
-    if "file_id" not in response.json():
-        logger.error(f"File upload response missing file_id: {response.json()}")
+    if "message_id" not in response.json():
+        logger.error(f"File upload response missing message_id: {response.json()}")
         return False
     
     logger.info("File sharing tests passed")
