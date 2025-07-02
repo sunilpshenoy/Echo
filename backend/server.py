@@ -1639,6 +1639,69 @@ async def send_message(chat_id: str, message_data: dict, current_user = Depends(
     
     return serialize_mongo_doc(message_dict)
 
+@api_router.post("/chats/{chat_id}/files")
+async def upload_file_to_chat(
+    chat_id: str,
+    file_data: dict,
+    current_user = Depends(get_current_user)
+):
+    """Upload file to chat"""
+    # Verify user is member of chat
+    chat = await db.chats.find_one({
+        "chat_id": chat_id,
+        "members": current_user["user_id"]
+    })
+    
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    
+    # Create file message
+    message = {
+        "message_id": str(uuid.uuid4()),
+        "chat_id": chat_id,
+        "sender_id": current_user["user_id"],
+        "message_type": "file",
+        "content": f"📎 {file_data['filename']}",
+        "file_data": {
+            "filename": file_data["filename"],
+            "size": file_data["size"],
+            "type": file_data["type"],
+            "data": file_data["data"]  # base64 encoded file
+        },
+        "timestamp": datetime.utcnow(),
+        "is_encrypted": False,
+        "edited": False
+    }
+    
+    await db.chat_messages.insert_one(message)
+    
+    # Update chat last activity
+    await db.chats.update_one(
+        {"chat_id": chat_id},
+        {
+            "$set": {
+                "last_activity": datetime.utcnow(),
+                "last_message": {
+                    "content": message["content"],
+                    "timestamp": message["timestamp"],
+                    "sender_id": current_user["user_id"]
+                }
+            }
+        }
+    )
+    
+    # Broadcast to chat members via WebSocket
+    await manager.broadcast_to_chat(
+        json.dumps({
+            "type": "new_message",
+            "data": serialize_mongo_doc(message)
+        }),
+        chat_id,
+        current_user["user_id"]
+    )
+    
+    return serialize_mongo_doc(message)
+
 # Teams Management Endpoints
 @api_router.get("/teams")
 async def get_teams(current_user = Depends(get_current_user)):
