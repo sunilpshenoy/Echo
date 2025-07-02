@@ -1197,9 +1197,9 @@ const ChatsInterface = ({
                               sendConnectionRequest();
                             }, 500);
                             
-                            alert(\`QR Code scanned! 📱\\nPIN: \${result.data}\\nSending connection request...\`);
+                            alert(`QR Code scanned! 📱\nPIN: ${result.data}\nSending connection request...`);
                           } else {
-                            alert(\`QR Code scanned: \${result.data}\\n\\nThis doesn't appear to be a contact PIN. Please scan a contact's QR code.\`);
+                            alert(`QR Code scanned: ${result.data}\n\nThis doesn't appear to be a contact PIN. Please scan a contact's QR code.`);
                           }
                         },
                         {
