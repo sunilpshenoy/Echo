@@ -18,16 +18,33 @@ const TeamsInterface = ({
     
     setIsCreating(true);
     try {
-      // TODO: Implement team creation API call
       console.log('Creating team:', { name: newTeamName, description: newTeamDescription });
-      alert(`Team "${newTeamName}" creation will be implemented soon! 👥`);
+      
+      // Call backend to create team
+      const response = await axios.post(`${api}/teams`, {
+        name: newTeamName,
+        description: newTeamDescription,
+        type: 'group'
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      alert(`Team "${newTeamName}" created successfully! 👥`);
+      console.log('Team created:', response.data);
       
       setNewTeamName('');
       setNewTeamDescription('');
       setShowCreateTeam(false);
+      
+      // Refresh teams list (if parent provides refresh function)
+      if (window.location.reload) {
+        setTimeout(() => window.location.reload(), 1000);
+      }
+      
     } catch (error) {
       console.error('Failed to create team:', error);
-      alert('Failed to create team. Please try again.');
+      const errorMessage = error.response?.data?.detail || 'Failed to create team. Please try again.';
+      alert(errorMessage);
     } finally {
       setIsCreating(false);
     }
