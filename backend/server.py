@@ -1706,22 +1706,66 @@ async def upload_file_to_chat(
 @api_router.get("/teams")
 async def get_teams(current_user = Depends(get_current_user)):
     """Get all teams for the current user"""
-    # For now, return empty list as teams feature is in development
-    # This prevents 404 errors in the frontend
-    return []
+    teams = await db.teams.find({
+        "members": current_user["user_id"]
+    }).to_list(100)
+    
+    # Add member count and other details
+    for team in teams:
+        team["member_count"] = len(team.get("members", []))
+        
+        # Get team creator info
+        if team.get("created_by"):
+            creator = await db.users.find_one({"user_id": team["created_by"]})
+            if creator:
+                team["creator"] = {
+                    "user_id": creator["user_id"],
+                    "display_name": creator.get("display_name", creator["username"])
+                }
+    
+    return serialize_mongo_doc(teams)
 
 @api_router.post("/teams")
 async def create_team(
     team_data: dict,
     current_user = Depends(get_current_user)
 ):
-    """Create a new team (placeholder for future implementation)"""
-    # Placeholder implementation
-    return {
-        "message": "Team creation will be implemented soon",
-        "team_data": team_data,
-        "status": "placeholder"
+    """Create a new team"""
+    team = {
+        "team_id": str(uuid.uuid4()),
+        "name": team_data["name"],
+        "description": team_data.get("description", ""),
+        "type": team_data.get("type", "group"),
+        "created_by": current_user["user_id"],
+        "members": [current_user["user_id"]],  # Creator is first member
+        "created_at": datetime.utcnow(),
+        "last_activity": datetime.utcnow(),
+        "settings": {
+            "is_public": False,
+            "allow_member_invite": True,
+            "max_members": 1024
+        }
     }
+    
+    await db.teams.insert_one(team)
+    
+    # Create team chat
+    team_chat = {
+        "chat_id": str(uuid.uuid4()),
+        "chat_type": "group",
+        "type": "group",
+        "team_id": team["team_id"],
+        "name": f"{team['name']} Chat",
+        "members": [current_user["user_id"]],
+        "created_at": datetime.utcnow(),
+        "created_by": current_user["user_id"],
+        "last_message": None,
+        "last_activity": datetime.utcnow()
+    }
+    
+    await db.chats.insert_one(team_chat)
+    
+    return serialize_mongo_doc(team)
 
 # Contact Management Endpoints
 @api_router.get("/contacts")
