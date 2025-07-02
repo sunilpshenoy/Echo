@@ -499,13 +499,13 @@ const ChatsInterface = ({
               // Simulate upload progress
               for (let i = 0; i <= 100; i += 10) {
                 progressFill.style.width = i + '%';
-                statusDiv.textContent = \`Uploading... \${i}%\`;
+                statusDiv.textContent = `Uploading... ${i}%`;
                 await new Promise(resolve => setTimeout(resolve, 100));
               }
               
               // Send file data to backend
-              await axios.post(\`\${api}/chats/\${chat.chat_id}/files\`, fileData, {
-                headers: { Authorization: \`Bearer \${token}\` }
+              await axios.post(`${api}/chats/${chat.chat_id}/files`, fileData, {
+                headers: { Authorization: `Bearer ${token}` }
               });
               
               statusDiv.textContent = '✅ Sent successfully!';
