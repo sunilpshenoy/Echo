@@ -471,13 +471,13 @@ const ChatsInterface = ({
           // Create file item UI
           const fileDiv = uploadWindow.document.createElement('div');
           fileDiv.className = 'file-item';
-          fileDiv.innerHTML = \`
-            <div><strong>\${file.name}</strong> (\${(file.size / 1024 / 1024).toFixed(2)} MB)</div>
+          fileDiv.innerHTML = `
+            <div><strong>${file.name}</strong> (${(file.size / 1024 / 1024).toFixed(2)} MB)</div>
             <div class="status">Preparing...</div>
             <div class="progress-bar">
               <div class="progress-fill" style="width: 0%"></div>
             </div>
-          \`;
+          `;
           fileListDiv.appendChild(fileDiv);
           
           // Simulate file upload (in real implementation, use FormData)
