@@ -159,8 +159,9 @@ def test_file_sharing():
     # Create file data
     file_data = {
         "filename": "test_image.png",
-        "file_type": "image/png",
-        "file_data": base64.b64encode(small_png_data).decode('utf-8')
+        "size": len(small_png_data),
+        "type": "image/png",
+        "data": base64.b64encode(small_png_data).decode('utf-8')
     }
     
     response = requests.post(
