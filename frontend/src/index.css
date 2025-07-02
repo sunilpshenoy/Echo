@@ -2,16 +2,246 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Base styles and mobile-first design */
+* {
+  box-sizing: border-box;
+}
+
 body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-        "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
-        "Helvetica Neue", sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f8fafc;
+  /* Prevent zoom on input focus on iOS */
+  -webkit-text-size-adjust: 100%;
+  /* Disable text selection on mobile for better app feel */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Re-enable text selection for content areas */
+input, textarea, [contenteditable], .selectable-text {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
 }
 
 code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-        monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* PWA Mobile Optimizations */
+#root {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Safe area handling for iOS devices with notches */
+@supports (padding: max(0px)) {
+  .safe-area-top {
+    padding-top: max(20px, env(safe-area-inset-top));
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+  
+  .safe-area-left {
+    padding-left: max(20px, env(safe-area-inset-left));
+  }
+  
+  .safe-area-right {
+    padding-right: max(20px, env(safe-area-inset-right));
+  }
+}
+
+/* Mobile-specific button styles */
+button {
+  /* Better button tapping on mobile */
+  min-height: 44px;
+  min-width: 44px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  /* Remove default iOS button styling */
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+/* Mobile-friendly form inputs */
+input, textarea {
+  /* Disable iOS input zoom */
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 12px;
+  
+  /* Remove default iOS styling */
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Mobile-optimized scrolling */
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* Hide scrollbars on mobile for cleaner look */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* PWA specific styles */
+.pwa-ready {
+  /* Remove browser UI elements for full app experience */
+  display: block;
+}
+
+/* Loading states for better mobile UX */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Mobile-friendly modal/overlay styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Touch-friendly spacing */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive typography */
+.text-responsive {
+  font-size: clamp(14px, 4vw, 18px);
+}
+
+/* Mobile navigation improvements */
+.mobile-nav {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  padding: 8px 0;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+
+/* Improved touch feedback */
+.touchable {
+  -webkit-tap-highlight-color: rgba(59, 130, 246, 0.1);
+  transition: background-color 0.15s ease;
+}
+
+.touchable:active {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Camera and media specific styles for mobile */
+video {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+/* File input improvements for mobile */
+input[type="file"] {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+/* Better mobile menu styles */
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  z-index: 999;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+}
+
+.mobile-menu.open {
+  transform: translateX(0);
+}
+
+/* Optimized for one-handed mobile use */
+.thumb-zone {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  pointer-events: none;
+}
+
+.thumb-zone > * {
+  pointer-events: auto;
+}
+
+/* PWA Install button styles */
+.install-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
