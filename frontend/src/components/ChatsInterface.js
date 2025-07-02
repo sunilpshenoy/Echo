@@ -1160,51 +1160,96 @@ const ChatsInterface = ({
             </div>
             
             <div className="text-center">
-              <div className="bg-gray-100 p-8 rounded-2xl mb-4">
-                <div className="text-6xl mb-4">📷</div>
-                <p className="text-gray-600 mb-4">
-                  Camera access is required to scan QR codes
-                </p>
+              <div className="bg-gray-900 rounded-2xl mb-4 relative overflow-hidden">
+                <video
+                  id="qr-video"
+                  className="w-full h-64 object-cover"
+                  autoPlay
+                  playsInline
+                ></video>
+                <div className="absolute inset-0 border-2 border-blue-500 rounded-2xl pointer-events-none">
+                  <div className="absolute top-4 left-4 w-6 h-6 border-l-4 border-t-4 border-blue-500"></div>
+                  <div className="absolute top-4 right-4 w-6 h-6 border-r-4 border-t-4 border-blue-500"></div>
+                  <div className="absolute bottom-4 left-4 w-6 h-6 border-l-4 border-b-4 border-blue-500"></div>
+                  <div className="absolute bottom-4 right-4 w-6 h-6 border-r-4 border-b-4 border-blue-500"></div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
                 <button
                   onClick={async () => {
-                    console.log('Camera access button clicked');
                     try {
-                      // Try to access camera
-                      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                        console.log('Requesting camera access...');
-                        const stream = await navigator.mediaDevices.getUserMedia({ 
-                          video: { 
-                            facingMode: 'environment',
-                            width: { ideal: 640 },
-                            height: { ideal: 480 }
-                          } 
-                        });
-                        console.log('Camera access granted');
-                        
-                        // For now, show a message and stop the stream
-                        alert('Camera access granted! 📷\n\nQR scanning is being implemented. For now, please:\n1. Use the PIN method instead\n2. Try these test PINs:\n   • PIN-ALI001 (Alice)\n   • PIN-BOB002 (Bob)\n   • PIN-CAR003 (Carol)');
-                        
-                        // Stop the camera stream
-                        stream.getTracks().forEach(track => track.stop());
-                        setShowQRScanner(false);
-                      } else {
-                        console.log('Camera not supported');
-                        alert('Camera not supported on this device/browser.\n\nPlease use the PIN method instead:\n• PIN-ALI001 (Alice)\n• PIN-BOB002 (Bob)\n• PIN-CAR003 (Carol)');
-                      }
+                      const QrScanner = (await import('qr-scanner')).default;
+                      const video = document.getElementById('qr-video');
+                      
+                      const qrScanner = new QrScanner(
+                        video,
+                        (result) => {
+                          console.log('QR Code scanned:', result.data);
+                          
+                          // Check if it's a PIN format
+                          if (result.data.startsWith('PIN-') || result.data.includes('PIN')) {
+                            setContactPin(result.data);
+                            setShowQRScanner(false);
+                            
+                            // Auto-send connection request
+                            setTimeout(() => {
+                              sendConnectionRequest();
+                            }, 500);
+                            
+                            alert(\`QR Code scanned! 📱\\nPIN: \${result.data}\\nSending connection request...\`);
+                          } else {
+                            alert(\`QR Code scanned: \${result.data}\\n\\nThis doesn't appear to be a contact PIN. Please scan a contact's QR code.\`);
+                          }
+                        },
+                        {
+                          returnDetailedScanResult: true,
+                          highlightScanRegion: true,
+                          highlightCodeOutline: true,
+                        }
+                      );
+                      
+                      await qrScanner.start();
+                      document.getElementById('scan-status').textContent = '📷 Camera active - Point at QR code';
+                      
+                      // Store scanner reference for cleanup
+                      window.currentQrScanner = qrScanner;
+                      
                     } catch (error) {
-                      console.error('Camera access error:', error);
-                      alert('Camera access denied or error occurred.\n\nPlease:\n1. Enable camera permissions\n2. Try again, or\n3. Use PIN method instead\n\nTest PINs:\n• PIN-ALI001 (Alice)\n• PIN-BOB002 (Bob)\n• PIN-CAR003 (Carol)');
+                      console.error('QR Scanner error:', error);
+                      document.getElementById('scan-status').textContent = '❌ Camera access failed';
+                      alert('Camera access denied or QR scanner failed to start.\\n\\nPlease:\\n1. Enable camera permissions\\n2. Try again\\n3. Use PIN method instead');
                     }
                   }}
-                  className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
+                  className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600"
                 >
-                  📷 Enable Camera
+                  📷 Start Camera Scanning
+                </button>
+                
+                <button
+                  onClick={() => {
+                    // Stop scanner if running
+                    if (window.currentQrScanner) {
+                      window.currentQrScanner.stop();
+                      window.currentQrScanner = null;
+                    }
+                    setShowQRScanner(false);
+                  }}
+                  className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300"
+                >
+                  Cancel
                 </button>
               </div>
               
-              <p className="text-xs text-gray-500">
-                Point your camera at a QR code to scan
+              <p className="text-xs text-gray-500 mt-4" id="scan-status">
+                Click "Start Camera Scanning" to begin
               </p>
+              
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <p className="text-xs text-blue-700">
+                  💡 <strong>Tip:</strong> Ask your contact to show their PIN QR code from their Chats tab
+                </p>
+              </div>
             </div>
           </div>
         </div>
