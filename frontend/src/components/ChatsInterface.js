@@ -654,50 +654,189 @@ const ChatsInterface = ({
         </div>
         
         <div className="flex-1 overflow-y-auto">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-32">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-            </div>
-          ) : chats && chats.length > 0 ? (
-            <div className="space-y-1 p-2">
-              {chats.map(chat => (
-                <div key={chat.chat_id} className="relative">
-                  <button
-                    onClick={() => onSelectChat(chat)}
-                    className={`w-full p-3 rounded-lg text-left hover:bg-gray-50 transition-colors ${
-                      selectedChat?.chat_id === chat.chat_id ? 'bg-blue-50 border border-blue-200' : ''
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-medium text-sm">
+          {viewMode === 'contacts' ? (
+            // Contacts List View (like WhatsApp)
+            <>
+              {isLoading ? (
+                <div className="flex items-center justify-center h-32">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                </div>
+              ) : chats && chats.length > 0 ? (
+                <div className="space-y-1 p-2">
+                  {chats.map(chat => (
+                    <div 
+                      key={chat.chat_id} 
+                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => handleContactTap(chat)}
+                    >
+                      {/* Contact Avatar */}
+                      <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-medium">
                           {chat.other_user?.display_name?.[0]?.toUpperCase() || 
                            chat.other_user?.username?.[0]?.toUpperCase() || '?'}
                         </span>
                       </div>
+                      
+                      {/* Contact Info */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <p className="font-medium text-gray-900 truncate">
-                            {chat.other_user?.display_name || chat.other_user?.username || 'Unknown User'}
-                          </p>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowContactOptions(showContactOptions === chat.chat_id ? null : chat.chat_id);
-                            }}
-                            className="p-1 text-gray-400 hover:text-gray-600"
-                          >
-                            ⋯
-                          </button>
-                        </div>
-                        <p className="text-sm text-gray-600 truncate">
-                          {chat.last_message?.content || 'No messages yet'}
+                        <p className="font-medium text-gray-900 truncate">
+                          {chat.other_user?.display_name || chat.other_user?.username || 'Unknown User'}
                         </p>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-xs text-gray-500">
-                            {chat.last_message?.timestamp && 
-                              new Date(chat.last_message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
-                            }
+                        <p className="text-sm text-gray-600 truncate">
+                          {chat.other_user?.status_message || 'Tap to start chatting'}
+                        </p>
+                      </div>
+                      
+                      {/* Action Icons */}
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startVoiceCall(chat);
+                          }}
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors"
+                          title="Voice Call"
+                        >
+                          🎙️
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startVideoCall(chat);
+                          }}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                          title="Video Call"
+                        >
+                          📹
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startFileShare(chat);
+                          }}
+                          className="p-2 text-purple-600 hover:bg-purple-50 rounded-full transition-colors"
+                          title="Share Files"
+                        >
+                          📎
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-32 text-gray-500">
+                  <p>No contacts yet</p>
+                  <p className="text-sm">Add a contact to start chatting</p>
+                </div>
+              )}
+            </>
+          ) : (
+            // Chat View (when contact is selected)
+            <div className="flex flex-col h-full">
+              {/* Chat Header */}
+              <div className="flex items-center space-x-3 p-4 border-b border-gray-200 bg-white">
+                <button
+                  onClick={handleBackToContacts}
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
+                >
+                  ←
+                </button>
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-medium text-sm">
+                    {activeContact?.other_user?.display_name?.[0]?.toUpperCase() || 
+                     activeContact?.other_user?.username?.[0]?.toUpperCase() || '?'}
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900">
+                    {activeContact?.other_user?.display_name || activeContact?.other_user?.username || 'Unknown User'}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {activeContact?.other_user?.is_online ? 'Online' : 'Last seen recently'}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => startVoiceCall(activeContact)}
+                    className="p-2 text-green-600 hover:bg-green-50 rounded-full"
+                    title="Voice Call"
+                  >
+                    🎙️
+                  </button>
+                  <button
+                    onClick={() => startVideoCall(activeContact)}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
+                    title="Video Call"
+                  >
+                    📹
+                  </button>
+                </div>
+              </div>
+              
+              {/* Chat Messages Area */}
+              <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+                {selectedChat && chatMessages && chatMessages.length > 0 ? (
+                  <div className="space-y-3">
+                    {chatMessages.map(message => (
+                      <div
+                        key={message.message_id}
+                        className={`flex ${message.sender_id === user?.user_id ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                            message.sender_id === user?.user_id
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-white text-gray-900'
+                          }`}
+                        >
+                          <p>{message.content}</p>
+                          <p className={`text-xs mt-1 ${
+                            message.sender_id === user?.user_id ? 'text-blue-100' : 'text-gray-500'
+                          }`}>
+                            {new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    <div className="text-center">
+                      <p className="text-lg mb-2">👋</p>
+                      <p>Start your conversation with</p>
+                      <p className="font-medium">{activeContact?.other_user?.display_name || 'this contact'}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Message Input */}
+              <div className="p-4 bg-white border-t border-gray-200">
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => startFileShare(activeContact)}
+                    className="p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100"
+                  >
+                    📎
+                  </button>
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && onSendMessage()}
+                    placeholder="Type a message..."
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <button
+                    onClick={onSendMessage}
+                    className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
+                  >
+                    📤
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
                           </span>
                           <div className="flex items-center space-x-1">
                             {chat.other_user?.is_online && (
