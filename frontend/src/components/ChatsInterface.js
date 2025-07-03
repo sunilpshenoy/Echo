@@ -24,6 +24,8 @@ const ChatsInterface = ({
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [addContactMethod, setAddContactMethod] = useState('pin'); // 'pin', 'email', 'phone'
+  const [viewMode, setViewMode] = useState('contacts'); // 'contacts' or 'chat'
+  const [activeContact, setActiveContact] = useState(null);
 
   // Send connection request using PIN
   const sendConnectionRequest = async () => {
