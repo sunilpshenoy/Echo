@@ -841,7 +841,7 @@ const ChatsInterface = ({
       </div>
 
       {/* Share PIN Modal */}
-                  {showContactOptions === chat.chat_id && (
+      {showMyPin && (
                     <div className="absolute right-2 top-12 bg-white border border-gray-200 rounded-lg shadow-lg z-10 w-48">
                       <button
                         onClick={() => {
