@@ -581,26 +581,28 @@ const ChatsInterface = ({
   }, []);
 
   return (
-    <div className="flex w-full h-full">
-      {/* Chat List Sidebar */}
-      <div className="w-1/3 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-4">
+    <div className="flex h-full">
+      {/* Mobile: Show only contacts OR chat, not both */}
+      {viewMode === 'contacts' ? (
+        /* Contact List View - Full Screen on Mobile */
+        <div className="w-full h-full flex flex-col">
+          {/* Contact List Header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Chats</h2>
               <p className="text-sm text-gray-600">Your connections</p>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex items-center space-x-2">
               <button
                 onClick={() => setShowMyPin(true)}
-                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                title="My PIN & QR Code"
+                className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                title="Share PIN"
               >
                 📱
               </button>
               <button
                 onClick={() => setShowAddContact(true)}
-                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
                 title="Add Contact"
               >
                 ➕
