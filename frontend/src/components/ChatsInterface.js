@@ -842,67 +842,89 @@ const ChatsInterface = ({
 
       {/* Share PIN Modal */}
       {showMyPin && (
-                    <div className="absolute right-2 top-12 bg-white border border-gray-200 rounded-lg shadow-lg z-10 w-48">
-                      <button
-                        onClick={() => {
-                          onSelectChat(chat);
-                          setShowContactOptions(null);
-                        }}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2"
-                      >
-                        <span>💬</span>
-                        <span>Chat</span>
-                      </button>
-                      <button
-                        onClick={() => startFileShare(chat)}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2"
-                      >
-                        <span>📎</span>
-                        <span>Share Files</span>
-                      </button>
-                      <button
-                        onClick={() => startVoiceCall(chat)}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2"
-                      >
-                        <span>🎙️</span>
-                        <span>Voice Call</span>
-                      </button>
-                      <button
-                        onClick={() => startVideoCall(chat)}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2"
-                      >
-                        <span>📹</span>
-                        <span>Video Call</span>
-                      </button>
-                      <button
-                        onClick={() => deleteContact(chat)}
-                        className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 flex items-center space-x-2 border-t border-gray-200"
-                      >
-                        <span>🗑️</span>
-                        <span>Delete Contact</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-64 text-center p-4">
-              <div className="text-6xl mb-4">💬</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No chats yet</h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Add contacts using PIN or QR code to start chatting
-              </p>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Share Your PIN</h2>
               <button
-                onClick={() => setShowAddContact(true)}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+                onClick={() => setShowMyPin(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
               >
-                Add First Contact
+                ✕
               </button>
             </div>
-          )}
+            
+            <div className="text-center">
+              <p className="text-gray-600 mb-4">
+                Share this PIN with people you want to connect with
+              </p>
+              
+              <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                <p className="text-2xl font-mono font-bold text-blue-600">
+                  {user?.connection_pin || 'PIN-123456'}
+                </p>
+              </div>
+              
+              <div className="bg-white p-4 rounded-lg mb-4">
+                <div className="w-32 h-32 mx-auto flex items-center justify-center">
+                  <QRCode 
+                    value={user?.connection_pin || 'PIN-' + (user?.user_id?.slice(-6) || '123456')}
+                    size={120}
+                    level="M"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex space-x-3">
+                <button
+                  onClick={async () => {
+                    try {
+                      const pinText = user?.connection_pin || 'PIN-' + (user?.user_id?.slice(-6) || '123456');
+                      if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(pinText);
+                        alert('PIN copied to clipboard! 📋');
+                      } else {
+                        alert('Failed to copy PIN. Please copy manually: ' + pinText);
+                      }
+                    } catch (error) {
+                      console.error('Failed to copy PIN:', error);
+                      alert('Failed to copy PIN. Please copy manually: ' + (user?.connection_pin || 'PIN-123456'));
+                    }
+                  }}
+                  className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
+                >
+                  📋 Copy PIN
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const pinText = user?.connection_pin || 'PIN-' + (user?.user_id?.slice(-6) || '123456');
+                      if (navigator.share) {
+                        await navigator.share({
+                          title: 'Connect with me!',
+                          text: `My connection PIN: ${pinText}`,
+                        });
+                      } else {
+                        alert(`Share this PIN: ${pinText}`);
+                      }
+                    } catch (error) {
+                      console.error('Failed to share PIN:', error);
+                      alert('Sharing not available. PIN: ' + (user?.connection_pin || 'PIN-123456'));
+                    }
+                  }}
+                  className="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600"
+                >
+                  📤 Share
+                </button>
+              </div>
+              
+              <p className="text-xs text-gray-500 mt-4">
+                Your PIN is unique and private. Only share with people you want to connect with.
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Chat Messages Area */}
       <div className="flex-1 flex flex-col">
