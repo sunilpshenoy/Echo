@@ -583,9 +583,10 @@ const ChatsInterface = ({
   return (
     <div className="flex h-full">
       {/* Mobile: Show only contacts OR chat, not both */}
-      {viewMode === 'contacts' ? (
-        /* Contact List View - Full Screen on Mobile */
-        <div className="w-full h-full flex flex-col">
+      <div className="w-full h-full">
+        {viewMode === 'contacts' ? (
+          /* Contact List View - Full Screen on Mobile */
+          <div className="w-full h-full flex flex-col">
           {/* Contact List Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
             <div>
