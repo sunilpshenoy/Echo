@@ -1037,6 +1037,7 @@ const ChatsInterface = ({
         )}
       </div>
       </div>
+      </div>
 
       {/* My PIN & QR Code Modal */}
       {showMyPin && (
