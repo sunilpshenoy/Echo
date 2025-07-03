@@ -27,6 +27,19 @@ const ChatsInterface = ({
   const [viewMode, setViewMode] = useState('contacts'); // 'contacts' or 'chat'
   const [activeContact, setActiveContact] = useState(null);
 
+  // Handle contact tap - open chat
+  const handleContactTap = (chat) => {
+    setActiveContact(chat);
+    setViewMode('chat');
+    onSelectChat(chat);
+  };
+
+  // Handle back to contacts
+  const handleBackToContacts = () => {
+    setViewMode('contacts');
+    setActiveContact(null);
+  };
+
   // Send connection request using PIN
   const sendConnectionRequest = async () => {
     console.log('sendConnectionRequest called with PIN:', contactPin);
