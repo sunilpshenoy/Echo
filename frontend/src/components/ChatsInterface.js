@@ -837,12 +837,10 @@ const ChatsInterface = ({
               </div>
             </div>
           )}
-                          </span>
-                          <div className="flex items-center space-x-1">
-                            {chat.other_user?.is_online && (
-                              <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                            )}
-                          </div>
+        </div>
+      </div>
+
+      {/* Share PIN Modal */}
                         </div>
                       </div>
                     </div>
