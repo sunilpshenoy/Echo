@@ -147,12 +147,14 @@ const DiscoverInterface = ({
       {/* Discovery Sidebar */}
       <div className="w-1/3 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Discover</h2>
               <p className="text-sm text-gray-600">Find authentic connections</p>
             </div>
-            {localStorage.getItem('demo_premium') === 'true' && (
+          </div>
+          {localStorage.getItem('demo_premium') === 'true' && (
+            <div className="mt-3">
               <button
                 onClick={() => {
                   if (window.confirm('Disable Demo Premium Mode?')) {
@@ -160,13 +162,13 @@ const DiscoverInterface = ({
                     window.dispatchEvent(new Event('storage'));
                   }
                 }}
-                className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-medium hover:bg-yellow-200"
+                className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-medium hover:bg-yellow-200 border border-yellow-200"
                 title="You are in Demo Premium Mode"
               >
                 🚀 Demo Mode • Click to Disable
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
         
         <div className="flex-1 overflow-y-auto p-4">
