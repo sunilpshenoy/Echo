@@ -337,14 +337,6 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
             />
           )}
           
-          {activeTab === 'trust' && (
-            <TrustSystem 
-              user={user}
-              token={token}
-              api={api}
-            />
-          )}
-          
           {activeTab === 'discover' && (
             <DiscoverInterface 
               user={user}
