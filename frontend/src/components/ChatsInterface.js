@@ -541,6 +541,42 @@ const ChatsInterface = ({
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Double-tap protection system
+  const handleDoubleTapAction = (actionType, contactId, callback) => {
+    const key = `${actionType}_${contactId}`;
+    
+    if (doubleTapState[key]) {
+      // Second tap - execute action
+      clearTimeout(doubleTapTimeoutRef.current[key]);
+      setDoubleTapState(prev => ({ ...prev, [key]: false }));
+      delete doubleTapTimeoutRef.current[key];
+      callback();
+    } else {
+      // First tap - show confirmation state
+      setDoubleTapState(prev => ({ ...prev, [key]: true }));
+      
+      // Auto-clear confirmation after 3 seconds
+      doubleTapTimeoutRef.current[key] = setTimeout(() => {
+        setDoubleTapState(prev => ({ ...prev, [key]: false }));
+        delete doubleTapTimeoutRef.current[key];
+      }, 3000);
+    }
+  };
+
+  const handleVoiceCall = (contact) => {
+    alert('Voice call feature coming soon! 📞');
+    // TODO: Implement WebRTC voice calling
+  };
+
+  const handleVideoCall = (contact) => {
+    alert('Video call feature coming soon! 📹');
+    // TODO: Implement WebRTC video calling
+  };
+
+  const handleFileShare = () => {
+    fileInputRef.current?.click();
+  };
+
   const renderMessage = (message) => {
     const isOwnMessage = message.sender_id === user.user_id;
     
