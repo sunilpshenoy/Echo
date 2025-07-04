@@ -2113,12 +2113,21 @@ async def respond_to_connection(connection_id: str, response_data: dict, current
 # PIN-based connection system
 @api_router.post("/connections/request-by-pin")
 async def send_connection_request_by_pin(request_data: dict, current_user = Depends(get_current_user)):
-    """Send a connection request using target user's PIN"""
-    target_pin = request_data.get("target_pin")
+    """Send enhanced connection request using target user's PIN"""
+    target_pin = request_data.get("connection_pin") or request_data.get("target_pin")
     message = request_data.get("message", "")
+    connection_type = request_data.get("connection_type", "general")
     
     if not target_pin:
         raise HTTPException(status_code=400, detail="Target PIN required")
+    
+    # Validate PIN format
+    if not target_pin.startswith("PIN-"):
+        raise HTTPException(status_code=400, detail="Invalid PIN format")
+    
+    pin_code = target_pin[4:]  # Remove "PIN-" prefix
+    if len(pin_code) != 6 or not pin_code.isalnum():
+        raise HTTPException(status_code=400, detail="Invalid PIN format")
     
     # Find user by PIN
     target_user = await db.users.find_one({"connection_pin": target_pin})
@@ -2137,25 +2146,54 @@ async def send_connection_request_by_pin(request_data: dict, current_user = Depe
     })
     if existing:
         if existing["status"] == "pending":
-            raise HTTPException(status_code=400, detail="Connection request already sent")
+            raise HTTPException(status_code=400, detail="Connection request already exists")
         elif existing["status"] == "accepted":
             raise HTTPException(status_code=400, detail="Already connected")
     
-    # Create connection request
+    # Create enhanced connection request
     connection_request = {
         "request_id": str(uuid.uuid4()),
         "sender_id": current_user["user_id"],
         "receiver_id": target_user["user_id"],
         "message": message,
+        "connection_type": connection_type,
         "status": "pending",
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
+        "sender_info": {
+            "display_name": current_user.get("display_name"),
+            "username": current_user["username"],
+            "avatar": current_user.get("avatar"),
+            "authenticity_rating": current_user.get("authenticity_rating", 0)
+        }
     }
     
     await db.connection_requests.insert_one(connection_request)
     
+    # Send real-time notification
+    try:
+        await manager.send_personal_message(
+            json.dumps({
+                "type": "connection_request",
+                "data": {
+                    "request_id": connection_request["request_id"],
+                    "sender": connection_request["sender_info"],
+                    "message": message,
+                    "connection_type": connection_type,
+                    "created_at": connection_request["created_at"].isoformat()
+                }
+            }),
+            target_user["user_id"]
+        )
+    except Exception as e:
+        print(f"Failed to send real-time notification: {e}")
+    
     return {
         "message": "Connection request sent successfully",
-        "request_id": connection_request["request_id"]
+        "request_id": connection_request["request_id"],
+        "target_user": {
+            "display_name": target_user.get("display_name"),
+            "username": target_user["username"]
+        }
     }
 
 @api_router.get("/connections/requests")
