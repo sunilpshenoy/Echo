@@ -1113,6 +1113,18 @@ frontend:
         agent: "testing"
         comment: "The TrustSystem component is now loading without compilation errors, but the profile setup flow is broken. Users can log in but are redirected to the profile setup page, where they cannot proceed past step 2 due to the Next button being disabled. This prevents users from completing the profile setup and accessing the dashboard where the TrustSystem component would be visible."
 
+  - task: "Profile Setup Flow"
+    implemented: true
+    working: false
+    file: "src/components/ProfileSetup.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "The profile setup flow is broken. After login, users are redirected to the profile setup page, but they cannot proceed past step 2. The Next button is disabled even after filling in all required fields. This prevents users from completing the profile setup and accessing the dashboard. Attempted to bypass the profile setup by directly navigating to the dashboard URL, but this also failed."
+
   - task: "WhatsApp-style Chat Interface"
     implemented: true
     working: true
