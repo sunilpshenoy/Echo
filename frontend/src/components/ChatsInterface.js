@@ -759,15 +759,15 @@ const ChatsInterface = ({
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center relative">
                     <span className="text-white font-medium text-lg">
-                      {chat.name?.[0]?.toUpperCase() || 'U'}
+                      {(chat.other_user?.display_name || chat.other_user?.username || chat.name || 'Unknown')?.[0]?.toUpperCase() || 'U'}
                     </span>
-                    {onlineUsers.has(chat.other_user_id) && (
+                    {onlineUsers.has(chat.other_user?.user_id) && (
                       <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-900 truncate">
-                      {chat.name || 'Unknown Contact'}
+                      {chat.other_user?.display_name || chat.other_user?.username || chat.name || 'Unknown Contact'}
                     </p>
                     <p className="text-sm text-gray-600 truncate">
                       {chat.last_message?.content || 'No messages yet'}
