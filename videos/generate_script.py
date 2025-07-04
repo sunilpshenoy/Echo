@@ -13,7 +13,7 @@ def generate_video_script():
     script = {
         "title": "ChatApp Pro Ultimate - The Communication Revolution",
         "duration": "2-3 minutes",
-        "app_url": "https://e0ace9f7-0e4c-46c3-9a26-0a592ec88fc7.preview.emergentagent.com",
+        "app_url": "https://c4a0dccb-e6ce-4ca2-84b4-5aada4920355.preview.emergentagent.com",
         "scenes": [
             {
                 "scene": 1,
@@ -254,4 +254,4 @@ if __name__ == "__main__":
     print(f"📝 Readable Script: {readable_file}")
     print(f"📦 Package Info: {package_file}")
     print("\n🌟 Use these files to create your promotional video!")
-    print("🚀 Live App: https://e0ace9f7-0e4c-46c3-9a26-0a592ec88fc7.preview.emergentagent.com")
+    print("🚀 Live App: https://c4a0dccb-e6ce-4ca2-84b4-5aada4920355.preview.emergentagent.com")

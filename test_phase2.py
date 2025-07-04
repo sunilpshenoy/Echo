@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # Backend URL
-BACKEND_URL = "https://e0ace9f7-0e4c-46c3-9a26-0a592ec88fc7.preview.emergentagent.com"
+BACKEND_URL = "https://c4a0dccb-e6ce-4ca2-84b4-5aada4920355.preview.emergentagent.com"
 API_URL = f"{BACKEND_URL}/api"
 
 # Global variables to store test data
