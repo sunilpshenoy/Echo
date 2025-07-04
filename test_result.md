@@ -340,6 +340,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "File upload API is working correctly. Successfully tested uploading image files, file size validation (rejecting files >10MB), and file type validation. The API correctly returns file metadata including name, size, type, and base64-encoded data."
+      - working: true
+        agent: "testing"
+        comment: "Additional testing of the file upload API confirms all functionality is working correctly. Successfully tested uploading different file types, integrating uploaded files into messages, and retrieving files from message history. The API correctly handles file metadata and content encoding. All tests passed with no issues.
 
   - task: "Enhanced Message API"
     implemented: true
@@ -699,6 +702,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "File upload API is working correctly. Successfully tested uploading image files, file size validation (rejecting files >10MB), and file type validation. The API correctly returns file metadata including name, size, type, and base64-encoded data."
+      - working: true
+        agent: "testing"
+        comment: "Additional testing of the file upload API confirms all functionality is working correctly. Successfully tested uploading different file types, integrating uploaded files into messages, and retrieving files from message history. The API correctly handles file metadata and content encoding. All tests passed with no issues.
 
   - task: "Enhanced Message API"
     implemented: true
