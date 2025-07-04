@@ -185,7 +185,7 @@ def test_create_connections():
     
     # User1 connects to User3 using PIN
     connection_data = {
-        "pin": user3_pin,
+        "target_pin": user3_pin,
         "message": "Hello from User1, connecting via PIN"
     }
     
