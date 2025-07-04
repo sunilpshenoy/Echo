@@ -37,6 +37,10 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
         onAuthSuccess(response.data.user || response.data, response.data.access_token);
       }
     } catch (error) {
+      console.error('Authentication error:', error);
+      console.error('Error response:', error.response);
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
       setError(error.response?.data?.detail || error.message || 'Authentication failed');
     } finally {
       setIsLoading(false);
