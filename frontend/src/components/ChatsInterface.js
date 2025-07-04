@@ -595,12 +595,12 @@ const ChatsInterface = ({
               </button>
               <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
                 <span className="text-white font-medium">
-                  {activeContact.name?.[0]?.toUpperCase() || 'U'}
+                  {(activeContact.other_user?.display_name || activeContact.other_user?.username || activeContact.name || 'Unknown')?.[0]?.toUpperCase() || 'U'}
                 </span>
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900">
-                  {activeContact.name || 'Unknown'}
+                  {activeContact.other_user?.display_name || activeContact.other_user?.username || activeContact.name || 'Unknown'}
                 </h3>
                 <p className="text-sm text-gray-600">
                   {isConnected ? (
