@@ -1096,6 +1096,18 @@ frontend:
         agent: "testing"
         comment: "Successfully tested the voice, video, and file sharing buttons. All three buttons show the expected 'coming soon' alert messages when clicked and do not produce any JavaScript errors. The File Sharing button displays a message about file sharing being implemented soon. The Voice Call button displays a message about voice calls being implemented soon. The Video Call button displays a message about video calls being implemented soon. All buttons function correctly without any JavaScript errors."
 
+  - task: "Frontend TrustSystem Component Fix"
+    implemented: false
+    working: false
+    file: "src/components/TrustSystem.js"
+    stuck_count: 1
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "Critical issue found: The TrustSystem component is missing or not properly imported. Frontend logs show compilation error: 'Module not found: Error: Can't resolve './TrustSystem' in '/app/frontend/src/components''. This is preventing the entire application from loading properly. The Dashboard component is trying to import TrustSystem but it cannot be found. This needs to be fixed urgently as it's blocking all frontend functionality."
+
   - task: "WhatsApp-style Chat Interface"
     implemented: true
     working: true
