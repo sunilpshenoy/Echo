@@ -175,7 +175,7 @@ const DiscoverInterface = ({
           {/* Trust Level Progress */}
           <div className="mb-6">
             <h3 className="font-medium text-gray-900 mb-3">Your Trust Journey</h3>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {[
                 { level: 1, title: "Anonymous Discovery", icon: "🔍", color: "blue" },
                 { level: 2, title: "Text Chat", icon: "💬", color: "green" },
@@ -185,21 +185,21 @@ const DiscoverInterface = ({
               ].map(stage => (
                 <div 
                   key={stage.level}
-                  className={`flex items-center space-x-3 p-3 rounded-lg ${
+                  className={`flex items-center space-x-2 p-2 rounded-lg text-sm ${
                     (user?.trust_level || 1) >= stage.level 
                       ? 'bg-green-50 border border-green-200' 
                       : 'bg-gray-50 border border-gray-200'
                   }`}
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
                     (user?.trust_level || 1) >= stage.level 
                       ? 'bg-green-100' 
                       : 'bg-gray-100'
                   }`}>
                     {(user?.trust_level || 1) >= stage.level ? '✓' : stage.icon}
                   </div>
-                  <div className="flex-1">
-                    <p className={`font-medium ${
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-medium text-sm truncate ${
                       (user?.trust_level || 1) >= stage.level ? 'text-green-700' : 'text-gray-600'
                     }`}>
                       {stage.title}
