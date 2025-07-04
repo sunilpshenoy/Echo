@@ -47,6 +47,16 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
     user?.premium || localStorage.getItem('demo_premium') === 'true'
   );
   
+  // Listen for storage changes to update premium status
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setIsPremium(user?.premium || localStorage.getItem('demo_premium') === 'true');
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [user?.premium]);
+  
   // Fetch authenticity details
   const fetchAuthenticityDetails = async () => {
     setIsLoadingAuthenticity(true);
