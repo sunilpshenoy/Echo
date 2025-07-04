@@ -123,7 +123,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
       });
       
       setNewMessage('');
-      // Refresh messages
+      // Real-time updates will be handled by WebSocket, but refresh as fallback
       await selectChat(selectedChat);
     } catch (error) {
       console.error('Failed to send message:', error);
