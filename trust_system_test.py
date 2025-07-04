@@ -213,7 +213,7 @@ def test_create_connections():
     
     # User2 connects with User3
     connection_data = {
-        "pin": user3_pin,
+        "target_pin": user3_pin,
         "message": "Hello from User2, connecting via PIN"
     }
     
