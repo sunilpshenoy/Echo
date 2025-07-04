@@ -573,10 +573,6 @@ const ChatsInterface = ({
     // TODO: Implement WebRTC video calling
   };
 
-  const handleFileShare = () => {
-    fileInputRef.current?.click();
-  };
-
   const renderMessage = (message) => {
     const isOwnMessage = message.sender_id === user.user_id;
     
