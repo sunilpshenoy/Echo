@@ -1785,11 +1785,7 @@ test_plan:
     - "Interaction Recording"
     - "Trust Metrics Calculation"
     - "Trust Requirements Checking"
-    - "Frontend TrustSystem Component Fix"
-    - "Profile Setup Flow"
-  stuck_tasks: 
-    - "Frontend TrustSystem Component Fix"
-    - "Profile Setup Flow"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
