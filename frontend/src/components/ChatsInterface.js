@@ -656,20 +656,35 @@ const ChatsInterface = ({
             </div>
             <div className="flex items-center space-x-2">
               <button 
-                onClick={() => alert('Voice call feature coming soon! 📞')}
-                className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100"
+                onClick={() => handleDoubleTapAction('voice', activeContact.chat_id, () => handleVoiceCall(activeContact))}
+                className={`p-2 rounded-lg transition-all ${
+                  doubleTapState[`voice_${activeContact.chat_id}`]
+                    ? 'bg-green-100 text-green-600 animate-pulse'
+                    : 'text-gray-500 hover:text-green-600 hover:bg-gray-100'
+                }`}
+                title={doubleTapState[`voice_${activeContact.chat_id}`] ? 'Tap again to call' : 'Voice call (double-tap)'}
               >
                 📞
               </button>
               <button 
-                onClick={() => alert('Video call feature coming soon! 📹')}
-                className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100"
+                onClick={() => handleDoubleTapAction('video', activeContact.chat_id, () => handleVideoCall(activeContact))}
+                className={`p-2 rounded-lg transition-all ${
+                  doubleTapState[`video_${activeContact.chat_id}`]
+                    ? 'bg-blue-100 text-blue-600 animate-pulse'
+                    : 'text-gray-500 hover:text-blue-600 hover:bg-gray-100'
+                }`}
+                title={doubleTapState[`video_${activeContact.chat_id}`] ? 'Tap again to video call' : 'Video call (double-tap)'}
               >
                 📹
               </button>
               <button 
-                onClick={handleFileShare}
-                className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100"
+                onClick={() => handleDoubleTapAction('file', activeContact.chat_id, () => handleFileShare())}
+                className={`p-2 rounded-lg transition-all ${
+                  doubleTapState[`file_${activeContact.chat_id}`]
+                    ? 'bg-purple-100 text-purple-600 animate-pulse'
+                    : 'text-gray-500 hover:text-purple-600 hover:bg-gray-100'
+                }`}
+                title={doubleTapState[`file_${activeContact.chat_id}`] ? 'Tap again to share file' : 'Share file (double-tap)'}
               >
                 📎
               </button>
