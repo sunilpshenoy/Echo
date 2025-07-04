@@ -64,6 +64,8 @@ agent_communication:
       message: "Completed comprehensive testing of all critical backend API endpoints. All backend APIs are functioning correctly. The frontend has some UI issues that need to be addressed, but the backend is solid and ready for frontend integration. Created a comprehensive test script (critical_backend_test.py) that verifies all the critical backend endpoints are working as expected."
     - agent: "testing"
       message: "Completed thorough testing of the real-time chat system. All WebSocket connections, message broadcasting, chat creation, message history retrieval, and file sharing functionality are working correctly. Created a dedicated test script (realtime_chat_test.py) that verifies all aspects of the real-time messaging system."
+    - agent: "testing"
+      message: "Attempted to test the frontend application but encountered critical issues. The frontend is not functioning properly - users cannot log in or register. The frontend logs show compilation errors related to the TrustSystem component. The error is: 'Module not found: Error: Can't resolve './TrustSystem' in '/app/frontend/src/components''. This is preventing the application from loading properly. The backend API appears to be working correctly based on the logs, but the frontend cannot connect to it due to these compilation errors."
 
 # Protocol Guidelines for Main agent
 #
