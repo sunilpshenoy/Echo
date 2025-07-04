@@ -1620,14 +1620,15 @@ metadata:
 
 test_plan:
   current_focus:
-    - "User Authentication UI"
-    - "Genie Assistant Feature"
-    - "Real-time Chat Interface"
-    - "Chat Sidebar and Navigation"
-    - "Modern UI Design"
-    - "Contact Management"
-  stuck_tasks:
-    - "Contact Management"
+    - "Trust Levels Configuration"
+    - "Trust Progress Tracking"
+    - "Trust Level Up"
+    - "Trust Features"
+    - "Trust Achievements"
+    - "Interaction Recording"
+    - "Trust Metrics Calculation"
+    - "Trust Requirements Checking"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
