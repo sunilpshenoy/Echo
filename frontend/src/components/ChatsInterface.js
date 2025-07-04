@@ -236,6 +236,10 @@ const ChatsInterface = ({
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
+  // Double-tap protection state
+  const [doubleTapState, setDoubleTapState] = useState({});
+  const doubleTapTimeoutRef = useRef({});
+
   // WebSocket connection setup
   useEffect(() => {
     if (user && token) {
