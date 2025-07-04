@@ -66,6 +66,8 @@ agent_communication:
       message: "Completed thorough testing of the real-time chat system. All WebSocket connections, message broadcasting, chat creation, message history retrieval, and file sharing functionality are working correctly. Created a dedicated test script (realtime_chat_test.py) that verifies all aspects of the real-time messaging system."
     - agent: "testing"
       message: "Attempted to test the frontend application but encountered critical issues. The frontend is not functioning properly - users cannot log in or register. The frontend logs show compilation errors related to the TrustSystem component. The error is: 'Module not found: Error: Can't resolve './TrustSystem' in '/app/frontend/src/components''. This is preventing the application from loading properly. The backend API appears to be working correctly based on the logs, but the frontend cannot connect to it due to these compilation errors."
+    - agent: "testing"
+      message: "Tested the application after the TrustSystem component fix. The login functionality is now working, but users are redirected to the profile setup page. The profile setup flow has issues - the Next button is disabled on step 2 even after filling in all fields, preventing users from completing the setup and accessing the dashboard. Attempted to bypass the profile setup by directly navigating to the dashboard URL, but this also failed. The application is partially working (login works) but users cannot access the main dashboard due to the broken profile setup flow."
 
 # Protocol Guidelines for Main agent
 #
