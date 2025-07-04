@@ -791,33 +791,94 @@ const ChatsInterface = ({
         ) : chats && chats.length > 0 ? (
           <div className="divide-y divide-gray-100">
             {chats.map(chat => (
-              <button
+              <div
                 key={chat.chat_id}
-                onClick={() => handleContactTap(chat)}
-                className="w-full p-4 text-left hover:bg-gray-50 transition-colors"
+                className="p-4 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center relative">
-                    <span className="text-white font-medium text-lg">
-                      {(chat.other_user?.display_name || chat.other_user?.username || chat.name || 'Unknown')?.[0]?.toUpperCase() || 'U'}
-                    </span>
-                    {onlineUsers.has(chat.other_user?.user_id) && (
-                      <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">
-                      {chat.other_user?.display_name || chat.other_user?.username || chat.name || 'Unknown Contact'}
-                    </p>
-                    <p className="text-sm text-gray-600 truncate">
-                      {chat.last_message?.content || 'No messages yet'}
-                    </p>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {chat.last_message?.created_at && formatTime(chat.last_message.created_at)}
+                  {/* Contact Avatar and Info */}
+                  <button
+                    onClick={() => handleContactTap(chat)}
+                    className="flex items-center space-x-3 flex-1 text-left"
+                  >
+                    <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center relative">
+                      <span className="text-white font-medium text-lg">
+                        {(chat.other_user?.display_name || chat.other_user?.username || chat.name || 'Unknown')?.[0]?.toUpperCase() || 'U'}
+                      </span>
+                      {onlineUsers.has(chat.other_user?.user_id) && (
+                        <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 truncate">
+                        {chat.other_user?.display_name || chat.other_user?.username || chat.name || 'Unknown Contact'}
+                      </p>
+                      <p className="text-sm text-gray-600 truncate">
+                        {chat.last_message?.content || 'No messages yet'}
+                      </p>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {chat.last_message?.created_at && formatTime(chat.last_message.created_at)}
+                    </div>
+                  </button>
+
+                  {/* Action Buttons with Double-Tap Protection */}
+                  <div className="flex items-center space-x-1">
+                    {/* Voice Call Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDoubleTapAction('voice', chat.chat_id, () => handleVoiceCall(chat));
+                      }}
+                      className={`p-2 rounded-lg transition-all ${
+                        doubleTapState[`voice_${chat.chat_id}`]
+                          ? 'bg-green-100 text-green-600 animate-pulse'
+                          : 'text-gray-500 hover:text-green-600 hover:bg-gray-100'
+                      }`}
+                      title={doubleTapState[`voice_${chat.chat_id}`] ? 'Tap again to call' : 'Voice call (double-tap)'}
+                    >
+                      📞
+                    </button>
+
+                    {/* Video Call Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDoubleTapAction('video', chat.chat_id, () => handleVideoCall(chat));
+                      }}
+                      className={`p-2 rounded-lg transition-all ${
+                        doubleTapState[`video_${chat.chat_id}`]
+                          ? 'bg-blue-100 text-blue-600 animate-pulse'
+                          : 'text-gray-500 hover:text-blue-600 hover:bg-gray-100'
+                      }`}
+                      title={doubleTapState[`video_${chat.chat_id}`] ? 'Tap again to video call' : 'Video call (double-tap)'}
+                    >
+                      📹
+                    </button>
+
+                    {/* File Share Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDoubleTapAction('file', chat.chat_id, () => {
+                          setActiveContact(chat);
+                          setViewMode('chat');
+                          onSelectChat(chat);
+                          setTimeout(() => handleFileShare(), 100);
+                        });
+                      }}
+                      className={`p-2 rounded-lg transition-all ${
+                        doubleTapState[`file_${chat.chat_id}`]
+                          ? 'bg-purple-100 text-purple-600 animate-pulse'
+                          : 'text-gray-500 hover:text-purple-600 hover:bg-gray-100'
+                      }`}
+                      title={doubleTapState[`file_${chat.chat_id}`] ? 'Tap again to share file' : 'Share file (double-tap)'}
+                    >
+                      📎
+                    </button>
                   </div>
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         ) : (
