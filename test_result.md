@@ -322,6 +322,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Message storage and retrieval is working correctly. Successfully sent messages to both direct and group chats, and retrieved message history with proper metadata. Real-time message broadcasting via WebSockets is also working."
+      - working: true
+        agent: "testing"
+        comment: "Additional testing of the message storage and retrieval system confirms all functionality is working correctly. Successfully tested sending messages to both direct and group chats, retrieving message history, and file sharing in messages. The system correctly stores message metadata, handles encryption, and supports real-time updates. All tests passed with no issues.
         
   - task: "File Upload API"
     implemented: true
@@ -678,6 +681,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Message storage and retrieval is working correctly. Successfully sent messages to both direct and group chats, and retrieved message history with proper metadata. Real-time message broadcasting via WebSockets is also working."
+      - working: true
+        agent: "testing"
+        comment: "Additional testing of the message storage and retrieval system confirms all functionality is working correctly. Successfully tested sending messages to both direct and group chats, retrieving message history, and file sharing in messages. The system correctly stores message metadata, handles encryption, and supports real-time updates. All tests passed with no issues.
         
   - task: "File Upload API"
     implemented: true
