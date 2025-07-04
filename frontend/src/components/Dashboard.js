@@ -277,12 +277,11 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
             {[
               { id: 'chats', label: 'Chats', icon: '💬', description: 'Direct messages' },
               { id: 'teams', label: 'Teams', icon: '👥', description: 'Groups & workspaces' },
-              { id: 'trust', label: 'Trust', icon: '🔒', description: 'Trust progress' },
               { 
                 id: 'discover', 
                 label: 'Discover', 
                 icon: '⭐', 
-                description: 'Meet new people',
+                description: 'Find new people safely',
                 premium: true 
               }
             ].map(tab => (
