@@ -2244,19 +2244,47 @@ async def respond_to_connection_request(request_id: str, response_data: dict, cu
 
 @api_router.get("/users/qr-code")
 async def get_user_qr_code(current_user = Depends(get_current_user)):
-    """Generate QR code for user's connection PIN"""
+    """Generate enhanced QR code for user's connection PIN"""
     connection_pin = current_user.get("connection_pin")
     if not connection_pin:
-        # Generate PIN if doesn't exist
-        connection_pin = f"PIN-{str(uuid.uuid4())[:6].upper()}"
+        # Generate smart PIN based on user data
+        name = current_user.get("display_name") or current_user.get("username", "USER")
+        name_part = ''.join(c.upper() for c in name if c.isalpha())[:3]
+        
+        # Fill with random letters if needed
+        while len(name_part) < 3:
+            name_part += secrets.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        
+        # Add 3 random numbers
+        number_part = ''.join(secrets.choice("0123456789") for _ in range(3))
+        connection_pin = f"PIN-{name_part}{number_part}"
+        
+        # Ensure PIN is unique
+        while await db.users.find_one({"connection_pin": connection_pin}):
+            number_part = ''.join(secrets.choice("0123456789") for _ in range(3))
+            connection_pin = f"PIN-{name_part}{number_part}"
+        
         await db.users.update_one(
             {"user_id": current_user["user_id"]},
-            {"$set": {"connection_pin": connection_pin}}
+            {"$set": {"connection_pin": connection_pin, "pin_updated_at": datetime.utcnow()}}
         )
     
-    # Generate QR code
-    qr = qrcode.QRCode(version=1, box_size=10, border=5)
-    qr.add_data(connection_pin)
+    # Generate enhanced QR code with metadata
+    qr_data = {
+        "type": "authentic_connection",
+        "pin": connection_pin,
+        "display_name": current_user.get("display_name"),
+        "timestamp": datetime.utcnow().isoformat(),
+        "app_version": "1.0"
+    }
+    
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(json.dumps(qr_data))
     qr.make(fit=True)
     
     qr_img = qr.make_image(fill_color="black", back_color="white")
@@ -2268,8 +2296,168 @@ async def get_user_qr_code(current_user = Depends(get_current_user)):
     
     return {
         "connection_pin": connection_pin,
-        "qr_code": f"data:image/png;base64,{qr_code_base64}"
+        "qr_code": f"data:image/png;base64,{qr_code_base64}",
+        "display_name": current_user.get("display_name"),
+        "invite_link": f"https://authentic-connections.app/connect?pin={connection_pin}",
+        "qr_format": "enhanced"
     }
+
+# Enhanced PIN Management Endpoints
+
+@api_router.post("/pin/regenerate")
+async def regenerate_user_pin(current_user = Depends(get_current_user)):
+    """Regenerate user's connection PIN"""
+    try:
+        # Generate smart PIN based on user data
+        name = current_user.get("display_name") or current_user.get("username", "USER")
+        name_part = ''.join(c.upper() for c in name if c.isalpha())[:3]
+        
+        # Fill with random letters if needed
+        while len(name_part) < 3:
+            name_part += secrets.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        
+        # Add 3 random numbers
+        number_part = ''.join(secrets.choice("0123456789") for _ in range(3))
+        new_pin = f"PIN-{name_part}{number_part}"
+        
+        # Ensure PIN is unique
+        while await db.users.find_one({"connection_pin": new_pin}):
+            number_part = ''.join(secrets.choice("0123456789") for _ in range(3))
+            new_pin = f"PIN-{name_part}{number_part}"
+        
+        await db.users.update_one(
+            {"user_id": current_user["user_id"]},
+            {"$set": {
+                "connection_pin": new_pin, 
+                "pin_updated_at": datetime.utcnow()
+            }}
+        )
+        
+        return {
+            "connection_pin": new_pin,
+            "message": "PIN regenerated successfully"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to regenerate PIN")
+
+@api_router.post("/connections/search")
+async def search_users(search_data: dict, current_user = Depends(get_current_user)):
+    """Enhanced user search with multiple criteria"""
+    search_query = search_data.get("query", "").strip()
+    
+    if not search_query:
+        raise HTTPException(status_code=400, detail="Search query required")
+    
+    if len(search_query) < 2:
+        raise HTTPException(status_code=400, detail="Search query too short")
+    
+    try:
+        search_results = []
+        
+        # Search by PIN
+        if search_query.startswith("PIN-"):
+            # Validate PIN format
+            pin_code = search_query[4:]  # Remove "PIN-" prefix
+            if len(pin_code) == 6 and pin_code.isalnum():
+                user = await db.users.find_one({"connection_pin": search_query})
+                if user and user["user_id"] != current_user["user_id"]:
+                    search_results.append({
+                        "user_id": user["user_id"],
+                        "display_name": user.get("display_name"),
+                        "username": user["username"],
+                        "avatar": user.get("avatar"),
+                        "authenticity_rating": user.get("authenticity_rating", 0),
+                        "search_type": "pin"
+                    })
+        
+        # Search by email
+        elif "@" in search_query:
+            user = await db.users.find_one({"email": search_query})
+            if user and user["user_id"] != current_user["user_id"]:
+                search_results.append({
+                    "user_id": user["user_id"],
+                    "display_name": user.get("display_name"),
+                    "username": user["username"],
+                    "avatar": user.get("avatar"),
+                    "authenticity_rating": user.get("authenticity_rating", 0),
+                    "search_type": "email"
+                })
+        
+        # Search by username or display name
+        else:
+            users = await db.users.find({
+                "$and": [
+                    {"user_id": {"$ne": current_user["user_id"]}},
+                    {"$or": [
+                        {"username": {"$regex": search_query, "$options": "i"}},
+                        {"display_name": {"$regex": search_query, "$options": "i"}}
+                    ]}
+                ]
+            }).limit(10).to_list(10)
+            
+            for user in users:
+                search_results.append({
+                    "user_id": user["user_id"],
+                    "display_name": user.get("display_name"),
+                    "username": user["username"],
+                    "avatar": user.get("avatar"),
+                    "authenticity_rating": user.get("authenticity_rating", 0),
+                    "search_type": "name"
+                })
+        
+        return {
+            "results": search_results,
+            "total": len(search_results),
+            "query": search_query
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Search failed")
+
+@api_router.get("/connections/statistics")
+async def get_connection_stats(current_user = Depends(get_current_user)):
+    """Get connection statistics for user"""
+    try:
+        stats = {}
+        
+        # Total connections
+        stats["total_connections"] = await db.connections.count_documents({
+            "$or": [
+                {"user_id": current_user["user_id"]},
+                {"connected_user_id": current_user["user_id"]}
+            ],
+            "status": "connected"
+        })
+        
+        # Pending requests (sent)
+        stats["pending_sent"] = await db.connection_requests.count_documents({
+            "sender_id": current_user["user_id"],
+            "status": "pending"
+        })
+        
+        # Pending requests (received)
+        stats["pending_received"] = await db.connection_requests.count_documents({
+            "receiver_id": current_user["user_id"],
+            "status": "pending"
+        })
+        
+        # Recent connections (last 7 days)
+        week_ago = datetime.utcnow() - timedelta(days=7)
+        stats["recent_connections"] = await db.connections.count_documents({
+            "$or": [
+                {"user_id": current_user["user_id"]},
+                {"connected_user_id": current_user["user_id"]}
+            ],
+            "status": "connected",
+            "created_at": {"$gte": week_ago}
+        })
+        
+        return stats
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to get statistics")
 
 @api_router.put("/connections/{connection_id}/trust-level")
 async def update_trust_level(connection_id: str, trust_data: dict, current_user = Depends(get_current_user)):
