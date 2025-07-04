@@ -2,6 +2,206 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import QRCode from 'react-qr-code';
 
+const ConnectionManager = ({ user, token, api, onConnectionUpdate }) => {
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [qrCodeData, setQrCodeData] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [connectionMessage, setConnectionMessage] = useState('');
+
+  const getQRCode = async () => {
+    try {
+      const response = await axios.get(`${api}/users/qr-code`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setQrCodeData(response.data);
+    } catch (error) {
+      console.error('Failed to get QR code:', error);
+    }
+  };
+
+  const sharePin = async () => {
+    if (!qrCodeData) return;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Connect with me',
+          text: `Use my PIN: ${qrCodeData.connection_pin}`,
+        });
+      } catch (error) {
+        fallbackShare();
+      }
+    } else {
+      fallbackShare();
+    }
+  };
+
+  const fallbackShare = () => {
+    if (!qrCodeData) return;
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(qrCodeData.connection_pin)
+        .then(() => alert('PIN copied to clipboard! 📋'))
+        .catch(() => alert(`Your PIN: ${qrCodeData.connection_pin}`));
+    } else {
+      alert(`Your PIN: ${qrCodeData.connection_pin}`);
+    }
+  };
+
+  const sendConnectionRequest = async () => {
+    if (!searchQuery.trim()) {
+      alert('Please enter a PIN');
+      return;
+    }
+    
+    try {
+      await axios.post(`${api}/connections/request-by-pin`, {
+        connection_pin: searchQuery,
+        message: connectionMessage
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      alert('Connection request sent! 🎉');
+      setSearchQuery('');
+      setConnectionMessage('');
+      setShowSearchModal(false);
+      
+      if (onConnectionUpdate) {
+        onConnectionUpdate();
+      }
+    } catch (error) {
+      console.error('Failed to send connection request:', error);
+      alert(error.response?.data?.detail || 'Failed to send connection request');
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex space-x-2">
+        <button 
+          onClick={() => {
+            setShowPinModal(true);
+            getQRCode();
+          }}
+          className="flex-1 bg-green-500 text-white p-2 rounded-lg hover:bg-green-600 text-sm"
+        >
+          📤 Share PIN
+        </button>
+        
+        <button 
+          onClick={() => setShowSearchModal(true)}
+          className="flex-1 bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 text-sm"
+        >
+          🔍 Find People
+        </button>
+      </div>
+
+      {/* Share PIN Modal */}
+      {showPinModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-gray-900">Share My PIN</h2>
+              <button
+                onClick={() => setShowPinModal(false)}
+                className="text-gray-500 hover:text-gray-700 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {qrCodeData ? (
+              <div className="text-center">
+                <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                  <QRCode 
+                    value={qrCodeData.connection_pin} 
+                    size={120}
+                    className="mx-auto mb-3"
+                  />
+                  <p className="text-lg font-mono font-bold text-gray-900">
+                    {qrCodeData.connection_pin}
+                  </p>
+                </div>
+                
+                <p className="text-sm text-gray-600 mb-4">
+                  Share this PIN with people you want to connect with
+                </p>
+                
+                <button
+                  onClick={sharePin}
+                  className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+                >
+                  Share PIN
+                </button>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                <p className="text-gray-600">Loading...</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Search Modal */}
+      {showSearchModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-gray-900">Add Contact</h2>
+              <button
+                onClick={() => setShowSearchModal(false)}
+                className="text-gray-500 hover:text-gray-700 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Enter Connection PIN
+                </label>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="PIN-ABC123"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Message (Optional)
+                </label>
+                <textarea
+                  value={connectionMessage}
+                  onChange={(e) => setConnectionMessage(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="Hi! I'd like to connect..."
+                  rows={2}
+                />
+              </div>
+              
+              <button
+                onClick={sendConnectionRequest}
+                disabled={!searchQuery.trim()}
+                className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50"
+              >
+                Send Connection Request
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ChatsInterface = ({ 
   user, 
   token, 
