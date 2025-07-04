@@ -223,28 +223,28 @@ const DiscoverInterface = ({
                 {isLoadingAuthenticity ? '↻' : '🔄'}
               </button>
             </div>
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg">
-              <div className="flex items-center space-x-3 mb-2">
-                <div className="w-12 h-12 bg-trust-gradient rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-10 h-10 bg-trust-gradient rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">
                     {(user?.authenticity_rating || 0).toFixed(1)}
                   </span>
                 </div>
-                <div>
-                  <p className="font-medium text-gray-900">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 text-sm">
                     {(user?.authenticity_rating || 0) < 3 ? 'Getting Started' :
                      (user?.authenticity_rating || 0) < 6 ? 'Building Trust' :
                      (user?.authenticity_rating || 0) < 8 ? 'Trusted Member' :
                      'Highly Authentic'}
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs text-gray-600">
                     {(user?.authenticity_rating || 0).toFixed(1)} / 10.0
                   </p>
                 </div>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-200 rounded-full h-1.5">
                 <div 
-                  className="bg-trust-gradient h-2 rounded-full transition-all"
+                  className="bg-trust-gradient h-1.5 rounded-full transition-all"
                   style={{ width: `${((user?.authenticity_rating || 0) / 10) * 100}%` }}
                 ></div>
               </div>
