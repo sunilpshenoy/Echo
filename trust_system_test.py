@@ -142,7 +142,7 @@ def test_create_connections():
     # User2 connects to User1 using PIN
     headers2 = {"Authorization": f"Bearer {user_tokens['user2']}"}
     connection_data = {
-        "pin": user1_pin,
+        "target_pin": user1_pin,
         "message": "Hello from User2, connecting via PIN"
     }
     
