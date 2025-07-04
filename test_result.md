@@ -1794,6 +1794,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Contact Name Display Fix"
     - "Trust Levels Configuration"
     - "Trust Progress Tracking"
     - "Trust Level Up"
