@@ -85,7 +85,7 @@ const ProfileSetup = ({ user, token, api, onProfileComplete }) => {
       case 1:
         return profileData.age && profileData.gender && profileData.location;
       case 2:
-        return profileData.current_mood && profileData.seeking_type && profileData.connection_purpose;
+        return profileData.seeking_type && profileData.connection_purpose;
       case 3:
         return profileData.bio.trim().length > 0;
       default:
