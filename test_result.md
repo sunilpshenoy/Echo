@@ -1079,6 +1079,21 @@ backend:
         comment: "Successfully verified the trust requirements checking. The system correctly checks if a user meets the requirements for the next trust level before allowing level up. Requirements include minimum number of connections, days active, interactions, and video calls depending on the level."
 
 frontend:
+  - task: "Contact Name Display Fix"
+    implemented: true
+    working: true
+    file: "src/components/ChatsInterface.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed contact name display in ChatsInterface.js to properly show display_name instead of 'Unknown Contact'"
+      - working: true
+        agent: "testing"
+        comment: "Successfully verified the contact name display fix in the Chats tab. The contact now correctly displays as 'Alice Johnson' instead of 'Unknown Contact'. The login functionality is working properly, and the Chats tab shows the contact with the proper display name. No JavaScript errors were detected during testing."
+
   - task: "Frontend Bug Fixes - PIN Sharing & Button Functionality"
     implemented: true
     working: true
