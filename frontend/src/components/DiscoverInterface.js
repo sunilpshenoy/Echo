@@ -66,6 +66,78 @@ const DiscoverInterface = ({
             First 50 searches included • Cancel anytime
           </p>
         </div>
+        
+        {/* Upgrade Modal */}
+        {showUpgrade && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Upgrade to Premium</h2>
+                <button
+                  onClick={() => {
+                    console.log('Closing upgrade modal');
+                    setShowUpgrade(false);
+                  }}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-4xl mb-4">⭐</div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Unlock Authentic Connections
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Get access to AI-powered matching and progressive trust building
+                </p>
+                
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg mb-6">
+                  <div className="text-2xl font-bold text-purple-600 mb-1">$9.99/month</div>
+                  <p className="text-sm text-purple-700">First 50 searches included</p>
+                </div>
+                
+                <div className="space-y-3">
+                  <button 
+                    onClick={() => {
+                      // TODO: Implement payment processing
+                      alert('Payment processing will be implemented soon! 💳');
+                      setShowUpgrade(false);
+                    }}
+                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700"
+                  >
+                    Start Premium Subscription
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Enable demo premium mode for testing
+                      if (window.confirm('Enable Premium Demo Mode? This is for testing purposes only.')) {
+                        localStorage.setItem('demo_premium', 'true');
+                        setShowUpgrade(false);
+                        // Trigger a state update instead of page reload
+                        window.dispatchEvent(new Event('storage'));
+                      }
+                    }}
+                    className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-2 rounded-lg font-medium hover:from-yellow-600 hover:to-orange-600"
+                  >
+                    🚀 Enable Demo Mode (Testing)
+                  </button>
+                  <button
+                    onClick={() => setShowUpgrade(false)}
+                    className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200"
+                  >
+                    Maybe Later
+                  </button>
+                </div>
+                
+                <p className="text-xs text-gray-500 mt-4">
+                  Cancel anytime • No hidden fees
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -85,7 +157,7 @@ const DiscoverInterface = ({
                 onClick={() => {
                   if (window.confirm('Disable Demo Premium Mode?')) {
                     localStorage.removeItem('demo_premium');
-                    window.location.reload();
+                    window.dispatchEvent(new Event('storage'));
                   }
                 }}
                 className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-medium hover:bg-yellow-200"
@@ -259,76 +331,6 @@ const DiscoverInterface = ({
           </div>
         </div>
       </div>
-
-      {/* Upgrade Modal */}
-      {showUpgrade && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Upgrade to Premium</h2>
-              <button
-                onClick={() => {
-                  console.log('Closing upgrade modal');
-                  setShowUpgrade(false);
-                }}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <div className="text-center">
-              <div className="text-4xl mb-4">⭐</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Unlock Authentic Connections
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Get access to AI-powered matching and progressive trust building
-              </p>
-              
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg mb-6">
-                <div className="text-2xl font-bold text-purple-600 mb-1">$9.99/month</div>
-                <p className="text-sm text-purple-700">First 50 searches included</p>
-              </div>
-              
-              <div className="space-y-3">
-                <button 
-                  onClick={() => {
-                    // TODO: Implement payment processing
-                    alert('Payment processing will be implemented soon! 💳');
-                    setShowUpgrade(false);
-                  }}
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700"
-                >
-                  Start Premium Subscription
-                </button>
-                <button
-                  onClick={() => {
-                    // Enable demo premium mode for testing
-                    if (window.confirm('Enable Premium Demo Mode? This is for testing purposes only.')) {
-                      localStorage.setItem('demo_premium', 'true');
-                      window.location.reload(); // Reload to apply premium state
-                    }
-                  }}
-                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-2 rounded-lg font-medium hover:from-yellow-600 hover:to-orange-600"
-                >
-                  🚀 Enable Demo Mode (Testing)
-                </button>
-                <button
-                  onClick={() => setShowUpgrade(false)}
-                  className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200"
-                >
-                  Maybe Later
-                </button>
-              </div>
-              
-              <p className="text-xs text-gray-500 mt-4">
-                Cancel anytime • No hidden fees
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
