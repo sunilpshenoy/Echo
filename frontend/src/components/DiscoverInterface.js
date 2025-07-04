@@ -254,10 +254,10 @@ const DiscoverInterface = ({
           {/* Discovery Filters */}
           <div>
             <h3 className="font-medium text-gray-900 mb-3">Discovery Preferences</h3>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Age Range</label>
-                <select className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2">
+                <label className="block text-xs text-gray-600 mb-1">Age Range</label>
+                <select className="w-full text-xs border border-gray-300 rounded-lg px-2 py-1">
                   <option>18-25</option>
                   <option>26-35</option>
                   <option>36-45</option>
@@ -265,8 +265,8 @@ const DiscoverInterface = ({
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Location</label>
-                <select className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2">
+                <label className="block text-xs text-gray-600 mb-1">Location</label>
+                <select className="w-full text-xs border border-gray-300 rounded-lg px-2 py-1">
                   <option>Within 10 miles</option>
                   <option>Within 25 miles</option>
                   <option>Within 50 miles</option>
@@ -274,8 +274,8 @@ const DiscoverInterface = ({
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Connection Type</label>
-                <select className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2">
+                <label className="block text-xs text-gray-600 mb-1">Connection Type</label>
+                <select className="w-full text-xs border border-gray-300 rounded-lg px-2 py-1">
                   <option>Friendship</option>
                   <option>Romantic</option>
                   <option>Professional</option>
