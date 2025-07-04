@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import TrustSystem from './TrustSystem';
 
 const DiscoverInterface = ({ 
   user, 
@@ -12,34 +14,31 @@ const DiscoverInterface = ({
   fetchConnections
 }) => {
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [activeDiscoverTab, setActiveDiscoverTab] = useState('discovery');
 
   if (!isPremium) {
     return (
       <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 p-4">
         <div className="text-center max-w-sm mx-auto">
-          <div className="text-4xl mb-4">⭐</div>
+          <div className="text-4xl mb-4">🔒</div>
           <h2 className="text-xl font-bold text-gray-900 mb-3">
-            Discover Authentic Connections
+            Safely Discover New Friends
           </h2>
           <p className="text-sm text-gray-600 mb-4">
-            Unlock AI-powered compatibility matching and progressive trust building 
-            to find genuine, meaningful relationships.
+            Our 5-Layer Trust System helps you discover new people safely, 
+            building authentic connections with strangers through verified progression.
           </p>
           
           <div className="bg-white rounded-xl p-4 shadow-lg border mb-4">
-            <h3 className="font-semibold text-gray-900 mb-3 text-sm">Premium Features:</h3>
+            <h3 className="font-semibold text-gray-900 mb-3 text-sm">Safe Discovery Features:</h3>
             <div className="space-y-2 text-left">
-              <div className="flex items-center space-x-2">
-                <span className="text-green-500 text-sm">✓</span>
-                <span className="text-xs text-gray-700">AI Compatibility Matching</span>
-              </div>
               <div className="flex items-center space-x-2">
                 <span className="text-green-500 text-sm">✓</span>
                 <span className="text-xs text-gray-700">5-Layer Trust Progression</span>
               </div>
               <div className="flex items-center space-x-2">
                 <span className="text-green-500 text-sm">✓</span>
-                <span className="text-xs text-gray-700">Advanced Authenticity Ratings</span>
+                <span className="text-xs text-gray-700">AI Compatibility Matching</span>
               </div>
               <div className="flex items-center space-x-2">
                 <span className="text-green-500 text-sm">✓</span>
@@ -47,7 +46,11 @@ const DiscoverInterface = ({
               </div>
               <div className="flex items-center space-x-2">
                 <span className="text-green-500 text-sm">✓</span>
-                <span className="text-xs text-gray-700">Voice & Video Call Progression</span>
+                <span className="text-xs text-gray-700">Verified User Matching</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-green-500 text-sm">✓</span>
+                <span className="text-xs text-gray-700">Safe Meetup Planning</span>
               </div>
             </div>
           </div>
@@ -59,11 +62,11 @@ const DiscoverInterface = ({
             }}
             className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-105"
           >
-            Upgrade to Premium
+            Upgrade for Safe Discovery
           </button>
           
           <p className="text-xs text-gray-500 mt-3">
-            First 50 searches included • Cancel anytime
+            Meet new people safely • Cancel anytime
           </p>
         </div>
         
@@ -72,7 +75,7 @@ const DiscoverInterface = ({
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 relative">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold text-gray-900">Upgrade to Premium</h2>
+                <h2 className="text-lg font-bold text-gray-900">Safe Discovery Premium</h2>
                 <button
                   onClick={() => {
                     console.log('Closing upgrade modal');
@@ -85,17 +88,17 @@ const DiscoverInterface = ({
               </div>
               
               <div className="text-center">
-                <div className="text-3xl mb-3">⭐</div>
+                <div className="text-3xl mb-3">🔒</div>
                 <h3 className="text-base font-semibold text-gray-900 mb-2">
-                  Unlock Authentic Connections
+                  Discover New Friends Safely
                 </h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  Get access to AI-powered matching and progressive trust building
+                  Get access to our 5-Layer Trust System for meeting new people with confidence
                 </p>
                 
                 <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-3 rounded-lg mb-4">
                   <div className="text-xl font-bold text-purple-600 mb-1">$9.99/month</div>
-                  <p className="text-xs text-purple-700">First 50 searches included</p>
+                  <p className="text-xs text-purple-700">Safe discovery with trust verification</p>
                 </div>
                 
                 <div className="space-y-2">
@@ -107,7 +110,7 @@ const DiscoverInterface = ({
                     }}
                     className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:from-purple-700 hover:to-blue-700"
                   >
-                    Start Premium Subscription
+                    Start Safe Discovery
                   </button>
                   <button
                     onClick={() => {
@@ -144,12 +147,12 @@ const DiscoverInterface = ({
 
   return (
     <div className="flex-1 flex flex-col bg-gray-50">
-      {/* Header with Demo Mode */}
+      {/* Header with Demo Mode and Navigation */}
       <div className="bg-white border-b border-gray-200 p-3">
         <div className="flex items-center justify-between mb-2">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Discover</h2>
-            <p className="text-sm text-gray-600">Find authentic connections</p>
+            <h2 className="text-lg font-semibold text-gray-900">Discover New Friends</h2>
+            <p className="text-sm text-gray-600">Find authentic connections safely</p>
           </div>
         </div>
         {localStorage.getItem('demo_premium') === 'true' && (
@@ -166,166 +169,117 @@ const DiscoverInterface = ({
             🚀 Demo Mode • Click to Disable
           </button>
         )}
-      </div>
 
-      {/* Main Content - Single Column for Mobile */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {/* AI Discovery Section */}
-        <div className="bg-white rounded-xl p-4 shadow-sm border mb-4">
-          <div className="text-center mb-4">
-            <h2 className="text-lg font-bold text-gray-900 mb-2">
-              AI-Powered Discovery
-            </h2>
-            <p className="text-sm text-gray-600">
-              Find people who share your values and interests through authentic compatibility
-            </p>
-          </div>
-
-          <div className="bg-gray-50 rounded-lg p-3 mb-4">
-            <h3 className="font-semibold text-gray-900 mb-2 text-sm">🧠 How AI Matching Works</h3>
-            <div className="space-y-2 text-xs text-gray-700">
-              <div className="flex items-start space-x-2">
-                <span className="text-blue-500 mt-0.5 font-medium min-w-[12px]">1.</span>
-                <span>Analyze your profile, interests, values, and connection preferences</span>
-              </div>
-              <div className="flex items-start space-x-2">
-                <span className="text-blue-500 mt-0.5 font-medium min-w-[12px]">2.</span>
-                <span>Calculate compatibility scores based on personality and goals</span>
-              </div>
-              <div className="flex items-start space-x-2">
-                <span className="text-blue-500 mt-0.5 font-medium min-w-[12px]">3.</span>
-                <span>Present anonymous profiles with high compatibility potential</span>
-              </div>
-              <div className="flex items-start space-x-2">
-                <span className="text-blue-500 mt-0.5 font-medium min-w-[12px]">4.</span>
-                <span>Facilitate progressive trust building through structured stages</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="text-center">
-            <button className="bg-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-blue-600 transition-colors">
-              Start AI Discovery
-            </button>
-            <p className="text-xs text-gray-500 mt-2">
-              Your next authentic connection awaits
-            </p>
-          </div>
-        </div>
-
-        {/* Trust Level Progress */}
-        <div className="bg-white rounded-xl p-4 shadow-sm border mb-4">
-          <h3 className="font-medium text-gray-900 mb-3">Your Trust Journey</h3>
-          <div className="space-y-2">
-            {[
-              { level: 1, title: "Anonymous Discovery", icon: "🔍" },
-              { level: 2, title: "Text Chat", icon: "💬" },
-              { level: 3, title: "Voice Call", icon: "🎙️" },
-              { level: 4, title: "Video Call", icon: "📹" },
-              { level: 5, title: "In-Person Meetup", icon: "🤝" }
-            ].map(stage => (
-              <div 
-                key={stage.level}
-                className={`flex items-center space-x-3 p-2 rounded-lg text-sm ${
-                  (user?.trust_level || 1) >= stage.level 
-                    ? 'bg-green-50 border border-green-200' 
-                    : 'bg-gray-50 border border-gray-200'
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
-                  (user?.trust_level || 1) >= stage.level 
-                    ? 'bg-green-100' 
-                    : 'bg-gray-100'
-                }`}>
-                  {(user?.trust_level || 1) >= stage.level ? '✓' : stage.icon}
-                </div>
-                <div className="flex-1">
-                  <p className={`font-medium text-sm ${
-                    (user?.trust_level || 1) >= stage.level ? 'text-green-700' : 'text-gray-600'
-                  }`}>
-                    {stage.title}
-                  </p>
-                  <p className="text-xs text-gray-500">Level {stage.level}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Authenticity Rating */}
-        <div className="bg-white rounded-xl p-4 shadow-sm border mb-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-medium text-gray-900">Authenticity Rating</h3>
+        {/* Discovery Sub-Tabs */}
+        <div className="flex mt-3 border-b">
+          {[
+            { id: 'discovery', label: 'Find People', icon: '🔍' },
+            { id: 'trust', label: 'Safety System', icon: '🔒' }
+          ].map(tab => (
             <button
-              onClick={fetchAuthenticityDetails}
-              disabled={isLoadingAuthenticity}
-              className="text-blue-600 hover:text-blue-800 text-sm"
+              key={tab.id}
+              onClick={() => setActiveDiscoverTab(tab.id)}
+              className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium border-b-2 transition-all ${
+                activeDiscoverTab === tab.id
+                  ? 'border-blue-500 text-blue-600 bg-blue-50'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }`}
             >
-              {isLoadingAuthenticity ? '↻' : '🔄'}
+              <span className="text-base">{tab.icon}</span>
+              <span>{tab.label}</span>
             </button>
-          </div>
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg">
-            <div className="flex items-center space-x-3 mb-2">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">
-                  {(user?.authenticity_rating || 0).toFixed(1)}
-                </span>
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-gray-900 text-sm">
-                  {(user?.authenticity_rating || 0) < 3 ? 'Getting Started' :
-                   (user?.authenticity_rating || 0) < 6 ? 'Building Trust' :
-                   (user?.authenticity_rating || 0) < 8 ? 'Trusted Member' :
-                   'Highly Authentic'}
-                </p>
-                <p className="text-xs text-gray-600">
-                  {(user?.authenticity_rating || 0).toFixed(1)} / 10.0
-                </p>
-              </div>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
-                style={{ width: `${((user?.authenticity_rating || 0) / 10) * 100}%` }}
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Discovery Preferences */}
-        <div className="bg-white rounded-xl p-4 shadow-sm border">
-          <h3 className="font-medium text-gray-900 mb-3">Discovery Preferences</h3>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">Age Range</label>
-              <select className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2">
-                <option>18-25</option>
-                <option>26-35</option>
-                <option>36-45</option>
-                <option>46+</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">Location</label>
-              <select className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2">
-                <option>Within 10 miles</option>
-                <option>Within 25 miles</option>
-                <option>Within 50 miles</option>
-                <option>Anywhere</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">Connection Type</label>
-              <select className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2">
-                <option>Friendship</option>
-                <option>Romantic</option>
-                <option>Professional</option>
-                <option>Any</option>
-              </select>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
+
+      {/* Content based on active sub-tab */}
+      {activeDiscoverTab === 'discovery' && (
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="max-w-2xl mx-auto">
+            <div className="text-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-2">
+                AI-Powered Safe Discovery
+              </h2>
+              <p className="text-sm text-gray-600">
+                Find new friends through our trust-based matching system
+              </p>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 shadow-sm border mb-4">
+              <h3 className="font-semibold text-gray-900 mb-3 text-sm">🔒 How Safe Discovery Works</h3>
+              <div className="space-y-2 text-xs text-gray-700">
+                <div className="flex items-start space-x-2">
+                  <span className="text-blue-500 mt-0.5 font-medium min-w-[12px]">1.</span>
+                  <span>Anonymous matching based on interests and values (no personal info shared)</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-blue-500 mt-0.5 font-medium min-w-[12px]">2.</span>
+                  <span>Start with text chat only - no calls or meetups until trust builds</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-blue-500 mt-0.5 font-medium min-w-[12px]">3.</span>
+                  <span>Gradual progression through 5 trust levels as you get to know each other</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-blue-500 mt-0.5 font-medium min-w-[12px]">4.</span>
+                  <span>Only meet in person after building trust through conversations and calls</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 shadow-sm border mb-4">
+              <h3 className="font-semibold text-gray-900 mb-3 text-sm">🎯 Discovery Preferences</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Looking for</label>
+                  <select className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2">
+                    <option>New friends</option>
+                    <option>Activity partners</option>
+                    <option>Study buddies</option>
+                    <option>Travel companions</option>
+                    <option>Professional connections</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Age Range</label>
+                  <select className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2">
+                    <option>18-25</option>
+                    <option>26-35</option>
+                    <option>36-45</option>
+                    <option>46+</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Location</label>
+                  <select className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2">
+                    <option>Within 10 miles</option>
+                    <option>Within 25 miles</option>
+                    <option>Within 50 miles</option>
+                    <option>Anywhere</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <button className="bg-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-blue-600 transition-colors">
+                Start Safe Discovery
+              </button>
+              <p className="text-xs text-gray-500 mt-2">
+                All matches start with anonymous chat for your safety
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeDiscoverTab === 'trust' && (
+        <TrustSystem 
+          user={user}
+          token={token}
+          api={api}
+        />
+      )}
     </div>
   );
 };
