@@ -1115,7 +1115,7 @@ frontend:
 
   - task: "Profile Setup Flow"
     implemented: true
-    working: false
+    working: true
     file: "src/components/ProfileSetup.js"
     stuck_count: 0
     priority: "high"
@@ -1124,6 +1124,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "The profile setup flow is broken. After login, users are redirected to the profile setup page, but they cannot proceed past step 2. The Next button is disabled even after filling in all required fields. This prevents users from completing the profile setup and accessing the dashboard. Attempted to bypass the profile setup by directly navigating to the dashboard URL, but this also failed."
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested the Profile Setup flow. The issue with the Next button being disabled on step 2 has been fixed. Users can now complete all three steps of the profile setup process: 1) Basic Information (age, gender, location), 2) What You're Looking For (seeking type, connection purpose), and 3) Tell Us About Yourself (bio, interests, values). After completing the profile setup, users are correctly redirected to the dashboard. The profile setup flow is now working as expected."
 
   - task: "WhatsApp-style Chat Interface"
     implemented: true
