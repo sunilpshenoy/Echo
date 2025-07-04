@@ -3,6 +3,7 @@ import axios from 'axios';
 import ChatsInterface from './ChatsInterface';
 import TeamsInterface from './TeamsInterface';
 import DiscoverInterface from './DiscoverInterface';
+import TrustSystem from './TrustSystem';
 
 const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const [activeTab, setActiveTab] = useState('chats');
