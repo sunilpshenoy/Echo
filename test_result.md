@@ -1780,8 +1780,10 @@ test_plan:
     - "Trust Metrics Calculation"
     - "Trust Requirements Checking"
     - "Frontend TrustSystem Component Fix"
+    - "Profile Setup Flow"
   stuck_tasks: 
     - "Frontend TrustSystem Component Fix"
+    - "Profile Setup Flow"
   test_all: false
   test_priority: "high_first"
 
