@@ -2698,6 +2698,330 @@ async def unblock_user(user_id: str, current_user = Depends(get_current_user)):
     
     return {"message": "User unblocked successfully"}
 
+# ============================================================================
+# 5-LAYER TRUST SYSTEM IMPLEMENTATION
+# ============================================================================
+
+# Trust system configuration
+TRUST_LEVELS = {
+    1: {
+        "name": "Anonymous Discovery",
+        "description": "Connect through PIN codes and basic messaging",
+        "features": ["pin_connection", "basic_profile_view", "text_chat"],
+        "requirements": {"connections": 0, "time_days": 0},
+        "icon": "🔍",
+        "color": "blue"
+    },
+    2: {
+        "name": "Verified Connection", 
+        "description": "Enhanced messaging and profile sharing",
+        "features": ["full_profile_view", "file_sharing", "enhanced_chat"],
+        "requirements": {"connections": 1, "time_days": 1},
+        "icon": "💬",
+        "color": "green"
+    },
+    3: {
+        "name": "Voice Communication",
+        "description": "Voice calls and audio messages",
+        "features": ["voice_calls", "audio_messages", "call_history"],
+        "requirements": {"connections": 3, "time_days": 7, "interactions": 10},
+        "icon": "🎙️",
+        "color": "yellow"
+    },
+    4: {
+        "name": "Video Communication",
+        "description": "Video calls and screen sharing",
+        "features": ["video_calls", "screen_sharing", "group_video"],
+        "requirements": {"connections": 5, "time_days": 14, "interactions": 25},
+        "icon": "📹",
+        "color": "orange"
+    },
+    5: {
+        "name": "In-Person Meetup",
+        "description": "Real-world meeting coordination",
+        "features": ["location_sharing", "meetup_planning", "safety_features"],
+        "requirements": {"connections": 10, "time_days": 30, "interactions": 50, "video_calls": 3},
+        "icon": "🤝",
+        "color": "red"
+    }
+}
+
+@api_router.get("/trust/levels")
+async def get_trust_levels():
+    """Get all trust levels configuration"""
+    return {"trust_levels": TRUST_LEVELS}
+
+@api_router.get("/trust/progress")
+async def get_trust_progress(current_user = Depends(get_current_user)):
+    """Get user's trust progression status"""
+    try:
+        user_id = current_user["user_id"]
+        
+        # Get user's current trust level
+        current_trust_level = current_user.get("trust_level", 1)
+        
+        # Calculate trust metrics
+        metrics = await calculate_trust_metrics(user_id)
+        
+        # Get progress for next level
+        next_level = current_trust_level + 1 if current_trust_level < 5 else None
+        progress = {}
+        
+        if next_level:
+            requirements = TRUST_LEVELS[next_level]["requirements"]
+            progress = {
+                "connections": {
+                    "current": metrics["total_connections"],
+                    "required": requirements.get("connections", 0),
+                    "completed": metrics["total_connections"] >= requirements.get("connections", 0)
+                },
+                "time_days": {
+                    "current": metrics["days_since_registration"],
+                    "required": requirements.get("time_days", 0),
+                    "completed": metrics["days_since_registration"] >= requirements.get("time_days", 0)
+                },
+                "interactions": {
+                    "current": metrics["total_interactions"],
+                    "required": requirements.get("interactions", 0),
+                    "completed": metrics["total_interactions"] >= requirements.get("interactions", 0)
+                }
+            }
+            
+            if "video_calls" in requirements:
+                progress["video_calls"] = {
+                    "current": metrics["video_calls"],
+                    "required": requirements["video_calls"],
+                    "completed": metrics["video_calls"] >= requirements["video_calls"]
+                }
+        
+        # Check if user can level up
+        can_level_up = next_level and all(p["completed"] for p in progress.values())
+        
+        return {
+            "current_level": current_trust_level,
+            "next_level": next_level,
+            "current_level_info": TRUST_LEVELS[current_trust_level],
+            "next_level_info": TRUST_LEVELS.get(next_level),
+            "progress": progress,
+            "can_level_up": can_level_up,
+            "metrics": metrics,
+            "achievements": await get_user_achievements(user_id),
+            "milestones": await get_trust_milestones(user_id)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to get trust progress")
+
+@api_router.post("/trust/level-up")
+async def level_up_trust(current_user = Depends(get_current_user)):
+    """Level up user's trust level if requirements are met"""
+    try:
+        user_id = current_user["user_id"]
+        current_trust_level = current_user.get("trust_level", 1)
+        
+        if current_trust_level >= 5:
+            raise HTTPException(status_code=400, detail="Already at maximum trust level")
+        
+        next_level = current_trust_level + 1
+        metrics = await calculate_trust_metrics(user_id)
+        
+        # Check requirements for next level
+        requirements = TRUST_LEVELS[next_level]["requirements"]
+        
+        if not await check_trust_requirements(metrics, requirements):
+            raise HTTPException(status_code=400, detail="Trust level requirements not met")
+        
+        # Update user's trust level
+        await db.users.update_one(
+            {"user_id": user_id},
+            {"$set": {
+                "trust_level": next_level,
+                "trust_level_updated_at": datetime.utcnow()
+            }}
+        )
+        
+        # Create achievement
+        achievement = {
+            "achievement_id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "type": "trust_level_up",
+            "level": next_level,
+            "title": f"Reached {TRUST_LEVELS[next_level]['name']}",
+            "description": TRUST_LEVELS[next_level]["description"],
+            "earned_at": datetime.utcnow()
+        }
+        
+        await db.achievements.insert_one(achievement)
+        
+        # Send real-time notification
+        try:
+            await manager.send_personal_message(
+                json.dumps({
+                    "type": "trust_level_up",
+                    "data": {
+                        "new_level": next_level,
+                        "level_info": TRUST_LEVELS[next_level],
+                        "achievement": achievement
+                    }
+                }),
+                user_id
+            )
+        except Exception as e:
+            print(f"Failed to send trust level up notification: {e}")
+        
+        return {
+            "message": f"Congratulations! You've reached Trust Level {next_level}",
+            "new_level": next_level,
+            "level_info": TRUST_LEVELS[next_level],
+            "achievement": serialize_mongo_doc(achievement)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to level up trust")
+
+@api_router.get("/trust/features")
+async def get_available_features(current_user = Depends(get_current_user)):
+    """Get features available at user's current trust level"""
+    trust_level = current_user.get("trust_level", 1)
+    
+    available_features = []
+    for level in range(1, trust_level + 1):
+        available_features.extend(TRUST_LEVELS[level]["features"])
+    
+    return {
+        "trust_level": trust_level,
+        "available_features": available_features,
+        "level_info": TRUST_LEVELS[trust_level]
+    }
+
+@api_router.get("/trust/achievements")
+async def get_achievements(current_user = Depends(get_current_user)):
+    """Get user's trust-related achievements"""
+    achievements = await db.achievements.find({
+        "user_id": current_user["user_id"]
+    }).sort("earned_at", -1).to_list(100)
+    
+    return serialize_mongo_doc(achievements)
+
+@api_router.post("/trust/interactions/{contact_id}")
+async def record_interaction(contact_id: str, interaction_data: dict, current_user = Depends(get_current_user)):
+    """Record an interaction with a contact for trust building"""
+    interaction_type = interaction_data.get("type")  # message, call, video_call, meetup
+    
+    if interaction_type not in ["message", "voice_call", "video_call", "meetup", "file_share"]:
+        raise HTTPException(status_code=400, detail="Invalid interaction type")
+    
+    # Verify contact exists
+    contact = await db.connections.find_one({
+        "$or": [
+            {"user_id": current_user["user_id"], "connected_user_id": contact_id},
+            {"user_id": contact_id, "connected_user_id": current_user["user_id"]}
+        ],
+        "status": "connected"
+    })
+    
+    if not contact:
+        raise HTTPException(status_code=404, detail="Contact not found")
+    
+    # Record interaction
+    interaction = {
+        "interaction_id": str(uuid.uuid4()),
+        "user_id": current_user["user_id"],
+        "contact_id": contact_id,
+        "type": interaction_type,
+        "metadata": interaction_data.get("metadata", {}),
+        "created_at": datetime.utcnow()
+    }
+    
+    await db.interactions.insert_one(interaction)
+    
+    return {"message": "Interaction recorded successfully"}
+
+async def calculate_trust_metrics(user_id: str):
+    """Calculate trust metrics for a user"""
+    # Get user registration date
+    user = await db.users.find_one({"user_id": user_id})
+    registration_date = user.get("created_at", datetime.utcnow())
+    days_since_registration = (datetime.utcnow() - registration_date).days
+    
+    # Count connections
+    total_connections = await db.connections.count_documents({
+        "$or": [
+            {"user_id": user_id},
+            {"connected_user_id": user_id}
+        ],
+        "status": "connected"
+    })
+    
+    # Count interactions
+    total_interactions = await db.interactions.count_documents({"user_id": user_id})
+    
+    # Count video calls
+    video_calls = await db.interactions.count_documents({
+        "user_id": user_id,
+        "type": "video_call"
+    })
+    
+    # Count messages sent
+    messages_sent = await db.messages.count_documents({"sender_id": user_id})
+    
+    return {
+        "total_connections": total_connections,
+        "days_since_registration": days_since_registration,
+        "total_interactions": total_interactions,
+        "video_calls": video_calls,
+        "messages_sent": messages_sent
+    }
+
+async def check_trust_requirements(metrics: dict, requirements: dict):
+    """Check if user meets trust level requirements"""
+    for req_type, req_value in requirements.items():
+        if metrics.get(req_type, 0) < req_value:
+            return False
+    return True
+
+async def get_user_achievements(user_id: str):
+    """Get user's recent achievements"""
+    achievements = await db.achievements.find({
+        "user_id": user_id
+    }).sort("earned_at", -1).limit(5).to_list(5)
+    
+    return serialize_mongo_doc(achievements)
+
+async def get_trust_milestones(user_id: str):
+    """Get trust milestones for user"""
+    milestones = []
+    
+    # Connection milestones
+    metrics = await calculate_trust_metrics(user_id)
+    
+    connection_milestones = [1, 3, 5, 10, 25, 50]
+    for milestone in connection_milestones:
+        milestones.append({
+            "type": "connections",
+            "target": milestone,
+            "current": metrics["total_connections"],
+            "completed": metrics["total_connections"] >= milestone,
+            "title": f"{milestone} Connections",
+            "description": f"Make {milestone} authentic connections"
+        })
+    
+    # Time-based milestones
+    time_milestones = [7, 14, 30, 60, 90]
+    for milestone in time_milestones:
+        milestones.append({
+            "type": "time",
+            "target": milestone,
+            "current": metrics["days_since_registration"],
+            "completed": metrics["days_since_registration"] >= milestone,
+            "title": f"{milestone} Days",
+            "description": f"Be active for {milestone} days"
+        })
+    
+    return milestones
+
 # User Reporting
 @api_router.post("/users/{user_id}/report")
 async def report_user(user_id: str, report_data: dict, current_user = Depends(get_current_user)):
