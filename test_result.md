@@ -1820,6 +1820,7 @@ test_plan:
     - "Interaction Recording"
     - "Trust Metrics Calculation"
     - "Trust Requirements Checking"
+    - "Call and File Sharing Buttons with Double-Tap Protection"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
