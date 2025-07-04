@@ -2219,66 +2219,144 @@ async def get_connection_requests(current_user = Depends(get_current_user)):
 
 @api_router.put("/connections/requests/{request_id}")
 async def respond_to_connection_request(request_id: str, response_data: dict, current_user = Depends(get_current_user)):
-    """Accept or decline a connection request"""
-    action = response_data.get("action")  # "accept" or "decline"
+    """Enhanced response to connection request with auto-chat creation"""
+    action = response_data.get("action")  # "accept", "decline", or "block"
+    message = response_data.get("message", "")
     
-    if action not in ["accept", "decline"]:
-        raise HTTPException(status_code=400, detail="Action must be 'accept' or 'decline'")
+    if action not in ["accept", "decline", "block"]:
+        raise HTTPException(status_code=400, detail="Action must be 'accept', 'decline', or 'block'")
     
     # Find the request
-    request = await db.connection_requests.find_one({"request_id": request_id})
+    request = await db.connection_requests.find_one({
+        "request_id": request_id,
+        "receiver_id": current_user["user_id"],
+        "status": "pending"
+    })
+    
     if not request:
         raise HTTPException(status_code=404, detail="Connection request not found")
     
-    # Check if user is the receiver
-    if request["receiver_id"] != current_user["user_id"]:
-        raise HTTPException(status_code=403, detail="You can only respond to requests sent to you")
-    
-    if request["status"] != "pending":
-        raise HTTPException(status_code=400, detail="Request is no longer pending")
-    
-    if action == "accept":
-        # Accept the request - create connection and chat
-        connection = {
-            "connection_id": str(uuid.uuid4()),
-            "user_id": request["sender_id"],
-            "connected_user_id": current_user["user_id"],
-            "status": "connected",
-            "trust_level": 1,
-            "initiated_by": request["sender_id"],
-            "connected_at": datetime.utcnow(),
-            "last_activity": datetime.utcnow()
-        }
-        
-        await db.connections.insert_one(connection)
-        
-        # Create chat room
-        chat = {
-            "chat_id": str(uuid.uuid4()),
-            "type": "direct",
-            "participants": [request["sender_id"], current_user["user_id"]],
-            "created_by": request["sender_id"],
-            "created_at": datetime.utcnow(),
-            "last_activity": datetime.utcnow()
-        }
-        
-        await db.chats.insert_one(chat)
-        
-        # Update request status
-        await db.connection_requests.update_one(
-            {"request_id": request_id},
-            {"$set": {"status": "accepted", "responded_at": datetime.utcnow()}}
-        )
-        
-        return {"message": "Connection request accepted", "status": "accepted"}
-    else:
-        # Decline the request
-        await db.connection_requests.update_one(
-            {"request_id": request_id},
-            {"$set": {"status": "declined", "responded_at": datetime.utcnow()}}
-        )
-        
-        return {"message": "Connection request declined", "status": "declined"}
+    try:
+        if action == "accept":
+            # Create mutual connections
+            connection1 = {
+                "connection_id": str(uuid.uuid4()),
+                "user_id": current_user["user_id"],
+                "connected_user_id": request["sender_id"],
+                "status": "connected",
+                "trust_level": 1,  # Start at trust level 1
+                "created_at": datetime.utcnow(),
+                "connection_type": request.get("connection_type", "general")
+            }
+            
+            connection2 = {
+                "connection_id": str(uuid.uuid4()),
+                "user_id": request["sender_id"],
+                "connected_user_id": current_user["user_id"],
+                "status": "connected",
+                "trust_level": 1,
+                "created_at": datetime.utcnow(),
+                "connection_type": request.get("connection_type", "general")
+            }
+            
+            await db.connections.insert_one(connection1)
+            await db.connections.insert_one(connection2)
+            
+            # Create direct chat between users
+            chat = {
+                "chat_id": str(uuid.uuid4()),
+                "chat_type": "direct",
+                "members": [current_user["user_id"], request["sender_id"]],
+                "created_at": datetime.utcnow(),
+                "created_by": current_user["user_id"],
+                "trust_level_required": 1,
+                "is_active": True
+            }
+            
+            await db.chats.insert_one(chat)
+            
+            # Update request status
+            await db.connection_requests.update_one(
+                {"request_id": request_id},
+                {"$set": {
+                    "status": "accepted",
+                    "response_message": message,
+                    "responded_at": datetime.utcnow()
+                }}
+            )
+            
+            # Send notification to sender
+            try:
+                await manager.send_personal_message(
+                    json.dumps({
+                        "type": "connection_accepted",
+                        "data": {
+                            "request_id": request_id,
+                            "accepter": {
+                                "display_name": current_user.get("display_name"),
+                                "username": current_user["username"],
+                                "user_id": current_user["user_id"]
+                            },
+                            "chat_id": chat["chat_id"],
+                            "message": message
+                        }
+                    }),
+                    request["sender_id"]
+                )
+            except Exception as e:
+                print(f"Failed to send real-time notification: {e}")
+            
+            return {
+                "message": "Connection request accepted successfully",
+                "status": "accepted",
+                "chat_id": chat["chat_id"],
+                "connection_id": connection1["connection_id"]
+            }
+            
+        elif action == "block":
+            # Add to blocked users
+            await db.blocked_users.insert_one({
+                "blocker_id": current_user["user_id"],
+                "blocked_id": request["sender_id"],
+                "created_at": datetime.utcnow(),
+                "reason": "Connection request blocked"
+            })
+            
+            # Update request status
+            await db.connection_requests.update_one(
+                {"request_id": request_id},
+                {"$set": {
+                    "status": "blocked",
+                    "response_message": "User blocked",
+                    "responded_at": datetime.utcnow()
+                }}
+            )
+            
+            return {
+                "message": "User blocked successfully",
+                "status": "blocked"
+            }
+            
+        else:  # decline
+            # Update request status
+            await db.connection_requests.update_one(
+                {"request_id": request_id},
+                {"$set": {
+                    "status": "declined",
+                    "response_message": message,
+                    "responded_at": datetime.utcnow()
+                }}
+            )
+            
+            return {
+                "message": "Connection request declined",
+                "status": "declined"
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to respond to connection request")
 
 @api_router.get("/users/qr-code")
 async def get_user_qr_code(current_user = Depends(get_current_user)):
