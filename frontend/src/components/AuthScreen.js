@@ -38,10 +38,19 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
       }
     } catch (error) {
       console.error('Authentication error:', error);
-      console.error('Error response:', error.response);
-      console.error('Error status:', error.response?.status);
-      console.error('Error data:', error.response?.data);
-      setError(error.response?.data?.detail || error.message || 'Authentication failed');
+      
+      // Handle different error types with better messaging
+      if (error.response?.status === 401) {
+        setError('Invalid email or password. Please check your credentials and try again.');
+      } else if (error.response?.status === 400) {
+        setError(error.response?.data?.detail || 'Invalid request. Please check your information.');
+      } else if (error.response?.status === 404) {
+        setError('Service not found. Please try again later.');
+      } else if (error.response?.status >= 500) {
+        setError('Server error. Please try again later.');
+      } else {
+        setError(error.response?.data?.detail || error.message || 'Authentication failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
