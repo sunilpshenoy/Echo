@@ -289,44 +289,44 @@ const DiscoverInterface = ({
 
       {/* Discovery Content */}
       <div className="flex-1 flex flex-col bg-gray-50">
-        <div className="p-6">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <div className="p-4">
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
               AI-Powered Discovery
             </h2>
-            <p className="text-gray-600">
+            <p className="text-sm text-gray-600">
               Find people who share your values and interests through authentic compatibility
             </p>
           </div>
 
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border mb-6">
-              <h3 className="font-semibold text-gray-900 mb-4">🧠 How AI Matching Works</h3>
-              <div className="space-y-3 text-sm text-gray-700">
-                <div className="flex items-start space-x-3">
-                  <span className="text-blue-500 mt-1">1.</span>
+          <div className="max-w-xl mx-auto">
+            <div className="bg-white rounded-xl p-4 shadow-sm border mb-4">
+              <h3 className="font-semibold text-gray-900 mb-3 text-sm">🧠 How AI Matching Works</h3>
+              <div className="space-y-2 text-xs text-gray-700">
+                <div className="flex items-start space-x-2">
+                  <span className="text-blue-500 mt-0.5 font-medium">1.</span>
                   <span>Analyze your profile, interests, values, and connection preferences</span>
                 </div>
-                <div className="flex items-start space-x-3">
-                  <span className="text-blue-500 mt-1">2.</span>
+                <div className="flex items-start space-x-2">
+                  <span className="text-blue-500 mt-0.5 font-medium">2.</span>
                   <span>Calculate compatibility scores based on personality and goals</span>
                 </div>
-                <div className="flex items-start space-x-3">
-                  <span className="text-blue-500 mt-1">3.</span>
+                <div className="flex items-start space-x-2">
+                  <span className="text-blue-500 mt-0.5 font-medium">3.</span>
                   <span>Present anonymous profiles with high compatibility potential</span>
                 </div>
-                <div className="flex items-start space-x-3">
-                  <span className="text-blue-500 mt-1">4.</span>
+                <div className="flex items-start space-x-2">
+                  <span className="text-blue-500 mt-0.5 font-medium">4.</span>
                   <span>Facilitate progressive trust building through structured stages</span>
                 </div>
               </div>
             </div>
 
             <div className="text-center">
-              <button className="bg-blue-500 text-white px-8 py-3 rounded-full font-medium hover:bg-blue-600 transition-colors">
+              <button className="bg-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-blue-600 transition-colors">
                 Start AI Discovery
               </button>
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-xs text-gray-500 mt-2">
                 Your next authentic connection awaits
               </p>
             </div>
