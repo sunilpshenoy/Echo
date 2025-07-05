@@ -279,7 +279,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
               { id: 'teams', label: 'Teams', icon: '👥', description: 'Groups & workspaces' },
               { 
                 id: 'discover', 
-                label: 'Discover', 
+                label: 'Premium', 
                 icon: '⭐', 
                 description: 'Find new people safely',
                 premium: true 
