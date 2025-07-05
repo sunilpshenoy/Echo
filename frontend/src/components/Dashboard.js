@@ -568,6 +568,17 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
                   </div>
                 </div>
               </div>
+              
+              {/* Language Settings */}
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-4">{t('languages.changeLanguage')}</h3>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('languages.changeLanguage')}
+                  </label>
+                  <LanguageSelector className="w-full" />
+                </div>
+              </div>
             </div>
             
             {/* Modal Footer */}
