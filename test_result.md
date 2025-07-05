@@ -619,6 +619,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Comprehensive testing of the Teams API confirms both endpoints are working correctly. GET /api/teams successfully retrieves team data with proper authentication. POST /api/teams correctly creates new teams with the specified name, description, and members. The API properly handles team creation with different configurations (public/private teams). All tests passed successfully."
+      - working: true
+        agent: "testing"
+        comment: "Verified that the Teams API endpoints are still working correctly after the multilingual frontend changes. Created a dedicated test script (multilingual_backend_test.py) that tests all aspects of the Teams API. Successfully tested team creation and retrieval. The endpoints correctly handle authentication and return proper responses. No regressions were found."
   - task: "Foundation Backend Endpoints"
     implemented: true
     working: true
