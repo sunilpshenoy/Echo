@@ -1866,6 +1866,8 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Multilingual Teams and Premium Interface Translation"
+    - "Settings Button UI Relocation"
     - "Message Search Functionality"
     - "Contact Name Display Fix"
     - "Trust Levels Configuration"
