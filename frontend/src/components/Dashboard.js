@@ -278,28 +278,25 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-pulse-secondary rounded-full flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-lg">
-                  {user?.display_name?.[0]?.toUpperCase() || user?.username?.[0]?.toUpperCase() || '?'}
-                </span>
-              </div>
-              <div>
-                <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setIsEditingProfile(true)}
+                className="flex items-center space-x-3 hover:bg-gray-100 rounded-lg p-1 transition-colors"
+                title={t('common.edit')}
+              >
+                <div className="w-10 h-10 bg-pulse-secondary rounded-full flex items-center justify-center shadow-md">
+                  <span className="text-white font-bold text-lg">
+                    {user?.display_name?.[0]?.toUpperCase() || user?.username?.[0]?.toUpperCase() || '?'}
+                  </span>
+                </div>
+                <div>
                   <h1 className="text-xl font-semibold text-gray-900">
                     {user?.display_name || user?.username || 'User'}
                   </h1>
-                  <button
-                    onClick={() => setIsEditingProfile(true)}
-                    className="text-gray-600 hover:text-gray-800 p-1"
-                    title={t('common.edit')}
-                  >
-                    ⚙️
-                  </button>
+                  <p className="text-sm text-gray-700 font-medium">
+                    {t('profile.trustLevel')} {user?.trust_level || 1} • {t('profile.authenticity')} {(user?.authenticity_rating || 0).toFixed(1)}
+                  </p>
                 </div>
-                <p className="text-sm text-gray-700 font-medium">
-                  {t('profile.trustLevel')} {user?.trust_level || 1} • {t('profile.authenticity')} {(user?.authenticity_rating || 0).toFixed(1)}
-                </p>
-              </div>
+              </button>
             </div>
             
             <div className="flex items-center space-x-4">
