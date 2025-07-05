@@ -1,27 +1,25 @@
-<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background -->
-  <rect width="192" height="192" rx="32" fill="url(#gradient)"/>
-  
-  <!-- Main Icon - Authentic Connection Symbol -->
-  <circle cx="96" cy="96" r="60" fill="white" opacity="0.2"/>
-  <circle cx="96" cy="96" r="45" fill="white" opacity="0.3"/>
-  
-  <!-- Trust Layers (5 concentric circles representing 5-layer trust) -->
-  <circle cx="96" cy="96" r="35" stroke="white" stroke-width="3" fill="none" opacity="0.8"/>
-  <circle cx="96" cy="96" r="25" stroke="white" stroke-width="2" fill="none" opacity="0.9"/>
-  <circle cx="96" cy="96" r="15" stroke="white" stroke-width="2" fill="white" opacity="0.9"/>
-  
-  <!-- Connection Points -->
-  <circle cx="96" cy="96" r="4" fill="#3b82f6"/>
-  
-  <!-- Authentic Rating Stars -->
-  <path d="M96 50 L100 60 L112 60 L102 68 L106 78 L96 70 L86 78 L90 68 L80 60 L92 60 Z" fill="white" opacity="0.9"/>
-  
-  <!-- Gradient Definition -->
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4A1A5C"/>
+      <stop offset="50%" style="stop-color:#8B4A9C"/>
+      <stop offset="100%" style="stop-color:#E85A8A"/>
+    </linearGradient>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FF7B54"/>
+      <stop offset="100%" style="stop-color:#FFB347"/>
     </linearGradient>
   </defs>
+  
+  <!-- Background circle -->
+  <circle cx="96" cy="96" r="96" fill="url(#bgGradient)"/>
+  
+  <!-- Shield shape -->
+  <path d="M60 50 L132 50 L140 65 L132 130 L96 150 L60 130 L52 65 Z" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+  
+  <!-- Heart icon -->
+  <path d="M96 85 C88 75, 72 75, 72 95 C72 115, 96 135, 96 135 C96 135, 120 115, 120 95 C120 75, 104 75, 96 85 Z" fill="rgba(255,255,255,0.9)"/>
+  
+  <!-- P letter -->
+  <text x="96" y="165" text-anchor="middle" fill="url(#textGradient)" font-size="24" font-weight="bold" font-family="Arial, sans-serif">P</text>
 </svg>
