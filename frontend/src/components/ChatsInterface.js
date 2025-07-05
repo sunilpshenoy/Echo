@@ -564,13 +564,27 @@ const ChatsInterface = ({
   };
 
   const handleVoiceCall = (contact) => {
-    alert('Voice call feature coming soon! 📞');
-    // TODO: Implement WebRTC voice calling
+    console.log('Voice call initiated for:', contact);
+    
+    // Enhanced voice call modal instead of simple alert
+    const contactName = contact.other_user?.display_name || contact.other_user?.username || contact.name || 'Unknown Contact';
+    
+    if (window.confirm(`Start voice call with ${contactName}?\n\n📞 Voice calling will be available soon with WebRTC integration.`)) {
+      // TODO: Implement WebRTC voice calling
+      alert('📞 Connecting to voice call system... (Feature in development)');
+    }
   };
 
   const handleVideoCall = (contact) => {
-    alert('Video call feature coming soon! 📹');
-    // TODO: Implement WebRTC video calling
+    console.log('Video call initiated for:', contact);
+    
+    // Enhanced video call modal instead of simple alert
+    const contactName = contact.other_user?.display_name || contact.other_user?.username || contact.name || 'Unknown Contact';
+    
+    if (window.confirm(`Start video call with ${contactName}?\n\n📹 Video calling will be available soon with WebRTC integration.`)) {
+      // TODO: Implement WebRTC video calling
+      alert('📹 Connecting to video call system... (Feature in development)');
+    }
   };
 
   const renderMessage = (message) => {
