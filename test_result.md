@@ -473,6 +473,21 @@ backend:
         agent: "testing"
         comment: "User reporting features are working correctly. Successfully tested reporting users with different reasons, reporting with message context, and admin report management. The system properly stores report records with reporter and reported user information, and provides an admin endpoint to view pending reports."
 
+  - task: "Message Search Functionality"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented message search endpoints for searching within a specific chat and across all chats"
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested the message search functionality. Created a dedicated test script (message_search_test.py) that verifies all aspects of the search API. The /api/chats/{chat_id}/search endpoint correctly performs case-insensitive regex search on message content and returns properly formatted results. The global search endpoint (/api/search/messages) correctly searches across all user's chats and groups results by chat. Both endpoints properly enforce access control, ensuring users can only search in chats they have access to. Error handling for invalid chat IDs, too short queries, and other edge cases is working correctly."
+
   - task: "Enhanced Message System"
     implemented: true
     working: true
