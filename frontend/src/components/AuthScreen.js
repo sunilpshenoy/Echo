@@ -61,56 +61,24 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
       <div className="w-full max-w-md">
         {/* Header with Pulse branding */}
         <div className="text-center mb-8 animate-fade-in-up">
-          {/* Pulse Logo - Recreated to match your exact design */}
+          {/* Pulse Logo - Direct image placement */}
           <div className="mb-6 flex justify-center">
-            <svg width="100" height="120" viewBox="0 0 100 120" className="drop-shadow-lg">
-              <defs>
-                <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#D946EF"/>
-                  <stop offset="50%" stopColor="#EC4899"/>
-                  <stop offset="100%" stopColor="#F97316"/>
-                </linearGradient>
-                <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#F97316"/>
-                  <stop offset="100%" stopColor="#FB923C"/>
-                </linearGradient>
-              </defs>
-              
-              {/* Hexagonal shield - geometric, angular design */}
-              <path d="M50 10 L75 25 L75 55 L50 70 L25 55 L25 25 Z" 
-                    fill="url(#shieldGradient)" 
-                    stroke="none"/>
-              
-              {/* Interlocked heart/chain design - simplified and cleaner */}
-              <g transform="translate(50, 40)">
-                {/* Left loop */}
-                <path d="M-8 -5 C-12 -10, -18 -10, -18 -3 C-18 4, -8 10, 0 15 C8 10, 18 4, 18 -3 C18 -10, 12 -10, 8 -5" 
-                      fill="#2D1B69" 
-                      opacity="0.9"/>
-                {/* Connection/chain effect */}
-                <circle cx="-10" cy="0" r="3" fill="#2D1B69" opacity="0.8"/>
-                <circle cx="10" cy="0" r="3" fill="#2D1B69" opacity="0.8"/>
-                <rect x="-10" y="-1" width="20" height="2" fill="#2D1B69" opacity="0.6"/>
-              </g>
-              
-              {/* PULSE text - matching your font style */}
-              <text x="50" y="90" 
-                    textAnchor="middle" 
-                    fill="url(#textGradient)" 
-                    fontSize="14" 
-                    fontWeight="bold" 
-                    fontFamily="system-ui, -apple-system, sans-serif" 
-                    letterSpacing="3px">PULSE</text>
-              
-              {/* CONNECT SECURELY text */}
-              <text x="50" y="105" 
-                    textAnchor="middle" 
-                    fill="#EC4899" 
-                    fontSize="8" 
-                    fontWeight="600" 
-                    fontFamily="system-ui, -apple-system, sans-serif" 
-                    letterSpacing="2px">CONNECT SECURELY</text>
-            </svg>
+            <img 
+              src="/pulse-logo.png" 
+              alt="Pulse - Connect Securely" 
+              className="w-24 h-28 object-contain drop-shadow-lg"
+              onError={(e) => {
+                // Fallback if image not found
+                e.target.style.display = 'none';
+                e.target.nextElementSibling.style.display = 'block';
+              }}
+            />
+            {/* Fallback text if image not loaded */}
+            <div className="w-24 h-28 flex flex-col items-center justify-center text-white" style={{display: 'none'}}>
+              <div className="text-3xl mb-2">🛡️</div>
+              <div className="text-sm font-bold">PULSE</div>
+              <div className="text-xs">CONNECT SECURELY</div>
+            </div>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
           <p className="text-white/80 font-medium">Continue building secure connections</p>
