@@ -885,7 +885,7 @@ const ChatsInterface = ({
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
                 <div className="text-4xl mb-2">💬</div>
-                <p className="text-gray-600">Start your conversation</p>
+                <p className="text-gray-600">{t('chat.startConversation')}</p>
               </div>
             </div>
           ) : (
