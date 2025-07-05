@@ -236,27 +236,37 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
     <div className="min-h-screen bg-gray-50 relative">
       {/* Pulse Logo Background */}
       <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
-        <div className="opacity-5 transform scale-150">
-          {/* SVG representation of the Pulse logo */}
-          <svg width="200" height="200" viewBox="0 0 200 200" className="text-purple-600">
-            {/* Hexagon shape */}
-            <path d="M100 20 L170 60 L170 140 L100 180 L30 140 L30 60 Z" 
-                  fill="url(#pulseGradient)" stroke="currentColor" strokeWidth="2"/>
-            {/* Heart shape in center */}
-            <path d="M100 80 C90 70, 70 70, 70 90 C70 110, 100 130, 100 130 C100 130, 130 110, 130 90 C130 70, 110 70, 100 80 Z" 
-                  fill="url(#heartGradient)"/>
+        <div className="opacity-3 transform scale-150">
+          {/* Your actual Pulse logo as background */}
+          <svg width="200" height="240" viewBox="0 0 120 140">
             <defs>
-              <linearGradient id="pulseGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#4A1A5C"/>
-                <stop offset="50%" stopColor="#8B4A9C"/>
-                <stop offset="75%" stopColor="#E85A8A"/>
+              <linearGradient id="bgShieldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#8B4A9C"/>
+                <stop offset="50%" stopColor="#E85A8A"/>
                 <stop offset="100%" stopColor="#FF7B54"/>
               </linearGradient>
-              <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#8B4A9C"/>
-                <stop offset="100%" stopColor="#E85A8A"/>
+              <linearGradient id="bgHeartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#4A1A5C"/>
+                <stop offset="100%" stopColor="#2D1B69"/>
               </linearGradient>
             </defs>
+            
+            {/* Hexagonal shield shape */}
+            <path d="M20 30 L100 30 L110 45 L100 70 L60 85 L20 70 L10 45 Z" 
+                  fill="url(#bgShieldGradient)" 
+                  opacity="0.3"/>
+            
+            {/* Interlocked heart design */}
+            <g transform="translate(60, 50)">
+              <path d="M-15 -8 C-20 -15, -30 -15, -30 -5 C-30 5, -15 15, 0 25 C15 15, 30 5, 30 -5 C30 -15, 20 -15, 15 -8" 
+                    fill="url(#bgHeartGradient)" 
+                    opacity="0.4"/>
+              <path d="M-20 0 C-15 -8, -5 -8, 0 0 C5 8, 15 8, 20 0 C15 8, 5 8, 0 0 C-5 -8, -15 -8, -20 0" 
+                    fill="none" 
+                    stroke="url(#bgHeartGradient)" 
+                    strokeWidth="4" 
+                    opacity="0.3"/>
+            </g>
           </svg>
         </div>
       </div>
