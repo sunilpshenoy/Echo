@@ -61,67 +61,59 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
       <div className="w-full max-w-md">
         {/* Header with Pulse branding */}
         <div className="text-center mb-8 animate-fade-in-up">
-          {/* Pulse Logo SVG */}
+          {/* Pulse Logo - Recreated to match your exact design */}
           <div className="mb-6 flex justify-center">
-            <svg width="120" height="140" viewBox="0 0 120 140" className="drop-shadow-lg">
-              {/* Hexagonal shield with gradient */}
+            <svg width="100" height="120" viewBox="0 0 100 120" className="drop-shadow-lg">
               <defs>
                 <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#8B4A9C"/>
-                  <stop offset="50%" stopColor="#E85A8A"/>
-                  <stop offset="100%" stopColor="#FF7B54"/>
-                </linearGradient>
-                <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#4A1A5C"/>
-                  <stop offset="100%" stopColor="#2D1B69"/>
+                  <stop offset="0%" stopColor="#D946EF"/>
+                  <stop offset="50%" stopColor="#EC4899"/>
+                  <stop offset="100%" stopColor="#F97316"/>
                 </linearGradient>
                 <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#FF7B54"/>
-                  <stop offset="100%" stopColor="#FFB347"/>
+                  <stop offset="0%" stopColor="#F97316"/>
+                  <stop offset="100%" stopColor="#FB923C"/>
                 </linearGradient>
               </defs>
               
-              {/* Hexagonal shield shape */}
-              <path d="M20 30 L100 30 L110 45 L100 70 L60 85 L20 70 L10 45 Z" 
+              {/* Hexagonal shield - geometric, angular design */}
+              <path d="M50 10 L75 25 L75 55 L50 70 L25 55 L25 25 Z" 
                     fill="url(#shieldGradient)" 
                     stroke="none"/>
               
-              {/* Interlocked heart design */}
-              <g transform="translate(60, 50)">
-                {/* Left heart curve */}
-                <path d="M-15 -8 C-20 -15, -30 -15, -30 -5 C-30 5, -15 15, 0 25 C15 15, 30 5, 30 -5 C30 -15, 20 -15, 15 -8" 
-                      fill="url(#heartGradient)" 
-                      stroke="url(#heartGradient)" 
-                      strokeWidth="3"/>
-                {/* Infinity loop overlay */}
-                <path d="M-20 0 C-15 -8, -5 -8, 0 0 C5 8, 15 8, 20 0 C15 8, 5 8, 0 0 C-5 -8, -15 -8, -20 0" 
-                      fill="none" 
-                      stroke="url(#heartGradient)" 
-                      strokeWidth="4" 
-                      opacity="0.8"/>
+              {/* Interlocked heart/chain design - simplified and cleaner */}
+              <g transform="translate(50, 40)">
+                {/* Left loop */}
+                <path d="M-8 -5 C-12 -10, -18 -10, -18 -3 C-18 4, -8 10, 0 15 C8 10, 18 4, 18 -3 C18 -10, 12 -10, 8 -5" 
+                      fill="#2D1B69" 
+                      opacity="0.9"/>
+                {/* Connection/chain effect */}
+                <circle cx="-10" cy="0" r="3" fill="#2D1B69" opacity="0.8"/>
+                <circle cx="10" cy="0" r="3" fill="#2D1B69" opacity="0.8"/>
+                <rect x="-10" y="-1" width="20" height="2" fill="#2D1B69" opacity="0.6"/>
               </g>
               
-              {/* PULSE text */}
-              <text x="60" y="105" 
+              {/* PULSE text - matching your font style */}
+              <text x="50" y="90" 
                     textAnchor="middle" 
                     fill="url(#textGradient)" 
-                    fontSize="16" 
+                    fontSize="14" 
                     fontWeight="bold" 
-                    fontFamily="Arial, sans-serif" 
-                    letterSpacing="2px">PULSE</text>
+                    fontFamily="system-ui, -apple-system, sans-serif" 
+                    letterSpacing="3px">PULSE</text>
               
               {/* CONNECT SECURELY text */}
-              <text x="60" y="120" 
+              <text x="50" y="105" 
                     textAnchor="middle" 
-                    fill="#E85A8A" 
-                    fontSize="9" 
+                    fill="#EC4899" 
+                    fontSize="8" 
                     fontWeight="600" 
-                    fontFamily="Arial, sans-serif" 
-                    letterSpacing="1px">CONNECT SECURELY</text>
+                    fontFamily="system-ui, -apple-system, sans-serif" 
+                    letterSpacing="2px">CONNECT SECURELY</text>
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-          <p className="text-gray-600">Continue building secure connections</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+          <p className="text-white/80 font-medium">Continue building secure connections</p>
         </div>
 
         {/* Error Alert */}
