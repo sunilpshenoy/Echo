@@ -977,10 +977,10 @@ const ChatsInterface = ({
               {isConnected ? (
                 <span className="flex items-center">
                   <span className="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
-                  Connected
+                  {t('chat.connected')}
                 </span>
               ) : (
-                'Connecting...'
+                t('common.loading')
               )}
             </p>
           </div>
