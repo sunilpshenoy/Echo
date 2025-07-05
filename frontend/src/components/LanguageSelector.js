@@ -22,10 +22,24 @@ const LanguageSelector = ({ className = "" }) => {
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
 
   const handleLanguageChange = (langCode, direction) => {
+    // Change language
     i18n.changeLanguage(langCode);
+    
     // Set text direction for RTL languages
     document.documentElement.dir = direction;
     document.documentElement.lang = langCode;
+    
+    // Store in localStorage with explicit key
+    localStorage.setItem('i18nextLng', langCode);
+    
+    // Also store as backup
+    localStorage.setItem('pulse-language', langCode);
+    
+    // Trigger a page refresh to ensure all components reload with new language
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
+    
     setIsOpen(false);
   };
 
