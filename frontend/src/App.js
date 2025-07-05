@@ -73,6 +73,10 @@ const App = () => {
       localStorage.setItem('pulse-language', lng);
       document.documentElement.lang = lng;
       document.documentElement.dir = lng === 'ur' ? 'rtl' : 'ltr';
+      
+      // Force a re-render by updating loading state
+      setIsLoading(true);
+      setTimeout(() => setIsLoading(false), 100);
     };
 
     i18n.on('languageChanged', handleLanguageChange);
