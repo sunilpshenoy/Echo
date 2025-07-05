@@ -314,13 +314,13 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
           {/* Top Tabs - WhatsApp Style */}
           <div className="flex border-b">
             {[
-              { id: 'chats', label: 'Chats', icon: '💬', description: 'Direct messages' },
-              { id: 'teams', label: 'Teams', icon: '👥', description: 'Groups & workspaces' },
+              { id: 'chats', label: t('dashboard.chats'), icon: '💬', description: t('dashboard.directMessages') },
+              { id: 'teams', label: t('dashboard.teams'), icon: '👥', description: t('dashboard.groupsWorkspaces') },
               { 
                 id: 'discover', 
-                label: 'Premium', 
+                label: t('dashboard.premium'), 
                 icon: '⭐', 
-                description: 'Find new people safely',
+                description: t('dashboard.findPeopleSafely'),
                 premium: true 
               }
             ].map(tab => (
