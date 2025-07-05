@@ -61,6 +61,11 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
   
   return (
     <div className="min-h-screen bg-pulse-primary flex items-center justify-center px-4 py-8">
+      {/* Language Selector - Top Right */}
+      <div className="fixed top-4 right-4 z-50">
+        <LanguageSelector />
+      </div>
+      
       <div className="w-full max-w-md">
         {/* Header with Pulse branding */}
         <div className="text-center mb-8 animate-fade-in-up">
@@ -68,14 +73,14 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
           <div className="mb-6 flex flex-col items-center">
             <div className="text-6xl mb-2">🛡️💜</div>
             <div className="text-4xl font-bold bg-gradient-to-r from-orange-400 to-orange-500 bg-clip-text text-transparent mb-1 tracking-widest">
-              PULSE
+              {t('common.appName')}
             </div>
             <div className="text-sm font-semibold bg-gradient-to-r from-pink-400 to-purple-500 bg-clip-text text-transparent tracking-wider">
-              CONNECT SECURELY
+              {t('common.tagline')}
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-          <p className="text-white/80 font-medium">Continue building secure connections</p>
+          <h1 className="text-3xl font-bold text-white mb-2">{t('auth.welcomeBack')}</h1>
+          <p className="text-white/80 font-medium">{t('auth.continueBuilding')}</p>
         </div>
 
         {/* Error Alert */}
