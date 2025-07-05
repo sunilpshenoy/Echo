@@ -1,0 +1,82 @@
+{
+  "common": {
+    "appName": "पल्स",
+    "tagline": "सुरक्षितपणे जोडला जा",
+    "loading": "लोड होत आहे...",
+    "error": "त्रुटी",
+    "success": "यश",
+    "cancel": "रद्द करा",
+    "save": "जतन करा",
+    "edit": "संपादित करा",
+    "delete": "हटवा",
+    "search": "शोधा",
+    "back": "मागे",
+    "next": "पुढे",
+    "previous": "मागील",
+    "submit": "सादर करा",
+    "close": "बंद करा"
+  },
+  "auth": {
+    "welcomeBack": "परत स्वागत आहे",
+    "signIn": "साइन इन करा",
+    "signUp": "साइन अप करा",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "confirmPassword": "पासवर्डची पुष्टी करा",
+    "forgotPassword": "पासवर्ड विसरलात?",
+    "rememberMe": "मला लक्षात ठेवा",
+    "newToApp": "पल्समध्ये नवीन आहात? खाते तयार करा",
+    "haveAccount": "आधीच खाते आहे? साइन इन करा",
+    "continueBuilding": "सुरक्षित कनेक्शन तयार करणे सुरू ठेवा",
+    "whyChoose": "पल्स का निवडा?",
+    "secureConnections": "प्रगतीशील विश्वासासह सुरक्षित कनेक्शन",
+    "verifiedUsers": "फक्त सत्यापित वापरकर्त्यांशी जोडा",
+    "privacyFirst": "तुमची गोपनीयता आमची सर्वोच्च प्राथमिकता आहे"
+  },
+  "profile": {
+    "profileSetup": "प्रोफाइल सेटअप",
+    "personalInfo": "वैयक्तिक माहिती",
+    "displayName": "प्रदर्शन नाव",
+    "username": "वापरकर्ता नाव",
+    "bio": "बायो",
+    "location": "स्थान",
+    "interests": "आवडी",
+    "complete": "सेटअप पूर्ण करा",
+    "trustLevel": "विश्वास पातळी",
+    "authenticity": "सत्यता"
+  },
+  "dashboard": {
+    "chats": "चॅट्स",
+    "teams": "संघ",
+    "premium": "प्रीमियम",
+    "directMessages": "थेट संदेश",
+    "groupsWorkspaces": "गट आणि कार्यस्थळे",
+    "findPeopleSafely": "सुरक्षितपणे नवे लोक शोधा",
+    "signOut": "साइन आउट"
+  },
+  "chat": {
+    "startConversation": "तुमचे संभाषण सुरू करा",
+    "typeMessage": "संदेश टाइप करा...",
+    "sendMessage": "पाठवा",
+    "voiceCall": "व्हॉइस कॉल",
+    "videoCall": "व्हिडिओ कॉल",
+    "fileShare": "फाइल शेअर करा",
+    "searchMessages": "संदेश शोधा...",
+    "noMessages": "अजून कोणते संदेश नाहीत",
+    "connectSafely": "आमच्या ट्रस्ट सिस्टमद्वारे सुरक्षितपणे जोडा"
+  },
+  "languages": {
+    "changeLanguage": "भाषा बदला",
+    "english": "English",
+    "hindi": "हिन्दी",
+    "bengali": "বাংলা",
+    "telugu": "తెలుగు",
+    "marathi": "मराठी",
+    "tamil": "தமிழ்",
+    "gujarati": "ગુજરાતી",
+    "urdu": "اردو",
+    "kannada": "ಕನ್ನಡ",
+    "malayalam": "മലയാളം",
+    "punjabi": "ਪੰਜਾਬੀ"
+  }
+}

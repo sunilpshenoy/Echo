@@ -1,0 +1,82 @@
+{
+  "common": {
+    "appName": "পালস",
+    "tagline": "নিরাপদে সংযুক্ত হন",
+    "loading": "লোড হচ্ছে...",
+    "error": "ত্রুটি",
+    "success": "সফলতা",
+    "cancel": "বাতিল",
+    "save": "সংরক্ষণ",
+    "edit": "সম্পাদনা",
+    "delete": "মুছুন",
+    "search": "খুঁজুন",
+    "back": "ফিরে",
+    "next": "পরবর্তী",
+    "previous": "পূর্ববর্তী",
+    "submit": "জমা দিন",
+    "close": "বন্ধ"
+  },
+  "auth": {
+    "welcomeBack": "ফিরে স্বাগতম",
+    "signIn": "সাইন ইন করুন",
+    "signUp": "সাইন আপ করুন",
+    "email": "ইমেইল",
+    "password": "পাসওয়ার্ড",
+    "confirmPassword": "পাসওয়ার্ড নিশ্চিত করুন",
+    "forgotPassword": "পাসওয়ার্ড ভুলে গেছেন?",
+    "rememberMe": "আমাকে মনে রাখুন",
+    "newToApp": "পালসে নতুন? একটি অ্যাকাউন্ট তৈরি করুন",
+    "haveAccount": "ইতিমধ্যে অ্যাকাউন্ট আছে? সাইন ইন করুন",
+    "continueBuilding": "নিরাপদ সংযোগ তৈরি অব্যাহত রাখুন",
+    "whyChoose": "কেন পালস বেছে নেবেন?",
+    "secureConnections": "প্রগতিশীল বিশ্বাসের সাথে নিরাপদ সংযোগ",
+    "verifiedUsers": "শুধুমাত্র যাচাইকৃত ব্যবহারকারীদের সাথে যুক্ত হন",
+    "privacyFirst": "আপনার গোপনীয়তা আমাদের সর্বোচ্চ অগ্রাধিকার"
+  },
+  "profile": {
+    "profileSetup": "প্রোফাইল সেটআপ",
+    "personalInfo": "ব্যক্তিগত তথ্য",
+    "displayName": "প্রদর্শনী নাম",
+    "username": "ব্যবহারকারীর নাম",
+    "bio": "বায়ো",
+    "location": "অবস্থান",
+    "interests": "আগ্রহ",
+    "complete": "সেটআপ সম্পূর্ণ করুন",
+    "trustLevel": "বিশ্বাসের স্তর",
+    "authenticity": "সত্যতা"
+  },
+  "dashboard": {
+    "chats": "চ্যাট",
+    "teams": "টিম",
+    "premium": "প্রিমিয়াম",
+    "directMessages": "সরাসরি বার্তা",
+    "groupsWorkspaces": "গ্রুপ এবং কর্মক্ষেত্র",
+    "findPeopleSafely": "নিরাপদে নতুন মানুষ খুঁজুন",
+    "signOut": "সাইন আউট"
+  },
+  "chat": {
+    "startConversation": "আপনার কথোপকথন শুরু করুন",
+    "typeMessage": "একটি বার্তা টাইপ করুন...",
+    "sendMessage": "পাঠান",
+    "voiceCall": "ভয়েস কল",
+    "videoCall": "ভিডিও কল",
+    "fileShare": "ফাইল শেয়ার করুন",
+    "searchMessages": "বার্তা খুঁজুন...",
+    "noMessages": "এখনও কোনো বার্তা নেই",
+    "connectSafely": "আমাদের বিশ্বাস সিস্টেমের মাধ্যমে নিরাপদে সংযুক্ত হন"
+  },
+  "languages": {
+    "changeLanguage": "ভাষা পরিবর্তন করুন",
+    "english": "English",
+    "hindi": "हिन्दी",
+    "bengali": "বাংলা",
+    "telugu": "తెలుగు",
+    "marathi": "मराठी",
+    "tamil": "தமிழ்",
+    "gujarati": "ગુજરાતી",
+    "urdu": "اردو",
+    "kannada": "ಕನ್ನಡ",
+    "malayalam": "മലയാളം",
+    "punjabi": "ਪੰਜਾਬੀ"
+  }
+}

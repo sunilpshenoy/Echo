@@ -1,0 +1,82 @@
+{
+  "common": {
+    "appName": "پلس",
+    "tagline": "محفوظ رابطہ بنائیں",
+    "loading": "لوڈ ہو رہا ہے...",
+    "error": "خرابی",
+    "success": "کامیابی",
+    "cancel": "منسوخ کریں",
+    "save": "محفوظ کریں",
+    "edit": "ترمیم کریں",
+    "delete": "حذف کریں",
+    "search": "تلاش کریں",
+    "back": "واپس",
+    "next": "اگلا",
+    "previous": "پچھلا",
+    "submit": "جمع کریں",
+    "close": "بند کریں"
+  },
+  "auth": {
+    "welcomeBack": "واپس آپ کا خیر مقدم",
+    "signIn": "سائن ان کریں",
+    "signUp": "سائن اپ کریں",
+    "email": "ای میل",
+    "password": "پاس ورڈ",
+    "confirmPassword": "پاس ورڈ کی تصدیق کریں",
+    "forgotPassword": "پاس ورڈ بھول گئے؟",
+    "rememberMe": "مجھے یاد رکھیں",
+    "newToApp": "پلس میں نئے ہیں؟ اکاؤنٹ بنائیں",
+    "haveAccount": "پہلے سے اکاؤنٹ ہے؟ سائن ان کریں",
+    "continueBuilding": "محفوظ کنکشن بنانا جاری رکھیں",
+    "whyChoose": "پلس کیوں منتخب کریں؟",
+    "secureConnections": "ترقی پسند اعتماد کے ساتھ محفوظ کنکشن",
+    "verifiedUsers": "صرف تصدیق شدہ صارفین سے جڑیں",
+    "privacyFirst": "آپ کی رازداری ہماری سب سے بڑی ترجیح ہے"
+  },
+  "profile": {
+    "profileSetup": "پروفائل سیٹ اپ",
+    "personalInfo": "ذاتی معلومات",
+    "displayName": "ڈسپلے نیم",
+    "username": "صارف نام",
+    "bio": "بائیو",
+    "location": "مقام",
+    "interests": "دلچسپیاں",
+    "complete": "سیٹ اپ مکمل کریں",
+    "trustLevel": "اعتماد کی سطح",
+    "authenticity": "صداقت"
+  },
+  "dashboard": {
+    "chats": "چیٹس",
+    "teams": "ٹیمز",
+    "premium": "پریمیم",
+    "directMessages": "براہ راست پیغامات",
+    "groupsWorkspaces": "گروپس اور ورک اسپیس",
+    "findPeopleSafely": "محفوظ طریقے سے نئے لوگ تلاش کریں",
+    "signOut": "سائن آؤٹ"
+  },
+  "chat": {
+    "startConversation": "اپنی گفتگو شروع کریں",
+    "typeMessage": "پیغام ٹائپ کریں...",
+    "sendMessage": "بھیجیں",
+    "voiceCall": "وائس کال",
+    "videoCall": "ویڈیو کال",
+    "fileShare": "فائل شیئر کریں",
+    "searchMessages": "پیغامات تلاش کریں...",
+    "noMessages": "ابھی تک کوئی پیغام نہیں",
+    "connectSafely": "ہمارے ٹرسٹ سسٹم کے ذریعے محفوظ طریقے سے جڑیں"
+  },
+  "languages": {
+    "changeLanguage": "زبان تبدیل کریں",
+    "english": "English",
+    "hindi": "हिन्दी",
+    "bengali": "বাংলা",
+    "telugu": "తెలుగు",
+    "marathi": "मराठी",
+    "tamil": "தமிழ்",
+    "gujarati": "ગુજરાતી",
+    "urdu": "اردو",
+    "kannada": "ಕನ್ನಡ",
+    "malayalam": "മലയാളം",
+    "punjabi": "ਪੰਜਾਬੀ"
+  }
+}
