@@ -89,7 +89,7 @@ const App = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-indigo-600 font-medium">Loading your authentic connections...</p>
+          <p className="text-indigo-600 font-medium">Loading your secure connections...</p>
         </div>
       </div>
     );
