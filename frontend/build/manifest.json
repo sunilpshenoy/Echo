@@ -1,11 +1,11 @@
 {
-  "name": "Authentic Connections",
-  "short_name": "AuthConnect",
-  "description": "Build authentic relationships through progressive trust and genuine connections",
+  "name": "Pulse - Connect Securely",
+  "short_name": "Pulse",
+  "description": "Connect securely. Build genuine relationships through progressive trust and safe connections.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "background_color": "#4A1A5C",
+  "theme_color": "#4A1A5C",
   "orientation": "portrait-primary",
   "scope": "/",
   "icons": [
@@ -27,14 +27,14 @@
     {
       "name": "Start Chat",
       "short_name": "Chat",
-      "description": "Start a new conversation",
+      "description": "Start a secure conversation",
       "url": "/?tab=chats",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Discover",
-      "short_name": "Discover", 
-      "description": "Find new authentic connections",
+      "name": "Premium",
+      "short_name": "Premium", 
+      "description": "Discover secure connections",
       "url": "/?tab=discover",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
@@ -44,7 +44,7 @@
   "features": [
     "Cross Platform",
     "fast",
-    "simple"
+    "secure"
   ],
   "screenshots": [
     {
