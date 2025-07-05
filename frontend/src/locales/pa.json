@@ -1,0 +1,82 @@
+{
+  "common": {
+    "appName": "ਪਲਸ",
+    "tagline": "ਸੁਰੱਖਿਅਤ ਰੂਪ ਵਿੱਚ ਜੁੜੋ",
+    "loading": "ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ...",
+    "error": "ਗਲਤੀ",
+    "success": "ਸਫਲਤਾ",
+    "cancel": "ਰੱਦ ਕਰੋ",
+    "save": "ਸੇਵ ਕਰੋ",
+    "edit": "ਸੰਪਾਦਿਤ ਕਰੋ",
+    "delete": "ਮਿਟਾਓ",
+    "search": "ਖੋਜੋ",
+    "back": "ਵਾਪਸ",
+    "next": "ਅਗਲਾ",
+    "previous": "ਪਿਛਲਾ",
+    "submit": "ਜਮ੍ਹਾਂ ਕਰੋ",
+    "close": "ਬੰਦ ਕਰੋ"
+  },
+  "auth": {
+    "welcomeBack": "ਵਾਪਸ ਜੀ ਆਇਆਂ ਨੂੰ",
+    "signIn": "ਸਾਇਨ ਇਨ ਕਰੋ",
+    "signUp": "ਸਾਇਨ ਅੱਪ ਕਰੋ",
+    "email": "ਈਮੇਲ",
+    "password": "ਪਾਸਵਰਡ",
+    "confirmPassword": "ਪਾਸਵਰਡ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ",
+    "forgotPassword": "ਪਾਸਵਰਡ ਭੁੱਲ ਗਏ?",
+    "rememberMe": "ਮੈਨੂੰ ਯਾਦ ਰੱਖੋ",
+    "newToApp": "ਪਲਸ ਵਿੱਚ ਨਵੇਂ ਹੋ? ਖਾਤਾ ਬਣਾਓ",
+    "haveAccount": "ਪਹਿਲਾਂ ਤੋਂ ਖਾਤਾ ਹੈ? ਸਾਇਨ ਇਨ ਕਰੋ",
+    "continueBuilding": "ਸੁਰੱਖਿਅਤ ਕਨੈਕਸ਼ਨ ਬਣਾਉਣਾ ਜਾਰੀ ਰੱਖੋ",
+    "whyChoose": "ਪਲਸ ਕਿਉਂ ਚੁਣੋ?",
+    "secureConnections": "ਪ੍ਰਗਤੀਸ਼ੀਲ ਭਰੋਸੇ ਨਾਲ ਸੁਰੱਖਿਅਤ ਕਨੈਕਸ਼ਨ",
+    "verifiedUsers": "ਸਿਰਫ਼ ਤਸਦੀਕ ਸ਼ੁਦਾ ਯੂਜ਼ਰਾਂ ਨਾਲ ਜੁੜੋ",
+    "privacyFirst": "ਤੁਹਾਡੀ ਪ੍ਰਾਈਵੇਸੀ ਸਾਡੀ ਸਭ ਤੋਂ ਵੱਡੀ ਤਰਜੀਹ ਹੈ"
+  },
+  "profile": {
+    "profileSetup": "ਪ੍ਰੋਫਾਈਲ ਸੈੱਟਅਪ",
+    "personalInfo": "ਨਿੱਜੀ ਜਾਣਕਾਰੀ",
+    "displayName": "ਡਿਸਪਲੇ ਨਾਮ",
+    "username": "ਯੂਜ਼ਰ ਨਾਮ",
+    "bio": "ਬਾਇਓ",
+    "location": "ਸਥਾਨ",
+    "interests": "ਦਿਲਚਸਪੀਆਂ",
+    "complete": "ਸੈੱਟਅਪ ਪੂਰਾ ਕਰੋ",
+    "trustLevel": "ਭਰੋਸਾ ਪੱਧਰ",
+    "authenticity": "ਪ੍ਰਮਾਣਿਕਤਾ"
+  },
+  "dashboard": {
+    "chats": "ਚੈਟਸ",
+    "teams": "ਟੀਮਾਂ",
+    "premium": "ਪ੍ਰੀਮੀਅਮ",
+    "directMessages": "ਸਿੱਧੇ ਸੁਨੇਹੇ",
+    "groupsWorkspaces": "ਗਰੁੱਪ ਅਤੇ ਵਰਕਸਪੇਸ",
+    "findPeopleSafely": "ਸੁਰੱਖਿਅਤ ਤਰੀਕੇ ਨਾਲ ਨਵੇਂ ਲੋਕ ਲੱਭੋ",
+    "signOut": "ਸਾਇਨ ਆਊਟ"
+  },
+  "chat": {
+    "startConversation": "ਆਪਣੀ ਗੱਲਬਾਤ ਸ਼ੁਰੂ ਕਰੋ",
+    "typeMessage": "ਇੱਕ ਸੁਨੇਹਾ ਟਾਈਪ ਕਰੋ...",
+    "sendMessage": "ਭੇਜੋ",
+    "voiceCall": "ਵਾਇਸ ਕਾਲ",
+    "videoCall": "ਵੀਡਿਓ ਕਾਲ",
+    "fileShare": "ਫਾਈਲ ਸਾਂਝੀ ਕਰੋ",
+    "searchMessages": "ਸੁਨੇਹੇ ਖੋਜੋ...",
+    "noMessages": "ਅਜੇ ਤੱਕ ਕੋਈ ਸੁਨੇਹੇ ਨਹੀਂ",
+    "connectSafely": "ਸਾਡੇ ਟ੍ਰਸਟ ਸਿਸਟਮ ਰਾਹੀਂ ਸੁਰੱਖਿਅਤ ਰੂਪ ਵਿੱਚ ਜੁੜੋ"
+  },
+  "languages": {
+    "changeLanguage": "ਭਾਸ਼ਾ ਬਦਲੋ",
+    "english": "English",
+    "hindi": "हिन्दी",
+    "bengali": "বাংলা",
+    "telugu": "తెలుగు",
+    "marathi": "मराठी",
+    "tamil": "தமிழ்",
+    "gujarati": "ગુજરાતી",
+    "urdu": "اردو",
+    "kannada": "ಕನ್ನಡ",
+    "malayalam": "മലയാളം",
+    "punjabi": "ਪੰਜਾਬੀ"
+  }
+}

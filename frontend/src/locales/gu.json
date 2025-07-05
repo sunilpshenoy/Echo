@@ -1,0 +1,82 @@
+{
+  "common": {
+    "appName": "પલ્સ",
+    "tagline": "સુરક્ષિત રીતે જોડાઓ",
+    "loading": "લોડ થઈ રહ્યું છે...",
+    "error": "ભૂલ",
+    "success": "સફળતા",
+    "cancel": "રદ કરો",
+    "save": "સેવ કરો",
+    "edit": "સંપાદિત કરો",
+    "delete": "ડિલીટ કરો",
+    "search": "શોધો",
+    "back": "પાછળ",
+    "next": "આગળ",
+    "previous": "પહેલાં",
+    "submit": "સબમિટ કરો",
+    "close": "બંધ કરો"
+  },
+  "auth": {
+    "welcomeBack": "પાછા સ્વાગત છે",
+    "signIn": "સાઇન ઇન કરો",
+    "signUp": "સાઇન અપ કરો",
+    "email": "ઈમેઇલ",
+    "password": "પાસવર્ડ",
+    "confirmPassword": "પાસવર્ડની પુષ્ટિ કરો",
+    "forgotPassword": "પાસવર્ડ ભૂલી ગયા?",
+    "rememberMe": "મને યાદ રાખો",
+    "newToApp": "પલ્સમાં નવા છો? એકાઉન્ટ બનાવો",
+    "haveAccount": "પહેલેથી એકાઉન્ટ છે? સાઇન ઇન કરો",
+    "continueBuilding": "સુરક્ષિત કનેક્શન બનાવવાનું ચાલુ રાખો",
+    "whyChoose": "પલ્સ કેમ પસંદ કરો?",
+    "secureConnections": "પ્રગતિશીલ ભરોસા સાથે સુરક્ષિત કનેક્શન",
+    "verifiedUsers": "માત્ર વેરિફાઇડ યુઝર્સ સાથે જોડાઓ",
+    "privacyFirst": "તમારી ગોપનીયતા અમારી સર્વોચ્ચ પ્રાથમિકતા છે"
+  },
+  "profile": {
+    "profileSetup": "પ્રોફાઇલ સેટઅપ",
+    "personalInfo": "વ્યક્તિગત માહિતી",
+    "displayName": "ડિસ્પ્લે નેમ",
+    "username": "યુઝરનેમ",
+    "bio": "બાયો",
+    "location": "સ્થાન",
+    "interests": "રુચિઓ",
+    "complete": "સેટઅપ પૂર્ણ કરો",
+    "trustLevel": "ભરોસાનું સ્તર",
+    "authenticity": "અધિકૃતતા"
+  },
+  "dashboard": {
+    "chats": "ચેટ્સ",
+    "teams": "ટીમો",
+    "premium": "પ્રીમિયમ",
+    "directMessages": "સીધા સંદેશા",
+    "groupsWorkspaces": "ગ્રુપ અને વર્કસ્પેસ",
+    "findPeopleSafely": "સુરક્ષિત રીતે નવા લોકો શોધો",
+    "signOut": "સાઇન આઉટ"
+  },
+  "chat": {
+    "startConversation": "તમારી વાતચીત શરૂ કરો",
+    "typeMessage": "સંદેશ ટાઇપ કરો...",
+    "sendMessage": "મોકલો",
+    "voiceCall": "વૉઇસ કૉલ",
+    "videoCall": "વિડિઓ કૉલ",
+    "fileShare": "ફાઇલ શેર કરો",
+    "searchMessages": "સંદેશા શોધો...",
+    "noMessages": "હજુ સુધી કોઈ સંદેશા નથી",
+    "connectSafely": "અમારી ટ્રસ્ટ સિસ્ટમ દ્વારા સુરક્ષિત રીતે જોડાઓ"
+  },
+  "languages": {
+    "changeLanguage": "ભાષા બદલો",
+    "english": "English",
+    "hindi": "हिन्दी",
+    "bengali": "বাংলা",
+    "telugu": "తెలుగు",
+    "marathi": "मराठी",
+    "tamil": "தமிழ்",
+    "gujarati": "ગુજરાતી",
+    "urdu": "اردو",
+    "kannada": "ಕನ್ನಡ",
+    "malayalam": "മലയാളം",
+    "punjabi": "ਪੰਜਾਬੀ"
+  }
+}

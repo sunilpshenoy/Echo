@@ -1,0 +1,82 @@
+{
+  "common": {
+    "appName": "ಪಲ್ಸ್",
+    "tagline": "ಸುರಕ್ಷಿತವಾಗಿ ಸಂಪರ್ಕಿಸಿ",
+    "loading": "ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+    "error": "ದೋಷ",
+    "success": "ಯಶಸ್ಸು",
+    "cancel": "ರದ್ದುಮಾಡಿ",
+    "save": "ಉಳಿಸಿ",
+    "edit": "ಸಂಪಾದಿಸಿ",
+    "delete": "ಅಳಿಸಿ",
+    "search": "ಹುಡುಕಿ",
+    "back": "ಹಿಂದೆ",
+    "next": "ಮುಂದೆ",
+    "previous": "ಹಿಂದಿನ",
+    "submit": "ಸಲ್ಲಿಸಿ",
+    "close": "ಮುಚ್ಚಿ"
+  },
+  "auth": {
+    "welcomeBack": "ಮತ್ತೆ ಸ್ವಾಗತ",
+    "signIn": "ಸೈನ್ ಇನ್ ಮಾಡಿ",
+    "signUp": "ಸೈನ್ ಅಪ್ ಮಾಡಿ",
+    "email": "ಇಮೇಲ್",
+    "password": "ಪಾಸ್‌ವರ್ಡ್",
+    "confirmPassword": "ಪಾಸ್‌ವರ್ಡ್ ದೃಢೀಕರಿಸಿ",
+    "forgotPassword": "ಪಾಸ್‌ವರ್ಡ್ ಮರೆತಿದ್ದೀರಾ?",
+    "rememberMe": "ನನ್ನನ್ನು ನೆನಪಿಡಿ",
+    "newToApp": "ಪಲ್ಸ್‌ಗೆ ಹೊಸಬರೇ? ಖಾತೆ ರಚಿಸಿ",
+    "haveAccount": "ಈಗಾಗಲೇ ಖಾತೆ ಇದೆಯೇ? ಸೈನ್ ಇನ್ ಮಾಡಿ",
+    "continueBuilding": "ಸುರಕ್ಷಿತ ಸಂಪರ್ಕಗಳನ್ನು ನಿರ್ಮಿಸುವುದನ್ನು ಮುಂದುವರಿಸಿ",
+    "whyChoose": "ಪಲ್ಸ್ ಅನ್ನು ಏಕೆ ಆಯ್ಕೆ ಮಾಡಬೇಕು?",
+    "secureConnections": "ಪ್ರಗತಿಶೀಲ ನಂಬಿಕೆಯೊಂದಿಗೆ ಸುರಕ್ಷಿತ ಸಂಪರ್ಕಗಳು",
+    "verifiedUsers": "ಪರಿಶೀಲಿಸಿದ ಬಳಕೆದಾರರೊಂದಿಗೆ ಮಾತ್ರ ಸಂಪರ್ಕಿಸಿ",
+    "privacyFirst": "ನಿಮ್ಮ ಗೌಪ್ಯತೆ ನಮ್ಮ ಅತ್ಯುನ್ನತ ಆದ್ಯತೆ"
+  },
+  "profile": {
+    "profileSetup": "ಪ್ರೊಫೈಲ್ ಸೆಟಪ್",
+    "personalInfo": "ವೈಯಕ್ತಿಕ ಮಾಹಿತಿ",
+    "displayName": "ಪ್ರದರ್ಶನ ಹೆಸರು",
+    "username": "ಬಳಕೆದಾರ ಹೆಸರು",
+    "bio": "ಬಯೋ",
+    "location": "ಸ್ಥಳ",
+    "interests": "ಆಸಕ್ತಿಗಳು",
+    "complete": "ಸೆಟಪ್ ಪೂರ್ಣಗೊಳಿಸಿ",
+    "trustLevel": "ನಂಬಿಕೆ ಮಟ್ಟ",
+    "authenticity": "ಪ್ರಾಮಾಣಿಕತೆ"
+  },
+  "dashboard": {
+    "chats": "ಚಾಟ್‌ಗಳು",
+    "teams": "ತಂಡಗಳು",
+    "premium": "ಪ್ರೀಮಿಯಂ",
+    "directMessages": "ನೇರ ಸಂದೇಶಗಳು",
+    "groupsWorkspaces": "ಗುಂಪುಗಳು ಮತ್ತು ಕೆಲಸದ ಸ್ಥಳಗಳು",
+    "findPeopleSafely": "ಸುರಕ್ಷಿತವಾಗಿ ಹೊಸ ಜನರನ್ನು ಹುಡುಕಿ",
+    "signOut": "ಸೈನ್ ಔಟ್"
+  },
+  "chat": {
+    "startConversation": "ನಿಮ್ಮ ಸಂಭಾಷಣೆಯನ್ನು ಪ್ರಾರಂಭಿಸಿ",
+    "typeMessage": "ಸಂದೇಶವನ್ನು ಟೈಪ್ ಮಾಡಿ...",
+    "sendMessage": "ಕಳುಹಿಸಿ",
+    "voiceCall": "ಧ್ವನಿ ಕರೆ",
+    "videoCall": "ವೀಡಿಯೊ ಕರೆ",
+    "fileShare": "ಫೈಲ್ ಹಂಚಿಕೊಳ್ಳಿ",
+    "searchMessages": "ಸಂದೇಶಗಳನ್ನು ಹುಡುಕಿ...",
+    "noMessages": "ಇನ್ನೂ ಯಾವುದೇ ಸಂದೇಶಗಳಿಲ್ಲ",
+    "connectSafely": "ನಮ್ಮ ಟ್ರಸ್ಟ್ ಸಿಸ್ಟಂ ಮೂಲಕ ಸುರಕ್ಷಿತವಾಗಿ ಸಂಪರ್ಕಿಸಿ"
+  },
+  "languages": {
+    "changeLanguage": "ಭಾಷೆ ಬದಲಾಯಿಸಿ",
+    "english": "English",
+    "hindi": "हिन्दी",
+    "bengali": "বাংলা",
+    "telugu": "తెలుగు",
+    "marathi": "मराठी",
+    "tamil": "தமிழ்",
+    "gujarati": "ગુજરાતી",
+    "urdu": "اردو",
+    "kannada": "ಕನ್ನಡ",
+    "malayalam": "മലയാളം",
+    "punjabi": "ਪੰਜਾਬੀ"
+  }
+}
