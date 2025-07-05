@@ -1825,6 +1825,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Message Search Functionality"
     - "Contact Name Display Fix"
     - "Trust Levels Configuration"
     - "Trust Progress Tracking"
