@@ -22,6 +22,19 @@ const App = () => {
   
   // Check authentication on app load
   useEffect(() => {
+    // Initialize language from localStorage
+    const savedLanguage = localStorage.getItem('i18nextLng');
+    if (savedLanguage && savedLanguage !== i18n.language) {
+      i18n.changeLanguage(savedLanguage);
+      document.documentElement.lang = savedLanguage;
+      // Set text direction for RTL languages
+      if (savedLanguage === 'ur') {
+        document.documentElement.dir = 'rtl';
+      } else {
+        document.documentElement.dir = 'ltr';
+      }
+    }
+    
     const checkAuth = async () => {
       const savedToken = localStorage.getItem('token');
       if (savedToken) {
