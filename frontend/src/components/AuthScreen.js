@@ -167,7 +167,7 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
 
         {/* Value Proposition */}
         <div className="mt-8 text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Why Choose Authentic Connections?</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Why Choose Pulse?</h2>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-gray-100">
               <div className="text-2xl mb-2">🔒</div>
