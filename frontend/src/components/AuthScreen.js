@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from './LanguageSelector';
 
 const AuthScreen = ({ onAuthSuccess, api }) => {
   const [isLogin, setIsLogin] = useState(true);
