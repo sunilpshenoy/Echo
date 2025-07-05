@@ -234,31 +234,14 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 relative">
-      {/* Pulse Logo Background - Fixed opacity */}
+      {/* Pulse Logo Background */}
       <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
         <div className="opacity-10 transform scale-150">
-          {/* Matching your actual logo design */}
-          <svg width="200" height="240" viewBox="0 0 100 120">
-            <defs>
-              <linearGradient id="bgShieldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#D946EF"/>
-                <stop offset="50%" stopColor="#EC4899"/>
-                <stop offset="100%" stopColor="#F97316"/>
-              </linearGradient>
-            </defs>
-            
-            {/* Hexagonal shield - geometric like yours */}
-            <path d="M50 10 L75 25 L75 55 L50 70 L25 55 L25 25 Z" 
-                  fill="url(#bgShieldGradient)" 
-                  opacity="0.6"/>
-            
-            {/* Interlocked design */}
-            <g transform="translate(50, 40)">
-              <path d="M-8 -5 C-12 -10, -18 -10, -18 -3 C-18 4, -8 10, 0 15 C8 10, 18 4, 18 -3 C18 -10, 12 -10, 8 -5" 
-                    fill="#2D1B69" 
-                    opacity="0.4"/>
-            </g>
-          </svg>
+          <img 
+            src="/pulse-logo.png" 
+            alt="Pulse Background" 
+            className="w-48 h-56 object-contain"
+          />
         </div>
       </div>
       
