@@ -157,7 +157,7 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
                 className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
               >
                 {isLogin 
-                  ? 'New to authentic connections? Create an account' 
+                  ? 'New to Pulse? Create an account' 
                   : 'Already have an account? Sign in'
                 }
               </button>
