@@ -233,7 +233,36 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   }, [activeTab]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 relative">
+      {/* Pulse Logo Background */}
+      <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
+        <div className="opacity-5 transform scale-150">
+          {/* SVG representation of the Pulse logo */}
+          <svg width="200" height="200" viewBox="0 0 200 200" className="text-purple-600">
+            {/* Hexagon shape */}
+            <path d="M100 20 L170 60 L170 140 L100 180 L30 140 L30 60 Z" 
+                  fill="url(#pulseGradient)" stroke="currentColor" strokeWidth="2"/>
+            {/* Heart shape in center */}
+            <path d="M100 80 C90 70, 70 70, 70 90 C70 110, 100 130, 100 130 C100 130, 130 110, 130 90 C130 70, 110 70, 100 80 Z" 
+                  fill="url(#heartGradient)"/>
+            <defs>
+              <linearGradient id="pulseGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#4A1A5C"/>
+                <stop offset="50%" stopColor="#8B4A9C"/>
+                <stop offset="75%" stopColor="#E85A8A"/>
+                <stop offset="100%" stopColor="#FF7B54"/>
+              </linearGradient>
+              <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#8B4A9C"/>
+                <stop offset="100%" stopColor="#E85A8A"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </div>
+      
+      {/* Main content with higher z-index */}
+      <div className="relative z-10">
       {/* WhatsApp-style Header */}
       <div className="bg-white border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4">
