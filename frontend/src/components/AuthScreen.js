@@ -131,7 +131,7 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
               
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
+                  {t('auth.password')}
                 </label>
                 <input
                   type="password"
