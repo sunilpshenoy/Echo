@@ -319,8 +319,8 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center space-x-2 px-6 py-3 text-sm font-medium border-b-2 transition-all ${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600 bg-blue-50'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    ? 'border-purple-500 text-purple-700 bg-purple-50 font-semibold'
+                    : 'border-transparent text-gray-700 hover:text-purple-600 hover:bg-purple-50'
                 }`}
               >
                 <span className="text-lg">{tab.icon}</span>
