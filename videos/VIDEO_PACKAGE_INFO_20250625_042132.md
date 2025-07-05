@@ -25,7 +25,7 @@
 5. **Export as MP4** in 1080p with engaging transitions
 
 ## 🌐 Live App URL
-https://c4a0dccb-e6ce-4ca2-84b4-5aada4920355.preview.emergentagent.com
+https://e4731467-22ca-4980-808c-ef6a27c28966.preview.emergentagent.com
 
 ## 💎 Why ChatApp Pro Ultimate Wins
 

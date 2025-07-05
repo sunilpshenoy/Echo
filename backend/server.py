@@ -4223,7 +4223,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://c4a0dccb-e6ce-4ca2-84b4-5aada4920355.preview.emergentagent.com",
+        "https://e4731467-22ca-4980-808c-ef6a27c28966.preview.emergentagent.com",
         "*"
     ],
     allow_credentials=True,
