@@ -690,7 +690,11 @@ const ChatsInterface = ({
     const isOwnMessage = message.sender_id === user.user_id;
     
     return (
-      <div key={message.message_id} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-3`}>
+      <div 
+        key={message.message_id} 
+        id={`message-${message.message_id}`}
+        className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-3 transition-colors duration-500`}
+      >
         <div className={`max-w-xs lg:max-w-md px-3 py-2 rounded-lg ${
           isOwnMessage 
             ? 'bg-blue-500 text-white' 
