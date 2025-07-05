@@ -57,7 +57,7 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
   };
   
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-pulse-primary flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         {/* Header with Pulse branding */}
         <div className="text-center mb-8 animate-fade-in-up">
