@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import ChatsInterface from './ChatsInterface';
 import TeamsInterface from './TeamsInterface';
 import DiscoverInterface from './DiscoverInterface';
 import TrustSystem from './TrustSystem';
+import LanguageSelector from './LanguageSelector';
 
 const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const [activeTab, setActiveTab] = useState('chats');
