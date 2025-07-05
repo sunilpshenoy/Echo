@@ -812,7 +812,7 @@ const ChatsInterface = ({
           {/* Message Search Bar */}
           {showMessageSearch && (
             <div className="border-t border-gray-200 p-3">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 mb-3">
                 <input
                   type="text"
                   value={searchQuery}
@@ -828,10 +828,45 @@ const ChatsInterface = ({
                 >
                   {isSearching ? '...' : 'Search'}
                 </button>
+                <button
+                  onClick={clearSearch}
+                  className="text-gray-500 hover:text-gray-700 px-2 py-1 rounded-lg text-sm"
+                >
+                  ✕
+                </button>
               </div>
+              
+              {/* Search Results */}
               {searchResults.length > 0 && (
-                <div className="mt-2 text-xs text-gray-600">
-                  Found {searchResults.length} messages containing "{searchQuery}"
+                <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-lg bg-white">
+                  <div className="p-2 bg-gray-50 border-b border-gray-200 text-xs text-gray-600 font-medium">
+                    Found {searchResults.length} messages containing "{searchQuery}"
+                  </div>
+                  {searchResults.map((message) => (
+                    <div
+                      key={message.message_id}
+                      onClick={() => jumpToMessage(message.message_id)}
+                      className="p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                    >
+                      <div className="flex items-start space-x-2">
+                        <div className="text-xs text-gray-500 font-medium">
+                          {message.sender_name || 'Unknown'}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {new Date(message.created_at).toLocaleString()}
+                        </div>
+                      </div>
+                      <div className="text-sm text-gray-700 mt-1 line-clamp-2">
+                        {message.content}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {searchResults.length === 0 && searchQuery && !isSearching && (
+                <div className="text-xs text-gray-500 mt-2">
+                  No messages found containing "{searchQuery}"
                 </div>
               )}
             </div>
