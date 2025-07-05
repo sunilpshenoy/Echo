@@ -12,6 +12,7 @@ const TeamsInterface = ({
   onTeamSelect,
   onTeamsRefresh
 }) => {
+  const { t } = useTranslation();
   const [showCreateTeam, setShowCreateTeam] = useState(false);
   const [newTeamName, setNewTeamName] = useState('');
   const [newTeamDescription, setNewTeamDescription] = useState('');
@@ -33,7 +34,7 @@ const TeamsInterface = ({
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      alert(`Team "${newTeamName}" created successfully! 👥`);
+      alert(`${t('teams.teamCreatedSuccess')}`);
       console.log('Team created:', response.data);
       
       setNewTeamName('');
@@ -47,7 +48,7 @@ const TeamsInterface = ({
       
     } catch (error) {
       console.error('Failed to create team:', error);
-      const errorMessage = error.response?.data?.detail || 'Failed to create team. Please try again.';
+      const errorMessage = error.response?.data?.detail || t('teams.teamCreationFailed');
       alert(errorMessage);
     } finally {
       setIsCreating(false);
