@@ -294,7 +294,6 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
             </div>
             
             <div className="flex items-center space-x-4">
-              <LanguageSelector />
               <button
                 onClick={() => setIsEditingProfile(true)}
                 className="text-gray-600 hover:text-gray-800 p-2"
