@@ -824,7 +824,7 @@ const ChatsInterface = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleMessageSearch()}
-                  placeholder="Search messages..."
+                  placeholder={t('chat.searchMessages')}
                   className="flex-1 px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                 />
                 <button
