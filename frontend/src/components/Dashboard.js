@@ -288,7 +288,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
                   {user?.display_name || user?.username || 'User'}
                 </h1>
                 <p className="text-sm text-gray-700 font-medium">
-                  Trust Level {user?.trust_level || 1} • Authenticity {(user?.authenticity_rating || 0).toFixed(1)}
+                  {t('profile.trustLevel')} {user?.trust_level || 1} • {t('profile.authenticity')} {(user?.authenticity_rating || 0).toFixed(1)}
                 </p>
               </div>
             </div>
