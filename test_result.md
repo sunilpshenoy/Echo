@@ -1915,14 +1915,13 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Multilingual Teams and Premium Interface Translation"
-    - "Settings Button UI Relocation"
-    - "Message Search Functionality"
-    - "Contact Name Display Fix"
-    - "Trust Levels Configuration"
-    - "Trust Progress Tracking"
-    - "Trust Level Up"
-    - "Trust Features"
+    - "Multilingual Teams and Premium Interface"
+    - "Settings Button Relocation"
+  stuck_tasks:
+    - "Contact Management"
+    - "Enhanced User Profile"
+  test_all: false
+  test_priority: "high_first"
     - "Trust Achievements"
     - "Interaction Recording"
     - "Trust Metrics Calculation"
