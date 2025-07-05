@@ -784,6 +784,25 @@ const ChatsInterface = ({
               <div ref={messagesEndRef} />
             </div>
           )}
+          
+          {/* File Upload Progress */}
+          {isUploadingFile && (
+            <div className="fixed bottom-20 left-4 right-4 bg-white rounded-lg shadow-lg border p-4 z-50">
+              <div className="flex items-center space-x-3">
+                <div className="text-2xl">📤</div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">Uploading file...</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                    <div 
+                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">{Math.round(uploadProgress)}% complete</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Message Input */}
