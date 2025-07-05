@@ -284,9 +284,18 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
                 </span>
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">
-                  {user?.display_name || user?.username || 'User'}
-                </h1>
+                <div className="flex items-center space-x-2">
+                  <h1 className="text-xl font-semibold text-gray-900">
+                    {user?.display_name || user?.username || 'User'}
+                  </h1>
+                  <button
+                    onClick={() => setIsEditingProfile(true)}
+                    className="text-gray-600 hover:text-gray-800 p-1"
+                    title={t('common.edit')}
+                  >
+                    ⚙️
+                  </button>
+                </div>
                 <p className="text-sm text-gray-700 font-medium">
                   {t('profile.trustLevel')} {user?.trust_level || 1} • {t('profile.authenticity')} {(user?.authenticity_rating || 0).toFixed(1)}
                 </p>
