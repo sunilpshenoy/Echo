@@ -388,46 +388,99 @@ const ChatsInterface = ({
     fileInputRef.current?.click();
   };
 
+  // Enhanced file sharing state
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   const handleFileSelect = async (event) => {
     const file = event.target.files[0];
     if (!file || !selectedChat) return;
     
-    // Check file size (limit to 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      alert('File size too large. Maximum 10MB allowed.');
+    // Enhanced file validation
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'application/pdf', 'text/plain', 'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    
+    if (file.size > maxSize) {
+      alert(`File too large! Maximum size is ${(maxSize / (1024 * 1024)).toFixed(1)}MB.\nYour file: ${(file.size / (1024 * 1024)).toFixed(1)}MB`);
       return;
     }
     
+    if (!allowedTypes.includes(file.type)) {
+      alert(`File type not supported!\nAllowed: Images (JPG, PNG, GIF), PDF, Text, Word documents\nYour file: ${file.type}`);
+      return;
+    }
+    
+    setIsUploadingFile(true);
+    setUploadProgress(0);
+    
     try {
-      // Convert file to base64
+      // Convert file to base64 with progress
       const reader = new FileReader();
+      
+      reader.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const progress = (e.loaded / e.total) * 50; // First 50% for reading
+          setUploadProgress(progress);
+        }
+      };
+      
       reader.onload = async () => {
         try {
-          const base64Data = reader.result.split(',')[1];
+          setUploadProgress(50); // Reading complete
           
-          await axios.post(`${api}/chats/${selectedChat.chat_id}/messages`, {
+          const base64Data = reader.result.split(',')[1];
+          const messageType = file.type.startsWith('image/') ? 'image' : 'file';
+          
+          const response = await axios.post(`${api}/chats/${selectedChat.chat_id}/messages`, {
             content: file.name,
-            message_type: file.type.startsWith('image/') ? 'image' : 'file',
+            message_type: messageType,
             file_name: file.name,
             file_size: file.size,
             file_data: base64Data
           }, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
+            onUploadProgress: (progressEvent) => {
+              const uploadProgress = 50 + (progressEvent.loaded / progressEvent.total) * 50;
+              setUploadProgress(uploadProgress);
+            }
           });
+          
+          setUploadProgress(100);
+          
+          // Show success message
+          const fileIcon = messageType === 'image' ? '🖼️' : '📄';
+          alert(`${fileIcon} File "${file.name}" shared successfully!`);
           
           // Refresh messages
           onSelectChat(selectedChat);
           
         } catch (error) {
           console.error('Failed to send file:', error);
-          alert('Failed to send file. Please try again.');
+          const errorMsg = error.response?.data?.detail || 'Failed to send file. Please try again.';
+          alert(`❌ Upload failed: ${errorMsg}`);
+        } finally {
+          setIsUploadingFile(false);
+          setUploadProgress(0);
         }
+      };
+      
+      reader.onerror = () => {
+        alert('❌ Failed to read file. Please try again.');
+        setIsUploadingFile(false);
+        setUploadProgress(0);
       };
       
       reader.readAsDataURL(file);
       
     } catch (error) {
       console.error('File upload error:', error);
+      alert('❌ File upload error occurred.');
+      setIsUploadingFile(false);
+      setUploadProgress(0);
     }
     
     // Clear file input
