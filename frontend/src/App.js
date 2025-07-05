@@ -64,7 +64,7 @@ const App = () => {
     };
     
     checkAuth();
-  }, [API]);
+  }, [i18n]);
   
   // Authentication handlers
   const handleAuthSuccess = (userData, authToken) => {
