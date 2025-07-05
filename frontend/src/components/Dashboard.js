@@ -589,6 +589,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
           </div>
         </div>
       )}
+      </div> {/* Close main content wrapper */}
     </div>
   );
 };
