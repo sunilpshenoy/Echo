@@ -392,6 +392,12 @@ const ChatsInterface = ({
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  // Message search state
+  const [showMessageSearch, setShowMessageSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+
   const handleFileSelect = async (event) => {
     const file = event.target.files[0];
     if (!file || !selectedChat) return;
