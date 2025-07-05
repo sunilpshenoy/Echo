@@ -216,6 +216,7 @@ const ChatsInterface = ({
   onSendMessage, 
   isLoading 
 }) => {
+  const { t } = useTranslation();
   const [showAddContact, setShowAddContact] = useState(false);
   const [showMyPin, setShowMyPin] = useState(false);
   const [contactPin, setContactPin] = useState('');
