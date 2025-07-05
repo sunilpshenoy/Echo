@@ -1,4 +1,4 @@
-/* Beautiful, Calming UI for Authentic Connections */
+/* Beautiful, Calming UI for Pulse - Connect Securely */
 
 * {
   margin: 0;
@@ -14,17 +14,30 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Beautiful gradients for trust and calm */
+/* Pulse Brand Gradients */
+.bg-pulse-primary {
+  background: linear-gradient(135deg, #4A1A5C 0%, #8B4A9C 50%, #E85A8A 75%, #FF7B54 100%);
+}
+
+.bg-pulse-secondary {
+  background: linear-gradient(135deg, #8B4A9C 0%, #E85A8A 100%);
+}
+
+.bg-pulse-accent {
+  background: linear-gradient(135deg, #E85A8A 0%, #FF7B54 100%);
+}
+
+/* Original gradients for compatibility */
 .bg-trust-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4A1A5C 0%, #8B4A9C 100%);
 }
 
 .bg-calm-gradient {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #8B4A9C 0%, #E85A8A 100%);
 }
 
 .bg-gentle-gradient {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, #E85A8A 0%, #FF7B54 100%);
 }
 
 .bg-warm-gradient {
