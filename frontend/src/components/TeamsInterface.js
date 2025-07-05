@@ -34,7 +34,7 @@ const TeamsInterface = ({
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      alert(`${t('teams.teamCreatedSuccess')}`);
+      alert(t('teams.teamCreatedSuccess'));
       console.log('Team created:', response.data);
       
       setNewTeamName('');
@@ -94,10 +94,10 @@ const TeamsInterface = ({
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900">
-                {selectedTeam.name || 'Unnamed Team'}
+                {selectedTeam.name || t('teams.unnamedTeam')}
               </h3>
               <p className="text-sm text-gray-600">
-                {selectedTeam.member_count || selectedTeam.members?.length || 0} members • {selectedTeam.type || 'General'}
+                {selectedTeam.member_count || selectedTeam.members?.length || 0} {t('teams.members')} • {selectedTeam.type || 'General'}
               </p>
             </div>
           </div>
@@ -108,13 +108,13 @@ const TeamsInterface = ({
           <div className="text-center max-w-sm">
             <div className="text-4xl mb-4">💬</div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Welcome to {selectedTeam.name}
+              {t('teams.welcomeTo')} {selectedTeam.name}
             </h3>
             <p className="text-gray-600 mb-4 text-sm">
-              {selectedTeam.description || 'Start collaborating with your team members'}
+              {selectedTeam.description || t('teams.startCollaborating')}
             </p>
             <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm">
-              Send First Message
+              {t('teams.sendFirstMessage')}
             </button>
           </div>
         </div>
@@ -127,7 +127,7 @@ const TeamsInterface = ({
             </button>
             <input
               type="text"
-              placeholder={`Message ${selectedTeam.name}`}
+              placeholder={`${t('teams.messageTeam')} ${selectedTeam.name}`}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
             />
             <button className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors">
@@ -145,13 +145,13 @@ const TeamsInterface = ({
       <div className="bg-white p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Teams</h2>
-            <p className="text-sm text-gray-600">Groups & workspaces</p>
+            <h2 className="text-lg font-semibold text-gray-900">{t('teams.title')}</h2>
+            <p className="text-sm text-gray-600">{t('teams.subtitle')}</p>
           </div>
           <button 
             onClick={() => setShowCreateTeam(true)}
             className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors"
-            title="Create New Team"
+            title={t('teams.createTeam')}
           >
             ➕
           </button>
@@ -180,13 +180,13 @@ const TeamsInterface = ({
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-900 truncate">
-                      {team.name || 'Unnamed Team'}
+                      {team.name || t('teams.unnamedTeam')}
                     </p>
                     <p className="text-sm text-gray-600 truncate">
-                      {team.member_count || team.members?.length || 0} members
+                      {team.member_count || team.members?.length || 0} {t('teams.members')}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {team.last_activity ? new Date(team.last_activity).toLocaleDateString() : 'No recent activity'}
+                      {team.last_activity ? new Date(team.last_activity).toLocaleDateString() : t('teams.noRecentActivity')}
                     </p>
                   </div>
                   <div className="text-gray-400">
@@ -199,30 +199,29 @@ const TeamsInterface = ({
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center p-6">
             <div className="text-6xl mb-4">👥</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No teams yet</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('teams.noTeams')}</h3>
             <p className="text-gray-600 text-sm mb-6 max-w-sm">
-              Create teams for work projects, interest groups, or friend circles. 
-              Share files, have group calls, and build together.
+              {t('teams.createTeamDescription')}
             </p>
             
             <div className="bg-gray-50 rounded-lg p-4 mb-6 max-w-sm">
-              <h4 className="font-semibold text-gray-900 mb-2 text-sm">Team Features:</h4>
+              <h4 className="font-semibold text-gray-900 mb-2 text-sm">{t('teams.teamFeatures')}</h4>
               <div className="space-y-1 text-left text-xs text-gray-700">
                 <div className="flex items-center space-x-2">
                   <span className="text-green-500">✓</span>
-                  <span>Group messaging and file sharing</span>
+                  <span>{t('teams.groupMessaging')}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="text-green-500">✓</span>
-                  <span>Voice and video group calls</span>
+                  <span>{t('teams.voiceVideoCalls')}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="text-green-500">✓</span>
-                  <span>Project collaboration tools</span>
+                  <span>{t('teams.projectCollaboration')}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="text-green-500">✓</span>
-                  <span>Member management and roles</span>
+                  <span>{t('teams.memberManagement')}</span>
                 </div>
               </div>
             </div>
@@ -231,7 +230,7 @@ const TeamsInterface = ({
               onClick={() => setShowCreateTeam(true)}
               className="bg-blue-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors"
             >
-              Create Your First Team
+              {t('teams.createFirstTeam')}
             </button>
           </div>
         )}
@@ -242,7 +241,7 @@ const TeamsInterface = ({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-bold text-gray-900">Create New Team</h2>
+              <h2 className="text-lg font-bold text-gray-900">{t('teams.createTeam')}</h2>
               <button
                 onClick={() => {
                   setShowCreateTeam(false);
@@ -258,27 +257,27 @@ const TeamsInterface = ({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Team Name *
+                  {t('teams.teamNameRequired')}
                 </label>
                 <input
                   type="text"
                   value={newTeamName}
                   onChange={(e) => setNewTeamName(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  placeholder="Enter team name"
+                  placeholder={t('teams.enterTeamName')}
                   maxLength={50}
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
+                  {t('teams.description')}
                 </label>
                 <textarea
                   value={newTeamDescription}
                   onChange={(e) => setNewTeamDescription(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  placeholder="What's this team about?"
+                  placeholder={t('teams.descriptionPlaceholder')}
                   rows={3}
                   maxLength={200}
                 />
@@ -294,14 +293,14 @@ const TeamsInterface = ({
                 }}
                 className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleCreateTeam}
                 disabled={isCreating || !newTeamName.trim()}
                 className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
               >
-                {isCreating ? 'Creating...' : 'Create Team'}
+                {isCreating ? t('teams.creating') : t('teams.createTeamButton')}
               </button>
             </div>
           </div>
