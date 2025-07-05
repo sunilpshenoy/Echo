@@ -940,7 +940,7 @@ const ChatsInterface = ({
                 handleTyping();
               }}
               onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-              placeholder="Type a message..."
+              placeholder={t('chat.typeMessage')}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             <button
