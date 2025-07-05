@@ -1,0 +1,82 @@
+{
+  "common": {
+    "appName": "Pulse",
+    "tagline": "Connect Securely",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "search": "Search",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "close": "Close"
+  },
+  "auth": {
+    "welcomeBack": "Welcome Back",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "rememberMe": "Remember me",
+    "newToApp": "New to Pulse? Create an account",
+    "haveAccount": "Already have an account? Sign in",
+    "continueBuilding": "Continue building secure connections",
+    "whyChoose": "Why Choose Pulse?",
+    "secureConnections": "Secure connections with progressive trust",
+    "verifiedUsers": "Connect only with verified users",
+    "privacyFirst": "Your privacy is our top priority"
+  },
+  "profile": {
+    "profileSetup": "Profile Setup",
+    "personalInfo": "Personal Information",
+    "displayName": "Display Name",
+    "username": "Username",
+    "bio": "Bio",
+    "location": "Location",
+    "interests": "Interests",
+    "complete": "Complete Setup",
+    "trustLevel": "Trust Level",
+    "authenticity": "Authenticity"
+  },
+  "dashboard": {
+    "chats": "Chats",
+    "teams": "Teams",
+    "premium": "Premium",
+    "directMessages": "Direct messages",
+    "groupsWorkspaces": "Groups & workspaces",
+    "findPeopleSafely": "Find new people safely",
+    "signOut": "Sign Out"
+  },
+  "chat": {
+    "startConversation": "Start your conversation",
+    "typeMessage": "Type a message...",
+    "sendMessage": "Send",
+    "voiceCall": "Voice Call",
+    "videoCall": "Video Call",
+    "fileShare": "Share File",
+    "searchMessages": "Search messages...",
+    "noMessages": "No messages yet",
+    "connectSafely": "Connect safely through our trust system"
+  },
+  "languages": {
+    "changeLanguage": "Change Language",
+    "english": "English",
+    "hindi": "हिन्दी",
+    "bengali": "বাংলা",
+    "telugu": "తెలుగు",
+    "marathi": "मराठी",
+    "tamil": "தமிழ்",
+    "gujarati": "ગુજરાતી",
+    "urdu": "اردو",
+    "kannada": "ಕನ್ನಡ",
+    "malayalam": "മലയാളം",
+    "punjabi": "ਪੰਜਾਬੀ"
+  }
+}
