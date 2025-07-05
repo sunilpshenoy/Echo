@@ -115,7 +115,7 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
               
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
+                  {t('auth.emailAddress')}
                 </label>
                 <input
                   type="email"
