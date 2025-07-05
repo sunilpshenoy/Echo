@@ -136,6 +136,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "User registration and login endpoints are working correctly. Successfully tested user creation, login with JWT token generation, and duplicate registration prevention."
+      - working: true
+        agent: "testing"
+        comment: "Verified that the authentication system is still working correctly after the multilingual frontend changes. Successfully tested user registration, login, and token validation. The system correctly handles authentication and returns proper JWT tokens. No regressions were found."
         
   - task: "Authentic Connections Registration"
     implemented: true
