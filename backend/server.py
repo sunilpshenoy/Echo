@@ -3323,6 +3323,81 @@ async def upload_file(file: UploadFile = File(...), current_user = Depends(get_c
     
     return {"message": "File uploaded successfully", "file_id": message["message_id"]}
 
+@api_router.get("/chats/{chat_id}/search")
+async def search_messages(chat_id: str, q: str, current_user = Depends(get_current_user)):
+    """Search messages in a specific chat"""
+    if not q or len(q.strip()) < 2:
+        raise HTTPException(status_code=400, detail="Search query must be at least 2 characters")
+    
+    # Verify user is member of chat
+    chat = await db.chats.find_one({
+        "chat_id": chat_id,
+        "members": current_user["user_id"]
+    })
+    
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    
+    try:
+        # Search messages with regex (case-insensitive)
+        search_results = await db.messages.find({
+            "chat_id": chat_id,
+            "content": {"$regex": q.strip(), "$options": "i"},
+            "is_deleted": {"$ne": True}
+        }).sort("created_at", -1).limit(50).to_list(50)
+        
+        return {
+            "query": q,
+            "total_results": len(search_results),
+            "results": serialize_mongo_doc(search_results)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Search failed")
+
+@api_router.get("/search/messages")
+async def search_all_messages(q: str, current_user = Depends(get_current_user)):
+    """Search messages across all user's chats"""
+    if not q or len(q.strip()) < 2:
+        raise HTTPException(status_code=400, detail="Search query must be at least 2 characters")
+    
+    try:
+        # Get all chats user is member of
+        user_chats = await db.chats.find({
+            "members": current_user["user_id"]
+        }).to_list(1000)
+        
+        chat_ids = [chat["chat_id"] for chat in user_chats]
+        
+        # Search messages across all user's chats
+        search_results = await db.messages.find({
+            "chat_id": {"$in": chat_ids},
+            "content": {"$regex": q.strip(), "$options": "i"},
+            "is_deleted": {"$ne": True}
+        }).sort("created_at", -1).limit(100).to_list(100)
+        
+        # Group results by chat
+        results_by_chat = {}
+        for message in search_results:
+            chat_id = message["chat_id"]
+            if chat_id not in results_by_chat:
+                # Find chat info
+                chat_info = next((chat for chat in user_chats if chat["chat_id"] == chat_id), None)
+                results_by_chat[chat_id] = {
+                    "chat_info": chat_info,
+                    "messages": []
+                }
+            results_by_chat[chat_id]["messages"].append(message)
+        
+        return {
+            "query": q,
+            "total_results": len(search_results),
+            "results_by_chat": serialize_mongo_doc(results_by_chat)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Search failed")
+
 # User Search and Discovery
 @api_router.get("/users/search")
 async def search_users(query: str, current_user = Depends(get_current_user)):
