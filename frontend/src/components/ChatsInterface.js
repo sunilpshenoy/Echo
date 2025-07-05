@@ -725,6 +725,15 @@ const ChatsInterface = ({
             </div>
             <div className="flex items-center space-x-2">
               <button 
+                onClick={() => setShowMessageSearch(!showMessageSearch)}
+                className={`p-2 rounded-lg transition-all ${
+                  showMessageSearch ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:text-blue-600 hover:bg-gray-100'
+                }`}
+                title="Search messages"
+              >
+                🔍
+              </button>
+              <button 
                 onClick={() => handleDoubleTapAction('voice', activeContact.chat_id, () => handleVoiceCall(activeContact))}
                 className={`p-2 rounded-lg transition-all ${
                   doubleTapState[`voice_${activeContact.chat_id}`]
@@ -759,6 +768,34 @@ const ChatsInterface = ({
               </button>
             </div>
           </div>
+          
+          {/* Message Search Bar */}
+          {showMessageSearch && (
+            <div className="border-t border-gray-200 p-3">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleMessageSearch()}
+                  placeholder="Search messages..."
+                  className="flex-1 px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                />
+                <button
+                  onClick={handleMessageSearch}
+                  disabled={isSearching || !searchQuery.trim()}
+                  className="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 disabled:opacity-50 text-sm"
+                >
+                  {isSearching ? '...' : 'Search'}
+                </button>
+              </div>
+              {searchResults.length > 0 && (
+                <div className="mt-2 text-xs text-gray-600">
+                  Found {searchResults.length} messages containing "{searchQuery}"
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Messages Area */}
