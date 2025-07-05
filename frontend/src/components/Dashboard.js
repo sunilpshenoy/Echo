@@ -294,17 +294,18 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
             </div>
             
             <div className="flex items-center space-x-4">
+              <LanguageSelector />
               <button
                 onClick={() => setIsEditingProfile(true)}
                 className="text-gray-600 hover:text-gray-800 p-2"
-                title="Edit Profile"
+                title={t('common.edit')}
               >
                 ⚙️
               </button>
               <button
                 onClick={onLogout}
                 className="text-gray-600 hover:text-gray-800 p-2"
-                title="Sign Out"
+                title={t('dashboard.signOut')}
               >
                 🚪
               </button>
