@@ -1035,7 +1035,7 @@ const ChatsInterface = ({
                         {chat.other_user?.display_name || chat.other_user?.username || chat.name || 'Unknown Contact'}
                       </p>
                       <p className="text-sm text-gray-600 truncate">
-                        {chat.last_message?.content || 'No messages yet'}
+                        {chat.last_message?.content || t('chat.noMessages')}
                       </p>
                     </div>
                     <div className="text-xs text-gray-500">
