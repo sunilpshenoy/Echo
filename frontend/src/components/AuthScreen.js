@@ -59,11 +59,11 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
-        {/* Header with authentic connection messaging */}
+        {/* Header with Pulse branding */}
         <div className="text-center mb-8 animate-fade-in-up">
-          <div className="text-6xl mb-4">🤝</div>
+          <div className="text-6xl mb-4">💜</div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-          <p className="text-gray-600">Continue building authentic connections</p>
+          <p className="text-gray-600">Continue building secure connections</p>
         </div>
 
         {/* Error Alert */}
