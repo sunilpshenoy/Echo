@@ -26,7 +26,7 @@ const DiscoverInterface = ({
           </h2>
           <p className="text-sm text-gray-600 mb-4">
             Our 5-Layer Trust System helps you discover new people safely, 
-            building authentic connections with strangers through verified progression.
+            building secure connections with strangers through verified progression.
           </p>
           
           <div className="bg-white rounded-xl p-4 shadow-lg border mb-4">
