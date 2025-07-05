@@ -22,8 +22,8 @@ const App = () => {
   
   // Check authentication on app load
   useEffect(() => {
-    // Initialize language from localStorage
-    const savedLanguage = localStorage.getItem('i18nextLng');
+    // Initialize language from localStorage with multiple fallbacks
+    const savedLanguage = localStorage.getItem('i18nextLng') || localStorage.getItem('pulse-language');
     if (savedLanguage && savedLanguage !== i18n.language) {
       i18n.changeLanguage(savedLanguage);
       document.documentElement.lang = savedLanguage;
@@ -64,6 +64,22 @@ const App = () => {
     };
     
     checkAuth();
+  }, [i18n]);
+
+  // Listen for language changes and persist them
+  useEffect(() => {
+    const handleLanguageChange = (lng) => {
+      localStorage.setItem('i18nextLng', lng);
+      localStorage.setItem('pulse-language', lng);
+      document.documentElement.lang = lng;
+      document.documentElement.dir = lng === 'ur' ? 'rtl' : 'ltr';
+    };
+
+    i18n.on('languageChanged', handleLanguageChange);
+    
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
   }, [i18n]);
   
   // Authentication handlers
