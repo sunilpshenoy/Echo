@@ -1834,6 +1834,30 @@ frontend:
         agent: "testing"
         comment: "Attempted to test the Advanced Customization again but was unable to proceed past the login page. The login page loads correctly with proper styling and branding, but login attempts with both existing and new user credentials do not redirect to the chat interface. This suggests there may be an issue with the authentication flow or a problem with the backend API connection."
 
+  - task: "Multilingual Teams and Premium Interface Translation"
+    implemented: true
+    working: false
+    file: "src/components/TeamsInterface.js, src/components/DiscoverInterface.js, src/components/Dashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented comprehensive multilingual support for Teams and Premium interfaces. Extended translation system to cover all content within Teams tab (team creation, features, management) and Premium tab (discovery features, safety system, pricing). Added translation keys to all 11 language files (English, Hindi, Bengali, Telugu, Tamil, Marathi, Gujarati, Urdu, Kannada, Malayalam, Punjabi). Updated TeamsInterface.js and DiscoverInterface.js to use useTranslation hook for all user-facing text. Also relocated settings button from header to appear next to user's name/avatar for improved UX."
+
+  - task: "Settings Button UI Relocation"
+    implemented: true
+    working: false
+    file: "src/components/Dashboard.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Moved settings button from the header right side to appear inline next to user's display name for better UX and easier access. Settings gear icon (⚙️) now appears right after the user's name in the header area."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
