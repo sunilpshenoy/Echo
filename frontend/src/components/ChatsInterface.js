@@ -656,7 +656,7 @@ const ChatsInterface = ({
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      setSearchResults(response.data.results);
+      setSearchResults(response.data.results || []);
       
     } catch (error) {
       console.error('Search failed:', error);
@@ -664,6 +664,25 @@ const ChatsInterface = ({
       setSearchResults([]);
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  // Clear search results
+  const clearSearch = () => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setShowMessageSearch(false);
+  };
+
+  // Jump to message in chat
+  const jumpToMessage = (messageId) => {
+    const messageElement = document.getElementById(`message-${messageId}`);
+    if (messageElement) {
+      messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      messageElement.classList.add('bg-yellow-100');
+      setTimeout(() => {
+        messageElement.classList.remove('bg-yellow-100');
+      }, 2000);
     }
   };
 
