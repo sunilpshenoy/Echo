@@ -175,29 +175,21 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
           </form>
         </div>
 
-        {/* Value Proposition */}
-        <div className="mt-8 text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Why Choose Pulse?</h2>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-gray-100">
-              <div className="text-2xl mb-2">🔒</div>
-              <h3 className="font-medium text-gray-900 mb-1">5-Layer Trust</h3>
-              <p className="text-gray-600">Progressive relationship building</p>
+        {/* Features Section */}
+        <div className="mt-12 bg-white/10 backdrop-blur-sm rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-white mb-4">{t('auth.whyChoose')}</h2>
+          <div className="space-y-4">
+            <div className="flex items-start space-x-3">
+              <div className="text-orange-400 text-xl">🔒</div>
+              <div className="text-white/90 text-sm">{t('auth.secureConnections')}</div>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-gray-100">
-              <div className="text-2xl mb-2">🧠</div>
-              <h3 className="font-medium text-gray-900 mb-1">AI Matching</h3>
-              <p className="text-gray-600">Authentic compatibility scores</p>
+            <div className="flex items-start space-x-3">
+              <div className="text-orange-400 text-xl">✅</div>
+              <div className="text-white/90 text-sm">{t('auth.verifiedUsers')}</div>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-gray-100">
-              <div className="text-2xl mb-2">✨</div>
-              <h3 className="font-medium text-gray-900 mb-1">Genuine Bonds</h3>
-              <p className="text-gray-600">Quality over quantity</p>
-            </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-gray-100">
-              <div className="text-2xl mb-2">🎯</div>
-              <h3 className="font-medium text-gray-900 mb-1">Purpose-Driven</h3>
-              <p className="text-gray-600">Meaningful connections</p>
+            <div className="flex items-start space-x-3">
+              <div className="text-orange-400 text-xl">🛡️</div>
+              <div className="text-white/90 text-sm">{t('auth.privacyFirst')}</div>
             </div>
           </div>
         </div>
