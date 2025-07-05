@@ -972,7 +972,7 @@ const ChatsInterface = ({
       <div className="bg-white border-b border-gray-200 p-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Chats</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t('dashboard.chats')}</h2>
             <p className="text-sm text-gray-600">
               {isConnected ? (
                 <span className="flex items-center">
