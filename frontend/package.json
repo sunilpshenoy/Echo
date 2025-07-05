@@ -1,7 +1,7 @@
 {
-  "name": "chatapp-pro",
+  "name": "pulse-app",
   "version": "1.0.0",
-  "description": "Authentic Connections - A trust-based relationship platform with progressive connection stages",
+  "description": "Pulse - Connect Securely. Build genuine relationships through progressive trust and safe connections.",
   "license": "MIT",
   "main": "src/index.js",
   "scripts": {
