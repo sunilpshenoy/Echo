@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import QRCode from 'react-qr-code';
 
-// const ConnectionManager = ({ user, token, api, onConnectionUpdate }) => {
+const ConnectionManager = ({ user, token, api, onConnectionUpdate }) => {
   const [showPinModal, setShowPinModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [qrCodeData, setQrCodeData] = useState(null);
