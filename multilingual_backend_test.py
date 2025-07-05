@@ -423,7 +423,7 @@ def test_contact_management():
     )
     
     # If contact already exists, this is fine
-    if response.status_code != 200 and not (response.status_code == 400 and "Already a contact" in response.json().get("detail", "")):
+    if response.status_code != 200 and not (response.status_code == 400 and ("Already a contact" in response.json().get("detail", "") or "Contact already exists" in response.json().get("detail", ""))):
         logger.error(f"Failed to add second contact: {response.text}")
         return False
     
