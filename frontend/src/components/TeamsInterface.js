@@ -72,7 +72,7 @@ const TeamsInterface = ({
               onClick={() => onTeamSelect ? onTeamSelect(null) : null}
               className="text-blue-500 hover:text-blue-700 text-sm font-medium"
             >
-              ← Back to Teams
+              ← {t('teams.backToTeams')}
             </button>
             <div className="flex items-center space-x-2">
               <button className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100">
