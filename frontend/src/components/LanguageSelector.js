@@ -35,12 +35,17 @@ const LanguageSelector = ({ className = "" }) => {
     // Also store as backup
     localStorage.setItem('pulse-language', langCode);
     
-    // Trigger a page refresh to ensure all components reload with new language
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
-    
+    // Close dropdown immediately
     setIsOpen(false);
+    
+    // Force immediate re-render of the entire app
+    setTimeout(() => {
+      // Trigger a custom event to force app re-render
+      window.dispatchEvent(new CustomEvent('languageChanged', { detail: langCode }));
+      
+      // Force page reload as final fallback to ensure all components update
+      window.location.reload();
+    }, 200);
   };
 
   return (
