@@ -4,8 +4,11 @@ import './App.css';
 import AuthScreen from './components/AuthScreen';
 import ProfileSetup from './components/ProfileSetup';
 import Dashboard from './components/Dashboard';
+import { useTranslation } from 'react-i18next';
 
 const App = () => {
+  const { i18n } = useTranslation();
+  
   // Core authentication state
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
