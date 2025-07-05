@@ -35,11 +35,17 @@ i18n
   .init({
     resources,
     fallbackLng: 'en',
-    lng: 'en',
+    lng: localStorage.getItem('i18nextLng') || 'en', // Use stored language or default to English
     
     detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
-      caches: ['localStorage']
+      order: ['localStorage', 'navigator', 'htmlTag', 'cookie'],
+      lookupLocalStorage: 'i18nextLng',
+      lookupCookie: 'i18next',
+      lookupFromPathIndex: 0,
+      lookupFromSubdomainIndex: 0,
+      caches: ['localStorage', 'cookie'],
+      excludeCacheFor: ['cimode'],
+      checkWhitelist: true
     },
 
     interpolation: {
@@ -48,7 +54,22 @@ i18n
 
     react: {
       useSuspense: false
-    }
+    },
+
+    // Force synchronous loading
+    load: 'languageOnly',
+    preload: ['en', 'hi'],
+    
+    // Debug mode
+    debug: false
   });
+
+// Set initial language on load
+const savedLang = localStorage.getItem('i18nextLng');
+if (savedLang && savedLang !== i18n.language) {
+  i18n.changeLanguage(savedLang);
+  document.documentElement.lang = savedLang;
+  document.documentElement.dir = savedLang === 'ur' ? 'rtl' : 'ltr';
+}
 
 export default i18n;
