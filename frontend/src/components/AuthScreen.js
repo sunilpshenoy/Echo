@@ -152,14 +152,7 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
               disabled={isLoading}
               className="w-full mt-8 bg-pulse-accent text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              {isLoading ? (
-                <div className="flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  {isLogin ? 'Signing In...' : 'Creating Account...'}
-                </div>
-              ) : (
-                isLogin ? 'Sign In' : 'Create Account'
-              )}
+{isLoading ? t('common.loading') : (isLogin ? t('auth.signIn') : t('auth.signUp'))}
             </button>
 
             {/* Toggle Auth Mode */}
