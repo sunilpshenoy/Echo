@@ -8,6 +8,7 @@ import TrustSystem from './TrustSystem';
 import LanguageSelector from './LanguageSelector';
 
 const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('chats');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editProfileData, setEditProfileData] = useState({
