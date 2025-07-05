@@ -646,6 +646,27 @@ const ChatsInterface = ({
     }
   };
 
+  // Message search functionality
+  const handleMessageSearch = async () => {
+    if (!searchQuery.trim() || !selectedChat) return;
+    
+    setIsSearching(true);
+    try {
+      const response = await axios.get(`${api}/chats/${selectedChat.chat_id}/search?q=${encodeURIComponent(searchQuery)}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setSearchResults(response.data.results);
+      
+    } catch (error) {
+      console.error('Search failed:', error);
+      alert('Search failed. Please try again.');
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   const renderMessage = (message) => {
     const isOwnMessage = message.sender_id === user.user_id;
     
