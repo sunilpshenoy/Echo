@@ -152,7 +152,7 @@ const DiscoverInterface = ({
         <div className="flex items-center justify-between mb-2">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Discover New Friends</h2>
-            <p className="text-sm text-gray-600">Find authentic connections safely</p>
+            <p className="text-sm text-gray-600">Find secure connections safely</p>
           </div>
         </div>
         {localStorage.getItem('demo_premium') === 'true' && (
