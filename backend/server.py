@@ -3313,12 +3313,15 @@ async def upload_file(file: UploadFile = File(...), current_user = Depends(get_c
     file_content = await file.read()
     file_base64 = base64.b64encode(file_content).decode()
     
-    return {
+    message = {
+        "message_id": str(uuid.uuid4()),
         "file_name": file.filename,
         "file_size": file.size,
         "file_type": file.content_type,
         "file_data": file_base64
     }
+    
+    return {"message": "File uploaded successfully", "file_id": message["message_id"]}
 
 # User Search and Discovery
 @api_router.get("/users/search")
