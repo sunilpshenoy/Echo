@@ -268,7 +268,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-trust-gradient rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-pulse-secondary rounded-full flex items-center justify-center shadow-md">
                 <span className="text-white font-bold text-lg">
                   {user?.display_name?.[0]?.toUpperCase() || user?.username?.[0]?.toUpperCase() || '?'}
                 </span>
