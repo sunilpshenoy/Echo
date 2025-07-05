@@ -61,7 +61,65 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
       <div className="w-full max-w-md">
         {/* Header with Pulse branding */}
         <div className="text-center mb-8 animate-fade-in-up">
-          <div className="text-6xl mb-4">💜</div>
+          {/* Pulse Logo SVG */}
+          <div className="mb-6 flex justify-center">
+            <svg width="120" height="140" viewBox="0 0 120 140" className="drop-shadow-lg">
+              {/* Hexagonal shield with gradient */}
+              <defs>
+                <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#8B4A9C"/>
+                  <stop offset="50%" stopColor="#E85A8A"/>
+                  <stop offset="100%" stopColor="#FF7B54"/>
+                </linearGradient>
+                <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#4A1A5C"/>
+                  <stop offset="100%" stopColor="#2D1B69"/>
+                </linearGradient>
+                <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#FF7B54"/>
+                  <stop offset="100%" stopColor="#FFB347"/>
+                </linearGradient>
+              </defs>
+              
+              {/* Hexagonal shield shape */}
+              <path d="M20 30 L100 30 L110 45 L100 70 L60 85 L20 70 L10 45 Z" 
+                    fill="url(#shieldGradient)" 
+                    stroke="none"/>
+              
+              {/* Interlocked heart design */}
+              <g transform="translate(60, 50)">
+                {/* Left heart curve */}
+                <path d="M-15 -8 C-20 -15, -30 -15, -30 -5 C-30 5, -15 15, 0 25 C15 15, 30 5, 30 -5 C30 -15, 20 -15, 15 -8" 
+                      fill="url(#heartGradient)" 
+                      stroke="url(#heartGradient)" 
+                      strokeWidth="3"/>
+                {/* Infinity loop overlay */}
+                <path d="M-20 0 C-15 -8, -5 -8, 0 0 C5 8, 15 8, 20 0 C15 8, 5 8, 0 0 C-5 -8, -15 -8, -20 0" 
+                      fill="none" 
+                      stroke="url(#heartGradient)" 
+                      strokeWidth="4" 
+                      opacity="0.8"/>
+              </g>
+              
+              {/* PULSE text */}
+              <text x="60" y="105" 
+                    textAnchor="middle" 
+                    fill="url(#textGradient)" 
+                    fontSize="16" 
+                    fontWeight="bold" 
+                    fontFamily="Arial, sans-serif" 
+                    letterSpacing="2px">PULSE</text>
+              
+              {/* CONNECT SECURELY text */}
+              <text x="60" y="120" 
+                    textAnchor="middle" 
+                    fill="#E85A8A" 
+                    fontSize="9" 
+                    fontWeight="600" 
+                    fontFamily="Arial, sans-serif" 
+                    letterSpacing="1px">CONNECT SECURELY</text>
+            </svg>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
           <p className="text-gray-600">Continue building secure connections</p>
         </div>
