@@ -61,65 +61,15 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
       <div className="w-full max-w-md">
         {/* Header with Pulse branding */}
         <div className="text-center mb-8 animate-fade-in-up">
-          {/* Pulse Logo - Exact Recreation */}
-          <div className="mb-6 flex justify-center">
-            <svg width="100" height="130" viewBox="0 0 120 160" className="drop-shadow-lg">
-              <defs>
-                <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#D946EF"/>
-                  <stop offset="30%" stopColor="#EC4899"/>
-                  <stop offset="70%" stopColor="#F97316"/>
-                  <stop offset="100%" stopColor="#FB923C"/>
-                </linearGradient>
-                <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#FB923C"/>
-                  <stop offset="100%" stopColor="#F97316"/>
-                </linearGradient>
-                <linearGradient id="taglineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#EC4899"/>
-                  <stop offset="100%" stopColor="#D946EF"/>
-                </linearGradient>
-              </defs>
-              
-              {/* Hexagonal shield with rounded corners - exactly like yours */}
-              <path d="M25 35 C20 30, 20 30, 25 30 L95 30 C100 30, 100 30, 95 35 L105 50 L100 80 C100 85, 95 85, 90 85 L60 90 L30 85 C25 85, 20 85, 20 80 L15 50 Z" 
-                    fill="url(#shieldGradient)" 
-                    stroke="none"/>
-              
-              {/* Interlocked hearts - exactly matching your design */}
-              <g transform="translate(60, 55)">
-                {/* Left heart */}
-                <path d="M-12 -8 C-18 -15, -28 -15, -28 -5 C-28 5, -12 18, 0 25 C6 20, 12 15, 18 10" 
-                      fill="#2D1B69" 
-                      stroke="none"/>
-                {/* Right heart */}
-                <path d="M12 -8 C18 -15, 28 -15, 28 -5 C28 5, 12 18, 0 25 C-6 20, -12 15, -18 10" 
-                      fill="#2D1B69" 
-                      stroke="none"/>
-                {/* Interlocking connection */}
-                <path d="M-8 0 C-5 -5, 5 -5, 8 0 C5 5, -5 5, -8 0" 
-                      fill="#2D1B69" 
-                      opacity="0.9"/>
-              </g>
-              
-              {/* PULSE text - matching your exact font and color */}
-              <text x="60" y="115" 
-                    textAnchor="middle" 
-                    fill="url(#textGradient)" 
-                    fontSize="16" 
-                    fontWeight="bold" 
-                    fontFamily="system-ui, -apple-system, sans-serif" 
-                    letterSpacing="4px">PULSE</text>
-              
-              {/* CONNECT SECURELY text - exact match */}
-              <text x="60" y="135" 
-                    textAnchor="middle" 
-                    fill="url(#taglineGradient)" 
-                    fontSize="10" 
-                    fontWeight="600" 
-                    fontFamily="system-ui, -apple-system, sans-serif" 
-                    letterSpacing="3px">CONNECT SECURELY</text>
-            </svg>
+          {/* Simple Text-Based Logo - Clean and Functional */}
+          <div className="mb-6 flex flex-col items-center">
+            <div className="text-6xl mb-2">🛡️💜</div>
+            <div className="text-4xl font-bold bg-gradient-to-r from-orange-400 to-orange-500 bg-clip-text text-transparent mb-1 tracking-widest">
+              PULSE
+            </div>
+            <div className="text-sm font-semibold bg-gradient-to-r from-pink-400 to-purple-500 bg-clip-text text-transparent tracking-wider">
+              CONNECT SECURELY
+            </div>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
           <p className="text-white/80 font-medium">Continue building secure connections</p>
