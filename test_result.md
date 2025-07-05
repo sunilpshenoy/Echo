@@ -1917,14 +1917,20 @@ test_plan:
   current_focus:
     - "Multilingual Teams and Premium Interface"
     - "Settings Button Relocation"
-  stuck_tasks:
-    - "Contact Management"
-    - "Enhanced User Profile"
-  test_all: false
-  test_priority: "high_first"
+    - "Message Search Functionality"
+    - "Contact Name Display Fix"
+    - "Trust Levels Configuration"
+    - "Trust Progress Tracking"
+    - "Trust Level Up"
+    - "Trust Features"
     - "Trust Achievements"
     - "Interaction Recording"
     - "Trust Metrics Calculation"
+    - "Trust Requirements Checking"
+    - "Call and File Sharing Buttons with Double-Tap Protection"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
     - "Trust Requirements Checking"
     - "Call and File Sharing Buttons with Double-Tap Protection"
   stuck_tasks: []
