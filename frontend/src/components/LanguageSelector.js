@@ -22,7 +22,7 @@ const LanguageSelector = ({ className = "" }) => {
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
 
   const handleLanguageChange = (langCode, direction) => {
-    // Change language
+    // Change language immediately
     i18n.changeLanguage(langCode);
     
     // Set text direction for RTL languages
@@ -31,21 +31,13 @@ const LanguageSelector = ({ className = "" }) => {
     
     // Store in localStorage with explicit key
     localStorage.setItem('i18nextLng', langCode);
-    
-    // Also store as backup
     localStorage.setItem('pulse-language', langCode);
     
     // Close dropdown immediately
     setIsOpen(false);
     
-    // Force immediate re-render of the entire app
-    setTimeout(() => {
-      // Trigger a custom event to force app re-render
-      window.dispatchEvent(new CustomEvent('languageChanged', { detail: langCode }));
-      
-      // Force page reload as final fallback to ensure all components update
-      window.location.reload();
-    }, 200);
+    // Trigger re-render without page reload
+    console.log('Language changed to:', langCode);
   };
 
   return (
