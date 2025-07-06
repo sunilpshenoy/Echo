@@ -1463,6 +1463,21 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Unable to test the theme customization feature due to authentication issues. The login functionality is not working properly, preventing access to the dashboard where the theme customizer would be available. The code review shows that the ThemeCustomizer component is well-implemented with predefined themes and persistence, but functional testing is blocked by the authentication issue."
+        
+  - task: "Authentication System"
+    implemented: true
+    working: false
+    file: "src/App.js"
+    stuck_count: 1
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Previously, the authentication system was working correctly. Users could log in with valid credentials and access the dashboard."
+      - working: false
+        agent: "testing"
+        comment: "The authentication system is currently not working. Users cannot log in with valid credentials. The backend logs show 401 Unauthorized errors for login attempts. This is a critical issue that prevents testing of all other features that require authentication, including the emoji, GIF, and customization features. The issue appears to be with the backend authentication system rather than the frontend implementation."
 
   - task: "Message Search Functionality"
     implemented: true
