@@ -80,7 +80,7 @@ def create_test_chat():
         json={
             "chat_type": "group",
             "name": "Enhanced File Sharing Test Chat",
-            "members": []
+            "members": [user_id]  # Include the current user
         },
         headers=headers
     )
