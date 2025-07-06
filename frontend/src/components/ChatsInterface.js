@@ -862,13 +862,13 @@ const ChatsInterface = ({
   }, [user, token]);
 
   useEffect(() => {
-    if (selectedChat && messages.length > 0) {
+    if (selectedChat && chatMessages.length > 0) {
       // Fetch reactions for all messages
-      messages.forEach(message => {
+      chatMessages.forEach(message => {
         fetchMessageReactions(message.message_id);
       });
     }
-  }, [selectedChat, messages]);
+  }, [selectedChat, chatMessages]);
 
   // Message search state
   const [showMessageSearch, setShowMessageSearch] = useState(false);
