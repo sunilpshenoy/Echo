@@ -4598,7 +4598,7 @@ async def get_message_reactions(message_id: str, current_user = Depends(get_curr
         raise HTTPException(status_code=404, detail="Message not found")
     
     chat = await db.chats.find_one({"chat_id": message["chat_id"]})
-    if not chat or current_user["user_id"] not in chat["participants"]:
+    if not chat or current_user["user_id"] not in chat["members"]:
         raise HTTPException(status_code=403, detail="Access denied")
     
     # Get all reactions for this message
