@@ -175,6 +175,16 @@ def setup():
     global test_message_id
     test_message_id = message_data["message_id"]
     print(f"Test message ID: {test_message_id}")
+    
+    # Debug: Check if message exists
+    headers = {"Authorization": f"Bearer {user1_token}"}
+    response = requests.get(f"{API_URL}/chats/{test_chat_id}/messages", headers=headers)
+    print(f"Get messages response: {response.status_code}")
+    if response.status_code == 200:
+        messages = response.json()
+        print(f"Found {len(messages)} messages in chat")
+        for msg in messages:
+            print(f"Message ID: {msg.get('message_id')}, Content: {msg.get('content')}")
 
 def test_emoji_reactions():
     print("\n=== Testing Emoji Reactions ===")
