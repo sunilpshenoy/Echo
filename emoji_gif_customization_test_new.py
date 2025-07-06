@@ -592,18 +592,49 @@ def cleanup():
         ws_client2.disconnect()
 
 def run_tests():
+    success = True
     try:
         setup()
-        test_emoji_reactions_websocket()
-        test_custom_emoji_upload_and_management()
-        test_gif_upload_and_messaging()
-        test_emoji_reactions_in_team_chat()
-        print("\n✅ All emoji, GIF, and customization tests passed!")
+        
+        # Test emoji reactions
+        try:
+            test_emoji_reactions_websocket()
+        except Exception as e:
+            print(f"\n❌ Emoji reactions test failed: {str(e)}")
+            success = False
+        
+        # Test custom emoji upload
+        try:
+            test_custom_emoji_upload_and_management()
+        except Exception as e:
+            print(f"\n❌ Custom emoji test failed: {str(e)}")
+            success = False
+        
+        # Test GIF upload
+        try:
+            test_gif_upload_and_messaging()
+        except Exception as e:
+            print(f"\n❌ GIF upload test failed: {str(e)}")
+            success = False
+        
+        # Test team chat emoji reactions
+        try:
+            test_emoji_reactions_in_team_chat()
+        except Exception as e:
+            print(f"\n❌ Team chat emoji reactions test failed: {str(e)}")
+            success = False
+        
+        if success:
+            print("\n✅ All emoji, GIF, and customization tests passed!")
+        else:
+            print("\n⚠️ Some tests failed. See above for details.")
     except Exception as e:
-        print(f"\n❌ Test failed: {str(e)}")
-        raise
+        print(f"\n❌ Setup failed: {str(e)}")
+        success = False
     finally:
         cleanup()
+        
+    return success
 
 if __name__ == "__main__":
     run_tests()
