@@ -1310,6 +1310,196 @@ async def toggle_screen_share(call_id: str, enable: bool, current_user = Depends
     
     return {"status": "success", "screen_sharing": enable}
 
+@api_router.put("/calls/{call_id}/respond")
+async def respond_to_call(call_id: str, response_data: dict, current_user = Depends(get_current_user)):
+    """Respond to an incoming call (accept/decline)"""
+    call = await db.voice_calls.find_one({"call_id": call_id})
+    if not call:
+        raise HTTPException(status_code=404, detail="Call not found")
+    
+    if current_user["user_id"] not in call["participants"]:
+        raise HTTPException(status_code=403, detail="Not in this call")
+    
+    action = response_data.get("action")  # "accept" or "decline"
+    
+    if action == "accept":
+        # Update call status to active if caller accepts or if it's not the caller
+        if call["status"] == "ringing":
+            await db.voice_calls.update_one(
+                {"call_id": call_id},
+                {"$set": {"status": "active"}}
+            )
+        
+        # Notify all participants
+        await manager.broadcast_to_chat(
+            json.dumps({
+                "type": "call_accepted",
+                "data": {
+                    "call_id": call_id,
+                    "user_id": current_user["user_id"],
+                    "user_name": current_user.get("display_name", current_user["username"])
+                }
+            }),
+            call["chat_id"],
+            current_user["user_id"]
+        )
+        
+        return {"status": "accepted", "call_id": call_id}
+        
+    elif action == "decline":
+        # Update call status to declined
+        await db.voice_calls.update_one(
+            {"call_id": call_id},
+            {
+                "$set": {
+                    "status": "declined",
+                    "ended_at": datetime.utcnow()
+                }
+            }
+        )
+        
+        # Notify all participants
+        await manager.broadcast_to_chat(
+            json.dumps({
+                "type": "call_declined",
+                "data": {
+                    "call_id": call_id,
+                    "user_id": current_user["user_id"],
+                    "user_name": current_user.get("display_name", current_user["username"])
+                }
+            }),
+            call["chat_id"],
+            current_user["user_id"]
+        )
+        
+        return {"status": "declined", "call_id": call_id}
+    
+    else:
+        raise HTTPException(status_code=400, detail="Invalid action")
+
+@api_router.put("/calls/{call_id}/end")
+async def end_call(call_id: str, current_user = Depends(get_current_user)):
+    """End an active call"""
+    call = await db.voice_calls.find_one({"call_id": call_id})
+    if not call:
+        raise HTTPException(status_code=404, detail="Call not found")
+    
+    if current_user["user_id"] not in call["participants"]:
+        raise HTTPException(status_code=403, detail="Not in this call")
+    
+    # Calculate duration if call was active
+    duration = 0
+    if call["status"] == "active" and call.get("started_at"):
+        duration = int((datetime.utcnow() - call["started_at"]).total_seconds())
+    
+    # Update call status to ended
+    await db.voice_calls.update_one(
+        {"call_id": call_id},
+        {
+            "$set": {
+                "status": "ended",
+                "ended_at": datetime.utcnow(),
+                "duration": duration
+            }
+        }
+    )
+    
+    # Notify all participants
+    await manager.broadcast_to_chat(
+        json.dumps({
+            "type": "call_ended",
+            "data": {
+                "call_id": call_id,
+                "user_id": current_user["user_id"],
+                "duration": duration
+            }
+        }),
+        call["chat_id"],
+        current_user["user_id"]
+    )
+    
+    return {"status": "ended", "call_id": call_id, "duration": duration}
+
+@api_router.post("/calls/{call_id}/webrtc/offer")
+async def exchange_webrtc_offer(call_id: str, offer_data: dict, current_user = Depends(get_current_user)):
+    """Exchange WebRTC offer for peer-to-peer connection"""
+    call = await db.voice_calls.find_one({"call_id": call_id})
+    if not call:
+        raise HTTPException(status_code=404, detail="Call not found")
+    
+    if current_user["user_id"] not in call["participants"]:
+        raise HTTPException(status_code=403, detail="Not in this call")
+    
+    # Broadcast WebRTC offer to other participants
+    await manager.broadcast_to_chat(
+        json.dumps({
+            "type": "webrtc_offer",
+            "data": {
+                "call_id": call_id,
+                "from_user_id": current_user["user_id"],
+                "offer": offer_data.get("offer"),
+                "ice_candidates": offer_data.get("ice_candidates", [])
+            }
+        }),
+        call["chat_id"],
+        current_user["user_id"]
+    )
+    
+    return {"status": "offer_sent"}
+
+@api_router.post("/calls/{call_id}/webrtc/answer")
+async def exchange_webrtc_answer(call_id: str, answer_data: dict, current_user = Depends(get_current_user)):
+    """Exchange WebRTC answer for peer-to-peer connection"""
+    call = await db.voice_calls.find_one({"call_id": call_id})
+    if not call:
+        raise HTTPException(status_code=404, detail="Call not found")
+    
+    if current_user["user_id"] not in call["participants"]:
+        raise HTTPException(status_code=403, detail="Not in this call")
+    
+    # Broadcast WebRTC answer to other participants
+    await manager.broadcast_to_chat(
+        json.dumps({
+            "type": "webrtc_answer",
+            "data": {
+                "call_id": call_id,
+                "from_user_id": current_user["user_id"],
+                "answer": answer_data.get("answer"),
+                "ice_candidates": answer_data.get("ice_candidates", [])
+            }
+        }),
+        call["chat_id"],
+        current_user["user_id"]
+    )
+    
+    return {"status": "answer_sent"}
+
+@api_router.post("/calls/{call_id}/webrtc/ice")
+async def exchange_ice_candidate(call_id: str, ice_data: dict, current_user = Depends(get_current_user)):
+    """Exchange ICE candidates for WebRTC connection"""
+    call = await db.voice_calls.find_one({"call_id": call_id})
+    if not call:
+        raise HTTPException(status_code=404, detail="Call not found")
+    
+    if current_user["user_id"] not in call["participants"]:
+        raise HTTPException(status_code=403, detail="Not in this call")
+    
+    # Broadcast ICE candidate to other participants
+    await manager.broadcast_to_chat(
+        json.dumps({
+            "type": "webrtc_ice",
+            "data": {
+                "call_id": call_id,
+                "from_user_id": current_user["user_id"],
+                "candidate": ice_data.get("candidate")
+            }
+        }),
+        call["chat_id"],
+        current_user["user_id"]
+    )
+    
+    return {"status": "ice_sent"}
+
 # Public Discovery
 @api_router.get("/discover/users")
 async def discover_users(query: Optional[str] = None, category: Optional[str] = None, current_user = Depends(get_current_user)):
