@@ -1468,21 +1468,94 @@ const ChatsInterface = ({
             </div>
           )}
 
-          {/* File Upload Progress */}
+          {/* Enhanced File Upload Progress */}
           {isUploadingFile && (
             <div className="fixed bottom-20 left-4 right-4 bg-white rounded-lg shadow-lg border p-4 z-50">
               <div className="flex items-center space-x-3">
-                <div className="text-2xl">📤</div>
+                <div className="text-2xl">
+                  {uploadProgress < 80 ? '📖' : uploadProgress < 100 ? '📤' : '✅'}
+                </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">Uploading file...</p>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    {uploadProgress < 80 ? 'Reading file...' : uploadProgress < 100 ? 'Uploading...' : 'Complete!'}
+                  </p>
+                  <div className="w-full bg-gray-200 rounded-full h-3 mt-1 overflow-hidden">
                     <div 
-                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                      className={`h-3 rounded-full transition-all duration-500 ${
+                        uploadProgress < 100 
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-500' 
+                          : 'bg-gradient-to-r from-green-500 to-emerald-500'
+                      }`}
                       style={{ width: `${uploadProgress}%` }}
                     ></div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">{Math.round(uploadProgress)}% complete</p>
+                  <div className="flex justify-between items-center mt-1">
+                    <p className="text-xs text-gray-500">{Math.round(uploadProgress)}% complete</p>
+                    <p className="text-xs text-gray-400">
+                      {uploadProgress < 80 ? 'Processing...' : uploadProgress < 100 ? 'Sending...' : 'Done!'}
+                    </p>
+                  </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* File Preview Modal */}
+          {showFilePreview && filePreview && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Send File</h3>
+                
+                <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                  {filePreview.type === 'image' ? (
+                    <img 
+                      src={filePreview.url} 
+                      alt={filePreview.name}
+                      className="w-full h-48 object-cover rounded-lg mb-3"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-24 mb-3">
+                      <span className="text-4xl">{filePreview.icon}</span>
+                    </div>
+                  )}
+                  
+                  <div className="text-center">
+                    <p className="font-medium text-gray-900 truncate">{filePreview.name}</p>
+                    <p className="text-sm text-gray-500">
+                      {filePreview.category} • {(filePreview.size / 1024 / 1024).toFixed(1)} MB
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => window.cancelFileUpload && window.cancelFileUpload()}
+                    className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => window.confirmFileUpload && window.confirmFileUpload()}
+                    className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    Send File
+                  </button>
+                </div>
+                
+                <p className="text-xs text-gray-400 text-center mt-2">
+                  Auto-sending in 2 seconds...
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Drag and Drop Overlay */}
+          {dragActive && (
+            <div className="fixed inset-0 bg-blue-500 bg-opacity-90 z-40 flex items-center justify-center">
+              <div className="text-center text-white">
+                <div className="text-6xl mb-4">📁</div>
+                <h3 className="text-2xl font-semibold mb-2">Drop files here</h3>
+                <p className="text-blue-100">Release to upload files to this chat</p>
               </div>
             </div>
           )}
