@@ -641,20 +641,20 @@ backend:
         agent: "testing"
         comment: "Verified that the Teams API endpoints are still working correctly after the multilingual frontend changes. Created a dedicated test script (multilingual_backend_test.py) that tests all aspects of the Teams API. Successfully tested team creation and retrieval. The endpoints correctly handle authentication and return proper responses. No regressions were found."
 
-  - task: "Teams Chat Functionality"
+  - task: "Voice/Video Calling Implementation"
     implemented: true
     working: true
-    file: "TeamsInterface.js"
+    file: "ChatsInterface.js"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "PHASE 1 IMPLEMENTATION: Adding real-time messaging functionality to Teams interface. Backend analysis shows teams create associated chats automatically. Need to implement team messaging endpoints and connect TeamsInterface.js to WebSocket for real-time communication."
+        comment: "PHASE 2 IMPLEMENTATION: Implementing complete WebRTC functionality for 1-on-1 calls. Enhanced backend with WebRTC signaling endpoints, call management, and real-time notifications. Created CallInterface component and integrated with ChatsInterface for full call functionality."
       - working: true
         agent: "testing"
-        comment: "BACKEND TESTS PASSED: Successfully tested all Teams Chat functionality backend implementation. Teams API endpoints (GET/POST /api/teams) working correctly. New team messaging endpoints (GET/POST /api/teams/{team_id}/messages) tested and functional. Team chat integration verified - team creation automatically creates associated chats. WebSocket integration confirmed for real-time messaging. Access control working properly - only team members can access team messages. All tests passed with comprehensive coverage of team creation, messaging, and real-time updates."
+        comment: "BACKEND TESTS PASSED: Comprehensive testing of enhanced Voice/Video Calling functionality confirms all aspects working correctly. Call initiation (POST /api/calls/initiate) tested for voice and video types with proper VoiceCall record creation and WebSocket notifications. Call response (PUT /api/calls/{call_id}/respond) tested for accept/decline with proper status updates. Call management (PUT /api/calls/{call_id}/end) tested with duration calculation. WebRTC signaling endpoints (offer, answer, ICE) tested with proper WebSocket broadcasting. Access control verified - only participants can interact with call endpoints. All tests passed successfully."
       - working: true
         agent: "testing"
         comment: "Successfully tested the Teams Chat Functionality backend implementation. Created a comprehensive test script (teams_chat_test.py) that verifies all aspects of the Teams API. The GET /api/teams endpoint correctly returns teams for the current user. The POST /api/teams endpoint successfully creates new teams with proper metadata and automatically creates associated team chats. The GET /api/teams/{team_id}/messages endpoint correctly retrieves team messages with sender details. The POST /api/teams/{team_id}/messages endpoint successfully sends messages to team chats. Access control is properly enforced - only team members can access team messages. WebSocket notifications are correctly sent when new team messages are created. Team messages can be accessed both through the dedicated team message endpoints and through the regular chat message endpoints. All tests passed successfully."
