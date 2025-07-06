@@ -268,6 +268,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Conducted additional testing of custom emoji functionality. Verified that: 1) File Type Validation - The system correctly rejects non-image files (tested with text files), 2) Name Validation - The system enforces name length requirements (2-32 characters), 3) Access Control - Users cannot delete custom emojis belonging to other users, 4) Deletion - Custom emojis can be properly deleted and are no longer accessible after deletion. All tests passed successfully, confirming that the custom emoji functionality is working correctly with proper validation and access control."
+      - working: true
+        agent: "testing"
+        comment: "Conducted additional testing with a new test script (emoji_gif_customization_test_new.py) that specifically focuses on custom emoji upload and management. Successfully verified that: 1) Custom Emoji Upload - The system correctly handles PNG image uploads and assigns proper metadata, 2) Custom Emoji Retrieval - The GET /api/emojis/custom endpoint correctly returns all custom emojis for the current user, 3) File Type Validation - The system properly rejects non-image files (tested with text files), 4) Name Validation - The system enforces name length requirements (2-32 characters), 5) Deletion - Custom emojis can be properly deleted and are no longer accessible after deletion, 6) Access Control - Users cannot delete custom emojis belonging to other users. All tests passed successfully, confirming that the custom emoji functionality is fully operational with proper validation and access control."
 
   - task: "Voice/Video Calling"
     implemented: true
