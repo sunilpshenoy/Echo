@@ -430,9 +430,267 @@ const ChatsInterface = ({
     fileInputRef.current?.click();
   };
 
-  // Enhanced file sharing state
+  // Enhanced file sharing state and functionality
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadQueue, setUploadQueue] = useState([]);
+  const [dragActive, setDragActive] = useState(false);
+  const [filePreview, setFilePreview] = useState(null);
+  const [showFilePreview, setShowFilePreview] = useState(false);
+
+  // Enhanced file validation with better feedback
+  const validateFile = (file) => {
+    const maxSize = 25 * 1024 * 1024; // Increased to 25MB
+    const allowedTypes = {
+      // Images
+      'image/jpeg': { category: 'Image', icon: '🖼️', maxSize: 10 * 1024 * 1024 },
+      'image/png': { category: 'Image', icon: '🖼️', maxSize: 10 * 1024 * 1024 },
+      'image/gif': { category: 'Image', icon: '🖼️', maxSize: 5 * 1024 * 1024 },
+      'image/webp': { category: 'Image', icon: '🖼️', maxSize: 10 * 1024 * 1024 },
+      // Documents
+      'application/pdf': { category: 'Document', icon: '📄', maxSize: 25 * 1024 * 1024 },
+      'text/plain': { category: 'Text', icon: '📝', maxSize: 5 * 1024 * 1024 },
+      'application/msword': { category: 'Document', icon: '📝', maxSize: 25 * 1024 * 1024 },
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': { category: 'Document', icon: '📝', maxSize: 25 * 1024 * 1024 },
+      // Spreadsheets
+      'application/vnd.ms-excel': { category: 'Spreadsheet', icon: '📊', maxSize: 25 * 1024 * 1024 },
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': { category: 'Spreadsheet', icon: '📊', maxSize: 25 * 1024 * 1024 },
+      // Audio
+      'audio/mpeg': { category: 'Audio', icon: '🎵', maxSize: 15 * 1024 * 1024 },
+      'audio/wav': { category: 'Audio', icon: '🎵', maxSize: 15 * 1024 * 1024 },
+      'audio/ogg': { category: 'Audio', icon: '🎵', maxSize: 15 * 1024 * 1024 },
+      // Video (limited size)
+      'video/mp4': { category: 'Video', icon: '🎬', maxSize: 50 * 1024 * 1024 },
+      'video/webm': { category: 'Video', icon: '🎬', maxSize: 50 * 1024 * 1024 },
+      // Archives
+      'application/zip': { category: 'Archive', icon: '📦', maxSize: 25 * 1024 * 1024 },
+      'application/x-rar-compressed': { category: 'Archive', icon: '📦', maxSize: 25 * 1024 * 1024 }
+    };
+    
+    const fileInfo = allowedTypes[file.type];
+    
+    if (!fileInfo) {
+      return {
+        valid: false,
+        error: `File type not supported!\n\nSupported types:\n• Images: JPG, PNG, GIF, WebP\n• Documents: PDF, Word, Excel, Text\n• Media: Audio (MP3, WAV), Video (MP4, WebM)\n• Archives: ZIP, RAR\n\nYour file: ${file.type || 'Unknown type'}`
+      };
+    }
+    
+    if (file.size > fileInfo.maxSize) {
+      return {
+        valid: false,
+        error: `File too large for ${fileInfo.category}!\n\nMaximum size for ${fileInfo.category}: ${(fileInfo.maxSize / (1024 * 1024)).toFixed(1)}MB\nYour file: ${(file.size / (1024 * 1024)).toFixed(1)}MB`
+      };
+    }
+    
+    return { valid: true, fileInfo };
+  };
+
+  // Enhanced file preview generation
+  const generateFilePreview = (file) => {
+    return new Promise((resolve) => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve({
+          type: 'image',
+          url: e.target.result,
+          name: file.name,
+          size: file.size
+        });
+        reader.readAsDataURL(file);
+      } else {
+        // For non-images, create a preview card
+        const validation = validateFile(file);
+        resolve({
+          type: 'file',
+          icon: validation.fileInfo?.icon || '📄',
+          name: file.name,
+          size: file.size,
+          category: validation.fileInfo?.category || 'Unknown'
+        });
+      }
+    });
+  };
+
+  // Chunked upload implementation
+  const uploadFileInChunks = async (file, chatId) => {
+    const chunkSize = 1024 * 1024; // 1MB chunks
+    const totalChunks = Math.ceil(file.size / chunkSize);
+    const fileId = `upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    let uploadedChunks = 0;
+    
+    // Read entire file as base64 for current implementation
+    // In production, you'd upload chunks separately
+    const reader = new FileReader();
+    
+    return new Promise((resolve, reject) => {
+      reader.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const progress = (e.loaded / e.total) * 80; // Reserve 20% for upload
+          setUploadProgress(progress);
+        }
+      };
+      
+      reader.onload = async () => {
+        try {
+          setUploadProgress(80); // Reading complete
+          
+          const base64Data = reader.result.split(',')[1];
+          const validation = validateFile(file);
+          const messageType = file.type.startsWith('image/') ? 'image' : 'file';
+          
+          const response = await axios.post(`${api}/chats/${chatId}/messages`, {
+            content: file.name,
+            message_type: messageType,
+            file_name: file.name,
+            file_size: file.size,
+            file_data: base64Data
+          }, {
+            headers: { Authorization: `Bearer ${token}` },
+            onUploadProgress: (progressEvent) => {
+              const uploadProgress = 80 + (progressEvent.loaded / progressEvent.total) * 20;
+              setUploadProgress(uploadProgress);
+            }
+          });
+          
+          resolve(response);
+          
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Enhanced file selection handler
+  const handleFileSelect = async (event) => {
+    const files = Array.from(event.target.files);
+    if (files.length === 0 || !selectedChat) return;
+    
+    // Process multiple files
+    for (const file of files) {
+      await processFileUpload(file);
+    }
+    
+    // Clear file input
+    event.target.value = '';
+  };
+
+  // Process individual file upload
+  const processFileUpload = async (file) => {
+    // Validate file
+    const validation = validateFile(file);
+    if (!validation.valid) {
+      alert(validation.error);
+      return;
+    }
+    
+    // Generate preview
+    const preview = await generateFilePreview(file);
+    setFilePreview(preview);
+    setShowFilePreview(true);
+    
+    // Wait for user confirmation or auto-proceed after 2 seconds
+    const proceed = await new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        setShowFilePreview(false);
+        resolve(true);
+      }, 2000);
+      
+      // User can click to proceed immediately
+      window.confirmFileUpload = () => {
+        clearTimeout(timer);
+        setShowFilePreview(false);
+        resolve(true);
+      };
+      
+      window.cancelFileUpload = () => {
+        clearTimeout(timer);
+        setShowFilePreview(false);
+        resolve(false);
+      };
+    });
+    
+    if (!proceed) return;
+    
+    setIsUploadingFile(true);
+    setUploadProgress(0);
+    
+    try {
+      await uploadFileInChunks(file, selectedChat.chat_id);
+      
+      setUploadProgress(100);
+      
+      // Show success notification
+      const fileIcon = validation.fileInfo.icon;
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-4 right-4 bg-green-500 text-white p-3 rounded-lg shadow-lg z-50 flex items-center space-x-2';
+      notification.innerHTML = `
+        <span>${fileIcon}</span>
+        <span>File "${file.name}" shared successfully!</span>
+      `;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 3000);
+      
+      // Refresh messages
+      onSelectChat(selectedChat);
+      
+    } catch (error) {
+      console.error('Failed to send file:', error);
+      const errorMsg = error.response?.data?.detail || 'Failed to send file. Please try again.';
+      
+      // Show error notification
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-4 right-4 bg-red-500 text-white p-3 rounded-lg shadow-lg z-50 flex items-center space-x-2';
+      notification.innerHTML = `
+        <span>❌</span>
+        <span>Upload failed: ${errorMsg}</span>
+      `;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 5000);
+      
+    } finally {
+      setIsUploadingFile(false);
+      setUploadProgress(0);
+    }
+  };
+
+  // Drag and drop handlers
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    files.forEach(file => processFileUpload(file));
+  };
 
   // Message search state
   const [showMessageSearch, setShowMessageSearch] = useState(false);
