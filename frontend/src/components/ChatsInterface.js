@@ -985,6 +985,83 @@ const ChatsInterface = ({
             </div>
           )}
           
+          {/* Call Interface Overlay */}
+          {isCallActive && (
+            <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col">
+              {/* Call Header */}
+              <div className="bg-black text-white p-4 text-center">
+                <h2 className="text-lg font-semibold">
+                  {callType === 'video' ? '📹 Video Call' : '📞 Voice Call'}
+                </h2>
+                <p className="text-gray-300 text-sm">
+                  {selectedChat?.other_user?.display_name || 'Contact'}
+                </p>
+              </div>
+              
+              {/* Video Area */}
+              {callType === 'video' && (
+                <div className="flex-1 relative">
+                  {/* Remote Video */}
+                  <video
+                    ref={remoteVideoRef}
+                    autoPlay
+                    className="w-full h-full object-cover"
+                    style={{ transform: 'scaleX(-1)' }}
+                  />
+                  
+                  {/* Local Video (Picture-in-Picture) */}
+                  <video
+                    ref={localVideoRef}
+                    autoPlay
+                    muted
+                    className="absolute top-4 right-4 w-32 h-24 object-cover rounded-lg border-2 border-white"
+                    style={{ transform: 'scaleX(-1)' }}
+                  />
+                  
+                  {/* No remote stream message */}
+                  {!remoteStream && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-white text-center">
+                        <div className="text-6xl mb-4">📹</div>
+                        <p>Waiting for connection...</p>
+                        <p className="text-sm text-gray-300 mt-2">
+                          In production, this would connect via signaling server
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Voice Call Display */}
+              {callType === 'voice' && (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-white text-center">
+                    <div className="text-8xl mb-4">📞</div>
+                    <h3 className="text-2xl font-semibold mb-2">
+                      {selectedChat?.other_user?.display_name || 'Contact'}
+                    </h3>
+                    <p className="text-gray-300">Voice call in progress...</p>
+                    <p className="text-sm text-gray-400 mt-2">
+                      Demo mode - In production connects via WebRTC
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Call Controls */}
+              <div className="bg-black p-6 flex justify-center space-x-6">
+                <button
+                  onClick={endCall}
+                  className="bg-red-500 hover:bg-red-600 text-white p-4 rounded-full transition-colors"
+                  title="End Call"
+                >
+                  📞❌
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* File Upload Progress */}
           {isUploadingFile && (
             <div className="fixed bottom-20 left-4 right-4 bg-white rounded-lg shadow-lg border p-4 z-50">
