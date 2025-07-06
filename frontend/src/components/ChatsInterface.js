@@ -710,6 +710,118 @@ const ChatsInterface = ({
     files.forEach(file => processFileUpload(file));
   };
 
+  // Emoji functionality
+  const fetchCustomEmojis = async () => {
+    try {
+      const response = await axios.get(`${api}/emojis/custom`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCustomEmojis(response.data.custom_emojis || []);
+    } catch (error) {
+      console.error('Failed to fetch custom emojis:', error);
+    }
+  };
+
+  const fetchMessageReactions = async (messageId) => {
+    try {
+      const response = await axios.get(`${api}/messages/${messageId}/reactions`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setMessageReactions(prev => ({
+        ...prev,
+        [messageId]: response.data.reactions || []
+      }));
+    } catch (error) {
+      console.error('Failed to fetch message reactions:', error);
+    }
+  };
+
+  const addEmojiReaction = async (messageId, emoji) => {
+    try {
+      await axios.post(`${api}/messages/${messageId}/reactions`, {
+        emoji: typeof emoji === 'object' ? `:${emoji.name}:` : emoji
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Reactions will be updated via WebSocket
+    } catch (error) {
+      console.error('Failed to add emoji reaction:', error);
+    }
+  };
+
+  const removeEmojiReaction = async (messageId, emoji) => {
+    // This is handled by the toggle behavior in the backend
+    await addEmojiReaction(messageId, emoji);
+  };
+
+  const handleEmojiSelect = (emoji) => {
+    if (typeof emoji === 'object') {
+      // Custom emoji
+      setNewMessage(prev => prev + `:${emoji.name}:`);
+    } else {
+      // Standard emoji
+      setNewMessage(prev => prev + emoji);
+    }
+    setShowEmojiPicker(false);
+  };
+
+  const uploadCustomEmoji = async (file, name, category = 'custom') => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('name', name);
+      formData.append('category', category);
+
+      await axios.post(`${api}/emojis/custom`, formData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      // Refresh custom emojis
+      await fetchCustomEmojis();
+      
+      return true;
+    } catch (error) {
+      console.error('Failed to upload custom emoji:', error);
+      return false;
+    }
+  };
+
+  const deleteCustomEmoji = async (emojiId) => {
+    try {
+      await axios.delete(`${api}/emojis/custom/${emojiId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // Refresh custom emojis
+      await fetchCustomEmojis();
+      
+      return true;
+    } catch (error) {
+      console.error('Failed to delete custom emoji:', error);
+      return false;
+    }
+  };
+
+  // Load custom emojis and message reactions when chat is selected
+  useEffect(() => {
+    if (user && token) {
+      fetchCustomEmojis();
+    }
+  }, [user, token]);
+
+  useEffect(() => {
+    if (selectedChat && messages.length > 0) {
+      // Fetch reactions for all messages
+      messages.forEach(message => {
+        fetchMessageReactions(message.message_id);
+      });
+    }
+  }, [selectedChat, messages]);
+
   // Message search state
   const [showMessageSearch, setShowMessageSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
