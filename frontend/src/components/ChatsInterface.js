@@ -1697,9 +1697,28 @@ const ChatsInterface = ({
           )}
         </div>
 
-        {/* Message Input */}
-        <div className="bg-white border-t border-gray-200 p-4">
+        {/* Message Input with Emoji Support */}
+        <div className="bg-white border-t border-gray-200 p-4 relative">
           <div className="flex items-center space-x-3">
+            {/* File Upload Button */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100"
+              title={t('chat.attachFile')}
+            >
+              📎
+            </button>
+
+            {/* Emoji Picker Button */}
+            <button
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100"
+              title={t('emojis.picker')}
+            >
+              😀
+            </button>
+
+            {/* Message Input */}
             <input
               type="text"
               value={newMessage}
@@ -1711,6 +1730,8 @@ const ChatsInterface = ({
               placeholder={t('chat.typeMessage')}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
+
+            {/* Send Button */}
             <button
               onClick={sendMessage}
               disabled={!newMessage.trim()}
@@ -1719,6 +1740,15 @@ const ChatsInterface = ({
               ➤
             </button>
           </div>
+
+          {/* Emoji Picker */}
+          {showEmojiPicker && (
+            <EmojiPicker
+              onEmojiSelect={handleEmojiSelect}
+              onClose={() => setShowEmojiPicker(false)}
+              customEmojis={customEmojis}
+            />
+          )}
         </div>
 
         {/* Hidden file input - supports multiple files */}
