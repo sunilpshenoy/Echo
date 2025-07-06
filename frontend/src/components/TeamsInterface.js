@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 
@@ -22,6 +22,128 @@ const TeamsInterface = ({
   const [teamMessages, setTeamMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  
+  // WebSocket functionality
+  const [socket, setSocket] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [typingUsers, setTypingUsers] = useState({});
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef(null);
+  const messagesEndRef = useRef(null);
+
+  // WebSocket connection setup
+  useEffect(() => {
+    if (user && token) {
+      connectWebSocket();
+    }
+    
+    return () => {
+      if (socket) {
+        socket.close();
+      }
+    };
+  }, [user, token]);
+
+  const connectWebSocket = () => {
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const wsUrl = backendUrl.replace('http', 'ws') + `/api/ws/${user.user_id}`;
+      
+      const ws = new WebSocket(wsUrl);
+      
+      ws.onopen = () => {
+        console.log('WebSocket connected for Teams');
+        setIsConnected(true);
+        setSocket(ws);
+      };
+      
+      ws.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        handleWebSocketMessage(message);
+      };
+      
+      ws.onclose = () => {
+        console.log('WebSocket disconnected');
+        setIsConnected(false);
+        setSocket(null);
+        // Attempt to reconnect after 3 seconds
+        setTimeout(connectWebSocket, 3000);
+      };
+      
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+      
+    } catch (error) {
+      console.error('Failed to connect WebSocket:', error);
+    }
+  };
+
+  const handleWebSocketMessage = (message) => {
+    console.log('Received WebSocket message in Teams:', message);
+    
+    switch (message.type) {
+      case 'new_message':
+        // Real-time message received - refresh messages if it's for current team
+        if (selectedTeam && message.data.team_id === selectedTeam.team_id) {
+          fetchTeamMessages();
+        }
+        break;
+        
+      case 'typing':
+        if (selectedTeam && message.data.team_id === selectedTeam.team_id) {
+          setTypingUsers(prev => ({
+            ...prev,
+            [selectedTeam.team_id]: message.data.typing_users || []
+          }));
+        }
+        break;
+        
+      default:
+        console.log('Unknown message type:', message.type);
+    }
+  };
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    scrollToBottom();
+  }, [teamMessages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Typing indicator functionality
+  const handleTyping = () => {
+    if (!socket || !selectedTeam) return;
+    
+    if (!isTyping) {
+      setIsTyping(true);
+      socket.send(JSON.stringify({
+        type: 'typing',
+        team_id: selectedTeam.team_id,
+        is_typing: true
+      }));
+    }
+    
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Set new timeout to stop typing indicator
+    typingTimeoutRef.current = setTimeout(() => {
+      if (socket && selectedTeam) {
+        socket.send(JSON.stringify({
+          type: 'typing',
+          team_id: selectedTeam.team_id,
+          is_typing: false
+        }));
+      }
+      setIsTyping(false);
+    }, 2000);
+  };
 
   // Fetch team messages when a team is selected
   useEffect(() => {
@@ -49,8 +171,9 @@ const TeamsInterface = ({
   };
 
   const sendTeamMessage = async () => {
-    if (!newMessage.trim() || !selectedTeam?.team_id) return;
+    if (!newMessage.trim() || !selectedTeam?.team_id || isSendingMessage) return;
     
+    setIsSendingMessage(true);
     try {
       const response = await axios.post(`${api}/teams/${selectedTeam.team_id}/messages`, {
         content: newMessage,
@@ -59,22 +182,14 @@ const TeamsInterface = ({
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      // Add message to local state
-      const messageData = {
-        message_id: Date.now(), // Temporary ID
-        content: newMessage,
-        sender: user,
-        timestamp: new Date().toISOString(),
-        message_type: 'text'
-      };
-      
-      setTeamMessages(prev => [...prev, messageData]);
       setNewMessage('');
+      // The message will be added via WebSocket or we'll refresh
+      await fetchTeamMessages();
       
     } catch (error) {
       console.error('Failed to send team message:', error);
       
-      // If API doesn't exist, add message locally for demo
+      // If API doesn't exist yet, add message locally for demo
       const messageData = {
         message_id: Date.now(),
         content: newMessage,
@@ -85,6 +200,17 @@ const TeamsInterface = ({
       
       setTeamMessages(prev => [...prev, messageData]);
       setNewMessage('');
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendTeamMessage();
+    } else {
+      handleTyping();
     }
   };
 
