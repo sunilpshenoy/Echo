@@ -3539,25 +3539,87 @@ async def delete_message(message_id: str, current_user = Depends(get_current_use
     
     return {"message": "Message deleted"}
 
-# File Upload
+# Enhanced File Upload
 @api_router.post("/upload")
 async def upload_file(file: UploadFile = File(...), current_user = Depends(get_current_user)):
-    """Upload a file and return base64 data"""
-    if file.size > 10 * 1024 * 1024:  # 10MB limit
-        raise HTTPException(status_code=413, detail="File too large")
+    """Upload a file and return file metadata with base64 data"""
+    # Enhanced file size limit (25MB for most files)
+    max_size = 25 * 1024 * 1024  # 25MB
     
-    file_content = await file.read()
-    file_base64 = base64.b64encode(file_content).decode()
+    if file.size > max_size:
+        raise HTTPException(status_code=413, detail=f"File too large. Maximum size is {max_size // (1024 * 1024)}MB")
     
-    message = {
-        "message_id": str(uuid.uuid4()),
-        "file_name": file.filename,
-        "file_size": file.size,
-        "file_type": file.content_type,
-        "file_data": file_base64
+    # Enhanced file type validation
+    allowed_types = {
+        # Images
+        'image/jpeg': {'category': 'Image', 'icon': '🖼️', 'max_size': 10 * 1024 * 1024},
+        'image/png': {'category': 'Image', 'icon': '🖼️', 'max_size': 10 * 1024 * 1024},
+        'image/gif': {'category': 'Image', 'icon': '🖼️', 'max_size': 5 * 1024 * 1024},
+        'image/webp': {'category': 'Image', 'icon': '🖼️', 'max_size': 10 * 1024 * 1024},
+        # Documents
+        'application/pdf': {'category': 'Document', 'icon': '📄', 'max_size': 25 * 1024 * 1024},
+        'text/plain': {'category': 'Text', 'icon': '📝', 'max_size': 5 * 1024 * 1024},
+        'application/msword': {'category': 'Document', 'icon': '📝', 'max_size': 25 * 1024 * 1024},
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': {'category': 'Document', 'icon': '📝', 'max_size': 25 * 1024 * 1024},
+        # Spreadsheets
+        'application/vnd.ms-excel': {'category': 'Spreadsheet', 'icon': '📊', 'max_size': 25 * 1024 * 1024},
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {'category': 'Spreadsheet', 'icon': '📊', 'max_size': 25 * 1024 * 1024},
+        # Audio
+        'audio/mpeg': {'category': 'Audio', 'icon': '🎵', 'max_size': 15 * 1024 * 1024},
+        'audio/wav': {'category': 'Audio', 'icon': '🎵', 'max_size': 15 * 1024 * 1024},
+        'audio/ogg': {'category': 'Audio', 'icon': '🎵', 'max_size': 15 * 1024 * 1024},
+        # Video
+        'video/mp4': {'category': 'Video', 'icon': '🎬', 'max_size': 50 * 1024 * 1024},
+        'video/webm': {'category': 'Video', 'icon': '🎬', 'max_size': 50 * 1024 * 1024},
+        # Archives
+        'application/zip': {'category': 'Archive', 'icon': '📦', 'max_size': 25 * 1024 * 1024},
+        'application/x-rar-compressed': {'category': 'Archive', 'icon': '📦', 'max_size': 25 * 1024 * 1024}
     }
     
-    return {"message": "File uploaded successfully", "file_id": message["message_id"]}
+    file_info = allowed_types.get(file.content_type)
+    if not file_info:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"File type '{file.content_type}' not supported. Supported types: Images, Documents, Audio, Video, Archives"
+        )
+    
+    if file.size > file_info['max_size']:
+        raise HTTPException(
+            status_code=413, 
+            detail=f"File too large for {file_info['category']}. Maximum size: {file_info['max_size'] // (1024 * 1024)}MB"
+        )
+    
+    try:
+        # Read file content
+        file_content = await file.read()
+        file_base64 = base64.b64encode(file_content).decode()
+        
+        # Create file metadata
+        file_data = {
+            "file_id": str(uuid.uuid4()),
+            "file_name": file.filename,
+            "file_size": file.size,
+            "file_type": file.content_type,
+            "file_data": file_base64,
+            "category": file_info['category'],
+            "icon": file_info['icon'],
+            "uploaded_by": current_user["user_id"],
+            "uploaded_at": datetime.utcnow()
+        }
+        
+        return {
+            "message": "File uploaded successfully",
+            "file_id": file_data["file_id"],
+            "file_name": file_data["file_name"],
+            "file_size": file_data["file_size"],
+            "file_type": file_data["file_type"],
+            "file_data": file_data["file_data"],
+            "category": file_data["category"],
+            "icon": file_data["icon"]
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"File upload failed: {str(e)}")
 
 @api_router.get("/chats/{chat_id}/search")
 async def search_messages(chat_id: str, q: str, current_user = Depends(get_current_user)):
