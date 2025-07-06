@@ -148,6 +148,10 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
     }
   };
 
+  const selectTeam = (team) => {
+    setSelectedTeam(team);
+  };
+
   const fetchConnections = async () => {
     setIsLoadingConnections(true);
     try {
