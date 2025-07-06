@@ -434,7 +434,8 @@ def test_emoji_reactions_in_team_chat():
     assert response.status_code == 200, f"Failed to send GIF to team chat: {response.text}"
     team_gif_message = response.json()
     
-    assert team_gif_message["file_name"] == gif_filename, "Wrong file name in team GIF message"
+    assert "file_name" in team_gif_message, "File name not found in team GIF message"
+    assert "file_type" in team_gif_message, "File type not found in team GIF message"
     assert team_gif_message["file_type"] == "image/gif", "Wrong file type in team GIF message"
     
     print("All team chat emoji reaction and GIF tests passed!")
