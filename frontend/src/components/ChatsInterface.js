@@ -1755,7 +1755,7 @@ const ChatsInterface = ({
           )}
         </div>
 
-        {/* Message Input with Emoji Support */}
+        {/* Message Input with Emoji & GIF Support */}
         <div className="bg-white border-t border-gray-200 p-4 relative">
           <div className="flex items-center space-x-3">
             {/* File Upload Button */}
@@ -1767,9 +1767,24 @@ const ChatsInterface = ({
               📎
             </button>
 
+            {/* GIF Picker Button */}
+            <button
+              onClick={() => {
+                setShowGifPicker(!showGifPicker);
+                setShowEmojiPicker(false);
+              }}
+              className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100"
+              title={t('gifs.picker')}
+            >
+              🎬
+            </button>
+
             {/* Emoji Picker Button */}
             <button
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              onClick={() => {
+                setShowEmojiPicker(!showEmojiPicker);
+                setShowGifPicker(false);
+              }}
               className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100"
               title={t('emojis.picker')}
             >
@@ -1798,6 +1813,14 @@ const ChatsInterface = ({
               ➤
             </button>
           </div>
+
+          {/* GIF Picker */}
+          {showGifPicker && (
+            <GifPicker
+              onGifSelect={handleGifSelect}
+              onClose={() => setShowGifPicker(false)}
+            />
+          )}
 
           {/* Emoji Picker */}
           {showEmojiPicker && (
