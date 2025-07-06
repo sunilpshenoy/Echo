@@ -631,9 +631,42 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
                   )}
                 </button>
               </div>
+
+              {/* Theme Customization Section */}
+              <div className="border-t border-gray-200 pt-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center space-x-2">
+                  <span>🎨</span>
+                  <span>{t('themes.title')}</span>
+                </h3>
+                <button
+                  onClick={() => setShowThemeCustomizer(true)}
+                  className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-4 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 flex items-center justify-center space-x-2"
+                >
+                  <span>🎨</span>
+                  <span>{t('themes.title')}</span>
+                </button>
+                <p className="text-sm text-gray-500 mt-2 text-center">
+                  {t('themes.currentTheme')}: {currentTheme === 'default' ? t('themes.defaultTheme') : currentTheme}
+                </p>
+              </div>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Theme Customizer Modal */}
+      {showThemeCustomizer && (
+        <ThemeCustomizer
+          onClose={() => setShowThemeCustomizer(false)}
+          onApplyTheme={(theme) => {
+            setAppliedTheme(theme);
+            setCurrentTheme(theme.name || theme);
+            setShowThemeCustomizer(false);
+            // Apply theme styles to the app
+            applyThemeStyles(theme);
+          }}
+          currentTheme={currentTheme}
+        />
       )}
       </div> {/* Close main content wrapper */}
     </div>
