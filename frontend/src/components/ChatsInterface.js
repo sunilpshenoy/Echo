@@ -686,23 +686,19 @@ const ChatsInterface = ({
     ]
   };
 
-  // Initialize WebRTC
+  // Enhanced WebRTC Implementation
   const initializeWebRTC = async (type) => {
     try {
+      // Get user media
       const stream = await navigator.mediaDevices.getUserMedia({
         video: type === 'video',
         audio: true
       });
       
       setLocalStream(stream);
-      if (localVideoRef.current && type === 'video') {
-        localVideoRef.current.srcObject = stream;
-      }
       
       // Create peer connection
-      peerConnection.current = new RTCPeerConnection({
-        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-      });
+      peerConnection.current = new RTCPeerConnection(pcConfig);
       
       // Add local stream to peer connection
       stream.getTracks().forEach(track => {
@@ -711,9 +707,22 @@ const ChatsInterface = ({
       
       // Handle remote stream
       peerConnection.current.ontrack = (event) => {
+        console.log('Received remote stream');
         setRemoteStream(event.streams[0]);
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = event.streams[0];
+      };
+      
+      // Handle ICE candidates
+      peerConnection.current.onicecandidate = async (event) => {
+        if (event.candidate && currentCall) {
+          try {
+            await axios.post(`${api}/calls/${currentCall.call_id}/webrtc/ice`, {
+              candidate: event.candidate
+            }, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+          } catch (error) {
+            console.error('Failed to send ICE candidate:', error);
+          }
         }
       };
       
@@ -725,18 +734,234 @@ const ChatsInterface = ({
     }
   };
 
-  // End call
-  const endCall = () => {
+  // WebRTC Signaling Handlers
+  const handleWebRTCOffer = async (data) => {
+    if (!currentCall || data.call_id !== currentCall.call_id) return;
+    
+    try {
+      // Set remote description
+      await peerConnection.current.setRemoteDescription(data.offer);
+      
+      // Create answer
+      const answer = await peerConnection.current.createAnswer();
+      await peerConnection.current.setLocalDescription(answer);
+      
+      // Send answer
+      await axios.post(`${api}/calls/${currentCall.call_id}/webrtc/answer`, {
+        answer: answer
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+    } catch (error) {
+      console.error('Error handling WebRTC offer:', error);
+    }
+  };
+
+  const handleWebRTCAnswer = async (data) => {
+    if (!currentCall || data.call_id !== currentCall.call_id) return;
+    
+    try {
+      await peerConnection.current.setRemoteDescription(data.answer);
+    } catch (error) {
+      console.error('Error handling WebRTC answer:', error);
+    }
+  };
+
+  const handleWebRTCIce = async (data) => {
+    if (!currentCall || data.call_id !== currentCall.call_id) return;
+    
+    try {
+      await peerConnection.current.addIceCandidate(data.candidate);
+    } catch (error) {
+      console.error('Error adding ICE candidate:', error);
+    }
+  };
+
+  // Call Management Functions
+  const initiateCall = async (type) => {
+    if (!selectedChat) return;
+    
+    try {
+      // Initialize WebRTC first
+      const success = await initializeWebRTC(type);
+      if (!success) return;
+      
+      // Create call via backend
+      const response = await axios.post(`${api}/calls/initiate`, {
+        chat_id: selectedChat.chat_id,
+        call_type: type
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const call = response.data;
+      setCurrentCall(call);
+      setIsCallActive(true);
+      setCallType(type);
+      
+      // Create and send WebRTC offer
+      const offer = await peerConnection.current.createOffer();
+      await peerConnection.current.setLocalDescription(offer);
+      
+      await axios.post(`${api}/calls/${call.call_id}/webrtc/offer`, {
+        offer: offer
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+    } catch (error) {
+      console.error('Failed to initiate call:', error);
+      alert('Failed to start call. Please try again.');
+      handleCallEnded();
+    }
+  };
+
+  const acceptCall = async (call) => {
+    try {
+      // Accept the call via backend
+      await axios.put(`${api}/calls/${call.call_id}/respond`, {
+        action: 'accept'
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Initialize WebRTC
+      const success = await initializeWebRTC(call.call_type);
+      if (success) {
+        setCurrentCall(call);
+        setIsCallActive(true);
+        setCallType(call.call_type);
+        setIncomingCall(null);
+      }
+      
+    } catch (error) {
+      console.error('Failed to accept call:', error);
+      alert('Failed to accept call. Please try again.');
+    }
+  };
+
+  const declineCall = async (call) => {
+    try {
+      await axios.put(`${api}/calls/${call.call_id}/respond`, {
+        action: 'decline'
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setIncomingCall(null);
+      
+    } catch (error) {
+      console.error('Failed to decline call:', error);
+    }
+  };
+
+  const endCall = async () => {
+    try {
+      if (currentCall) {
+        await axios.put(`${api}/calls/${currentCall.call_id}/end`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+    } catch (error) {
+      console.error('Failed to end call:', error);
+    } finally {
+      handleCallEnded();
+    }
+  };
+
+  const handleCallEnded = () => {
+    // Clean up streams
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
     }
     if (peerConnection.current) {
       peerConnection.current.close();
     }
+    
     setIsCallActive(false);
     setCallType(null);
+    setCurrentCall(null);
     setLocalStream(null);
     setRemoteStream(null);
+    setIncomingCall(null);
+    setIsMuted(false);
+    setIsVideoOff(false);
+    setIsScreenSharing(false);
+  };
+
+  // Call Control Functions
+  const toggleMute = () => {
+    if (localStream) {
+      const audioTrack = localStream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !audioTrack.enabled;
+        setIsMuted(!audioTrack.enabled);
+      }
+    }
+  };
+
+  const toggleVideo = () => {
+    if (localStream) {
+      const videoTrack = localStream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = !videoTrack.enabled;
+        setIsVideoOff(!videoTrack.enabled);
+      }
+    }
+  };
+
+  const toggleScreenShare = async () => {
+    try {
+      if (!isScreenSharing) {
+        // Start screen sharing
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: true
+        });
+        
+        // Replace video track with screen share
+        const videoTrack = screenStream.getVideoTracks()[0];
+        const sender = peerConnection.current.getSenders().find(s => 
+          s.track && s.track.kind === 'video'
+        );
+        
+        if (sender) {
+          await sender.replaceTrack(videoTrack);
+        }
+        
+        setIsScreenSharing(true);
+        
+        // Handle screen share end
+        videoTrack.onended = () => {
+          setIsScreenSharing(false);
+          // Switch back to camera
+          if (localStream) {
+            const cameraTrack = localStream.getVideoTracks()[0];
+            if (sender && cameraTrack) {
+              sender.replaceTrack(cameraTrack);
+            }
+          }
+        };
+        
+      } else {
+        // Stop screen sharing - switch back to camera
+        if (localStream) {
+          const cameraTrack = localStream.getVideoTracks()[0];
+          const sender = peerConnection.current.getSenders().find(s => 
+            s.track && s.track.kind === 'video'
+          );
+          
+          if (sender && cameraTrack) {
+            await sender.replaceTrack(cameraTrack);
+          }
+        }
+        setIsScreenSharing(false);
+      }
+    } catch (error) {
+      console.error('Screen share error:', error);
+      alert('Screen sharing failed. Please try again.');
+    }
   };
 
   const handleVoiceCall = async (contact) => {
@@ -745,16 +970,7 @@ const ChatsInterface = ({
     const contactName = contact.other_user?.display_name || contact.other_user?.username || contact.name || 'Unknown Contact';
     
     if (window.confirm(`Start voice call with ${contactName}?`)) {
-      const success = await initializeWebRTC('voice');
-      if (success) {
-        setIsCallActive(true);
-        setCallType('voice');
-        
-        // In a real app, you'd send call invitation through signaling server
-        setTimeout(() => {
-          alert(`📞 Voice call started with ${contactName}!\n\nThis is a demo. In production, this would connect through WebRTC signaling.`);
-        }, 1000);
-      }
+      await initiateCall('voice');
     }
   };
 
@@ -764,16 +980,7 @@ const ChatsInterface = ({
     const contactName = contact.other_user?.display_name || contact.other_user?.username || contact.name || 'Unknown Contact';
     
     if (window.confirm(`Start video call with ${contactName}?`)) {
-      const success = await initializeWebRTC('video');
-      if (success) {
-        setIsCallActive(true);
-        setCallType('video');
-        
-        // In a real app, you'd send call invitation through signaling server
-        setTimeout(() => {
-          alert(`📹 Video call started with ${contactName}!\n\nThis is a demo. In production, this would connect through WebRTC signaling.`);
-        }, 1000);
-      }
+      await initiateCall('video');
     }
   };
 
