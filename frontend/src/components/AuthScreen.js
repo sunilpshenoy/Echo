@@ -69,15 +69,13 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
       <div className="w-full max-w-md">
         {/* Header with Pulse branding */}
         <div className="text-center mb-8 animate-fade-in-up">
-          {/* Simple Text-Based Logo - Clean and Functional */}
+          {/* Pulse Logo */}
           <div className="mb-6 flex flex-col items-center">
-            <div className="text-6xl mb-2">🛡️💜</div>
-            <div className="text-4xl font-bold bg-gradient-to-r from-orange-400 to-orange-500 bg-clip-text text-transparent mb-1 tracking-widest">
-              {t('common.appName')}
-            </div>
-            <div className="text-sm font-semibold bg-gradient-to-r from-pink-400 to-purple-500 bg-clip-text text-transparent tracking-wider">
-              {t('common.tagline')}
-            </div>
+            <img 
+              src="/pulse-logo.svg" 
+              alt="Pulse Logo" 
+              className="h-16 mb-4 drop-shadow-lg"
+            />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">{t('auth.welcomeBack')}</h1>
           <p className="text-white/80 font-medium">{t('auth.continueBuilding')}</p>
