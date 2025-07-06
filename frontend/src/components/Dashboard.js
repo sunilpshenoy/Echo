@@ -6,6 +6,7 @@ import TeamsInterface from './TeamsInterface';
 import DiscoverInterface from './DiscoverInterface';
 import TrustSystem from './TrustSystem';
 import LanguageSelector from './LanguageSelector';
+import ThemeCustomizer from './ThemeCustomizer';
 
 const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const { t } = useTranslation();
