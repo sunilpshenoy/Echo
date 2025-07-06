@@ -456,6 +456,9 @@ const ChatsInterface = ({
   const [customEmojis, setCustomEmojis] = useState([]);
   const [messageReactions, setMessageReactions] = useState({});
   const [showCustomEmojiModal, setShowCustomEmojiModal] = useState(false);
+  
+  // GIF functionality state
+  const [showGifPicker, setShowGifPicker] = useState(false);
 
   // Enhanced file validation with better feedback
   const validateFile = (file) => {
