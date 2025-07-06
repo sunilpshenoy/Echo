@@ -625,14 +625,27 @@ const ChatsInterface = ({
     }
   };
 
-  // Call functionality
+  // Call functionality - Enhanced with backend integration
   const [isCallActive, setIsCallActive] = useState(false);
   const [callType, setCallType] = useState(null); // 'voice' or 'video'
+  const [currentCall, setCurrentCall] = useState(null);
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOff, setIsVideoOff] = useState(false);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const peerConnection = useRef(null);
+  const [incomingCall, setIncomingCall] = useState(null);
+
+  // WebRTC Configuration
+  const pcConfig = {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' }
+    ]
+  };
 
   // Initialize WebRTC
   const initializeWebRTC = async (type) => {
