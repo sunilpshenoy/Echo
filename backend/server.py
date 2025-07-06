@@ -4724,7 +4724,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://d7b9d12d-a913-401a-8c35-c29a022264b7.preview.emergentagent.com",
+        "https://eeb72202-3468-4b02-b50b-ed9b2f7f7750.preview.emergentagent.com",
         "*"
     ],
     allow_credentials=True,

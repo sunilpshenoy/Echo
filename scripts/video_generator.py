@@ -324,7 +324,7 @@ class ChatAppVideoGenerator:
 
 # Usage example
 if __name__ == "__main__":
-    app_url = "https://d7b9d12d-a913-401a-8c35-c29a022264b7.preview.emergentagent.com"
+    app_url = "https://eeb72202-3468-4b02-b50b-ed9b2f7f7750.preview.emergentagent.com"
     
     generator = ChatAppVideoGenerator(app_url, "chatapp_pro_ultimate_demo.mp4")
     video_path = generator.generate_video()
