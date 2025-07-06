@@ -141,10 +141,10 @@ def create_test_image(size=(100, 100), color=(255, 0, 0), format='PNG'):
     buffer.seek(0)
     return buffer
 
-def create_test_gif(size=(100, 100), frames=10):
+def create_test_gif(size=(100, 100), num_frames=10):
     """Create a test animated GIF for upload"""
     frames = []
-    for i in range(frames):
+    for i in range(num_frames):
         # Create frames with different colors
         color = (i * 25 % 255, (i * 50) % 255, (i * 75) % 255)
         frame = Image.new('RGB', size, color)
