@@ -340,7 +340,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
                 <span>{tab.label}</span>
                 {tab.premium && !isPremium && (
                   <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-medium">
-                    Premium
+                    ⭐
                   </span>
                 )}
               </button>
