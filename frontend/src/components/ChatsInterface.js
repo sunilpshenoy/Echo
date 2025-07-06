@@ -1387,6 +1387,26 @@ const ChatsInterface = ({
               className="max-w-full h-auto rounded mb-2"
             />
           )}
+
+          {message.message_type === 'gif' && message.gif_data && (
+            <div className="mb-2">
+              <img
+                src={message.gif_data.preview || message.gif_data.url}
+                alt={message.gif_data.title || 'GIF'}
+                className="max-w-full h-auto rounded cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => {
+                  // Open GIF in full resolution
+                  window.open(message.gif_data.url, '_blank');
+                }}
+                style={{ maxHeight: '200px' }}
+              />
+              {message.gif_data.title && (
+                <p className={`text-xs mt-1 ${isOwnMessage ? 'text-blue-100' : 'text-gray-500'}`}>
+                  🎬 {message.gif_data.title}
+                </p>
+              )}
+            </div>
+          )}
           
           {message.message_type === 'file' && (
             <div className="flex items-center space-x-2 mb-2">
@@ -1400,7 +1420,7 @@ const ChatsInterface = ({
             </div>
           )}
           
-          {message.content && (
+          {message.content && message.message_type !== 'gif' && (
             <p className="text-sm">{message.content}</p>
           )}
           
