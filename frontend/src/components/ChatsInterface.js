@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import CallInterface from './CallInterface';
 import EmojiPicker from './EmojiPicker';
 import MessageReactions from './MessageReactions';
+import GifPicker from './GifPicker';
 
 const ConnectionManager = ({ user, token, api, onConnectionUpdate }) => {
   const [showPinModal, setShowPinModal] = useState(false);
