@@ -245,6 +245,52 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
     }
   }, [activeTab]);
 
+  // Theme application function
+  const applyThemeStyles = (theme) => {
+    if (!theme || typeof theme === 'string') return;
+    
+    // Apply CSS custom properties for theming
+    const root = document.documentElement;
+    
+    if (theme.colors) {
+      root.style.setProperty('--color-primary', theme.colors.primary);
+      root.style.setProperty('--color-secondary', theme.colors.secondary);
+      root.style.setProperty('--color-accent', theme.colors.accent);
+      root.style.setProperty('--color-background', theme.colors.background);
+      root.style.setProperty('--color-surface', theme.colors.surface);
+      root.style.setProperty('--color-text', theme.colors.text);
+      root.style.setProperty('--color-text-secondary', theme.colors.textSecondary);
+    }
+    
+    if (theme.chatBubbles) {
+      root.style.setProperty('--chat-own-bubble', theme.chatBubbles.ownBubbleColor);
+      root.style.setProperty('--chat-other-bubble', theme.chatBubbles.otherBubbleColor);
+      root.style.setProperty('--chat-own-text', theme.chatBubbles.textColor);
+      root.style.setProperty('--chat-other-text', theme.chatBubbles.otherTextColor);
+    }
+    
+    // Save theme to localStorage
+    localStorage.setItem('pulse_current_theme', JSON.stringify(theme));
+    localStorage.setItem('pulse_theme_name', theme.name || 'custom');
+  };
+
+  // Load saved theme on component mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('pulse_current_theme');
+    const savedThemeName = localStorage.getItem('pulse_theme_name');
+    
+    if (savedTheme) {
+      try {
+        const theme = JSON.parse(savedTheme);
+        setAppliedTheme(theme);
+        setCurrentTheme(savedThemeName || 'custom');
+        applyThemeStyles(theme);
+      } catch (error) {
+        console.error('Failed to load saved theme:', error);
+      }
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 relative">
       {/* Pulse Logo Background - Exact Match */}
