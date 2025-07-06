@@ -1767,6 +1767,52 @@ async def create_team(
     
     return serialize_mongo_doc(team)
 
+# Team Messaging Endpoints
+@api_router.get("/teams/{team_id}/messages")
+async def get_team_messages(team_id: str, current_user = Depends(get_current_user)):
+    """Get messages for a specific team"""
+    # Verify user is member of team
+    team = await db.teams.find_one({"team_id": team_id})
+    if not team or current_user["user_id"] not in team["members"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Find the team chat
+    team_chat = await db.chats.find_one({"team_id": team_id})
+    if not team_chat:
+        raise HTTPException(status_code=404, detail="Team chat not found")
+    
+    # Get messages for the team chat
+    messages = await db.messages.find({"chat_id": team_chat["chat_id"]}).sort("timestamp", 1).to_list(1000)
+    
+    # Get sender details for each message
+    for message in messages:
+        sender = await db.users.find_one({"user_id": message["sender_id"]})
+        if sender:
+            message["sender"] = {
+                "user_id": sender["user_id"],
+                "username": sender["username"],
+                "display_name": sender.get("display_name", sender["username"]),
+                "email": sender.get("email", "")
+            }
+    
+    return serialize_mongo_doc(messages)
+
+@api_router.post("/teams/{team_id}/messages")
+async def send_team_message(team_id: str, message_data: dict, current_user = Depends(get_current_user)):
+    """Send a message to a team"""
+    # Verify user is member of team
+    team = await db.teams.find_one({"team_id": team_id})
+    if not team or current_user["user_id"] not in team["members"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Find the team chat
+    team_chat = await db.chats.find_one({"team_id": team_id})
+    if not team_chat:
+        raise HTTPException(status_code=404, detail="Team chat not found")
+    
+    # Use the existing send_message logic by calling it with the team chat_id
+    return await send_message(team_chat["chat_id"], message_data, current_user)
+
 # Contact Management Endpoints
 @api_router.get("/contacts")
 async def get_contacts(current_user = Depends(get_current_user)):
