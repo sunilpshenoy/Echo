@@ -109,7 +109,8 @@
     "unnamedTeam": "Unnamed Team",
     "noRecentActivity": "No recent activity",
     "teamCreatedSuccess": "Team created successfully!",
-    "teamCreationFailed": "Failed to create team. Please try again."
+    "teamCreationFailed": "Failed to create team. Please try again.",
+    "connectionIssue": "Connection issue - messages may not be delivered in real-time"
   },
   "premium": {
     "title": "Safely Discover New Friends",
