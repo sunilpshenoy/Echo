@@ -137,6 +137,27 @@
     "accept": "Accept",
     "decline": "Decline"
   },
+  "emojis": {
+    "picker": "Emoji Picker",
+    "search": "Search emojis...",
+    "recent": "Recently Used",
+    "smileysAndPeople": "Smileys & People",
+    "animalsAndNature": "Animals & Nature",
+    "foodAndDrink": "Food & Drink",
+    "activitiesAndSports": "Activities & Sports",
+    "travelAndPlaces": "Travel & Places",
+    "objectsAndSymbols": "Objects & Symbols",
+    "symbols": "Symbols",
+    "flags": "Flags",
+    "custom": "Custom Emojis",
+    "noResults": "No emojis found",
+    "uploadCustom": "Upload Custom Emoji",
+    "emojiName": "Emoji Name",
+    "selectImage": "Select Image",
+    "upload": "Upload",
+    "delete": "Delete",
+    "manage": "Manage Custom Emojis"
+  },
   "premium": {
     "title": "Safely Discover New Friends",
     "subtitle": "Our 5-Layer Trust System helps you discover new people safely, building secure connections with strangers through verified progression.",
