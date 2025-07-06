@@ -1462,7 +1462,7 @@ frontend:
     implemented: true
     working: false
     file: "src/components/ThemeCustomizer.js, src/components/Dashboard.js"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: true
     status_history:
@@ -1472,6 +1472,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Unable to test the theme customization feature due to authentication issues. The login functionality is not working properly, preventing access to the dashboard where the theme customizer would be available. The code review shows that the ThemeCustomizer component is well-implemented with predefined themes and persistence, but functional testing is blocked by the authentication issue."
+      - working: false
+        agent: "testing"
+        comment: "Attempted to test the theme customization feature again but still encountered authentication issues. The login page loads correctly with proper styling and branding, but login attempts with both existing and new user credentials do not redirect to the dashboard. The 'Create account' link is also not functioning properly. The backend logs show both successful and failed login attempts (200 OK and 401 Unauthorized), but the frontend is not properly handling the successful responses. This prevents access to the dashboard where the theme customizer would be available."
         
   - task: "Authentication System"
     implemented: true
