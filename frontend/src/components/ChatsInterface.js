@@ -439,6 +439,12 @@ const ChatsInterface = ({
   const [dragActive, setDragActive] = useState(false);
   const [filePreview, setFilePreview] = useState(null);
   const [showFilePreview, setShowFilePreview] = useState(false);
+  
+  // Emoji functionality state
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [customEmojis, setCustomEmojis] = useState([]);
+  const [messageReactions, setMessageReactions] = useState({});
+  const [showCustomEmojiModal, setShowCustomEmojiModal] = useState(false);
 
   // Enhanced file validation with better feedback
   const validateFile = (file) => {
