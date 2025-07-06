@@ -1591,13 +1591,14 @@ const ChatsInterface = ({
           </div>
         </div>
 
-        {/* Hidden file input */}
+        {/* Hidden file input - supports multiple files */}
         <input
           type="file"
           ref={fileInputRef}
           onChange={handleFileSelect}
+          multiple
+          accept="image/*,application/pdf,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,audio/*,video/*,application/zip,application/x-rar-compressed"
           style={{ display: 'none' }}
-          accept="image/*,.pdf,.doc,.docx,.txt"
         />
       </div>
     );
