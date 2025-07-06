@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import QRCode from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
 import CallInterface from './CallInterface';
 import EmojiPicker from './EmojiPicker';
