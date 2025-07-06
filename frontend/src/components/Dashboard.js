@@ -388,7 +388,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
               />
             )}
             
-            {activeTab === 'discover' && (
+            {activeTab === 'premium' && (
               <DiscoverInterface 
                 user={user}
                 token={token}
