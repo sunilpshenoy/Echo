@@ -1480,7 +1480,7 @@ frontend:
     implemented: true
     working: false
     file: "src/App.js"
-    stuck_count: 1
+    stuck_count: 2
     priority: "critical"
     needs_retesting: true
     status_history:
@@ -1490,6 +1490,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "The authentication system is currently not working. Users cannot log in with valid credentials. The backend logs show 401 Unauthorized errors for login attempts. This is a critical issue that prevents testing of all other features that require authentication, including the emoji, GIF, and customization features. The issue appears to be with the backend authentication system rather than the frontend implementation."
+      - working: false
+        agent: "testing"
+        comment: "Attempted to test the authentication system again. The login page loads correctly with proper styling and branding, but login attempts with both existing and new user credentials do not redirect to the dashboard. The 'Create account' link is also not functioning properly. The backend logs show both successful and failed login attempts (200 OK and 401 Unauthorized), but the frontend is not properly handling the successful responses. This is a critical issue that prevents testing of all other features that require authentication."
 
   - task: "Message Search Functionality"
     implemented: true
