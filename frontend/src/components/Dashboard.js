@@ -357,7 +357,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
             <img 
               src="/pulse-logo.png" 
               alt="Pulse Background" 
-              className="w-96 h-auto opacity-5 transform rotate-12 scale-150"
+              className="w-80 h-auto opacity-10 transform -rotate-12"
             />
           </div>
           
