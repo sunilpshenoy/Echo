@@ -756,6 +756,9 @@ backend:
       - working: true
         agent: "main"
         comment: "IMPLEMENTATION COMPLETED: Created GifPicker component with trending, recent, favorites tabs. Added 6 quick categories with mock GIF data. Integrated GIF button in message input with seamless sending. Enhanced message rendering to display GIFs with preview and click-to-expand. Added favorites system and recent GIFs tracking with localStorage persistence."
+      - working: true
+        agent: "testing"
+        comment: "Tested the backend support for GIF files. The backend properly supports GIF files through the file upload endpoint (/api/upload). The system correctly identifies GIF files (image/gif MIME type), categorizes them as 'Image' type, and applies appropriate size limits (5MB for GIFs). The backend is ready to handle GIF files uploaded by the frontend GIF picker component."
 
   - task: "Week 4: Customization Engine"
     implemented: true
