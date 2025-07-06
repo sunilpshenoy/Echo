@@ -186,6 +186,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Successfully fixed and tested the emoji reactions functionality. Created a comprehensive test script (backend_test.py) that verifies: 1) Adding Emoji Reactions - Successfully tested POST /api/messages/{message_id}/reactions for adding emoji reactions to messages, 2) Reaction Toggle Behavior - Successfully tested the toggle behavior (adding/removing the same emoji), 3) Retrieving Message Reactions - Successfully tested GET /api/messages/{message_id}/reactions for retrieving all reactions for a message with proper user information, 4) WebSocket Notifications - Successfully verified that reaction_added and reaction_removed events are sent via WebSocket when reactions are added or removed, 5) Multiple Reactions - Successfully tested adding multiple different emoji reactions to the same message, 6) Multiple Users - Successfully tested multiple users reacting to the same message with proper aggregation. All tests passed with no issues."
+      - working: true
+        agent: "testing"
+        comment: "Conducted additional comprehensive testing of emoji reactions functionality. Created a dedicated test script (emoji_gif_customization_test.py) that verifies: 1) WebSocket Notifications - Successfully verified that reaction_added and reaction_removed events are sent via WebSocket in real-time when reactions are added or removed, 2) Multiple User Reactions - Successfully tested multiple users reacting to the same message with proper aggregation, 3) Reaction Toggle Behavior - Successfully verified that adding the same emoji again removes it (toggle behavior). All tests passed successfully, confirming that the emoji reactions functionality is working correctly."
 
   - task: "Custom Emoji Functionality"
     implemented: true
