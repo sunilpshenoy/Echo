@@ -293,6 +293,7 @@ const ChatsInterface = ({
     }
   };
 
+  // Enhanced WebSocket message handling with emoji reactions
   const handleWebSocketMessage = (message) => {
     console.log('Received WebSocket message:', message);
     
@@ -321,6 +322,15 @@ const ChatsInterface = ({
           newSet.delete(message.data.user_id);
           return newSet;
         });
+        break;
+
+      // Emoji reaction WebSocket messages
+      case 'reaction_added':
+        fetchMessageReactions(message.data.message_id);
+        break;
+        
+      case 'reaction_removed':
+        fetchMessageReactions(message.data.message_id);
         break;
 
       // Call-related WebSocket messages
