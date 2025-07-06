@@ -624,27 +624,103 @@ const ChatsInterface = ({
     }
   };
 
-  const handleVoiceCall = (contact) => {
-    console.log('Voice call initiated for:', contact);
-    
-    // Enhanced voice call modal instead of simple alert
-    const contactName = contact.other_user?.display_name || contact.other_user?.username || contact.name || 'Unknown Contact';
-    
-    if (window.confirm(`Start voice call with ${contactName}?\n\n📞 Voice calling will be available soon with WebRTC integration.`)) {
-      // TODO: Implement WebRTC voice calling
-      alert('📞 Connecting to voice call system... (Feature in development)');
+  // Call functionality
+  const [isCallActive, setIsCallActive] = useState(false);
+  const [callType, setCallType] = useState(null); // 'voice' or 'video'
+  const [localStream, setLocalStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null);
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+  const peerConnection = useRef(null);
+
+  // Initialize WebRTC
+  const initializeWebRTC = async (type) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: type === 'video',
+        audio: true
+      });
+      
+      setLocalStream(stream);
+      if (localVideoRef.current && type === 'video') {
+        localVideoRef.current.srcObject = stream;
+      }
+      
+      // Create peer connection
+      peerConnection.current = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      });
+      
+      // Add local stream to peer connection
+      stream.getTracks().forEach(track => {
+        peerConnection.current.addTrack(track, stream);
+      });
+      
+      // Handle remote stream
+      peerConnection.current.ontrack = (event) => {
+        setRemoteStream(event.streams[0]);
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = event.streams[0];
+        }
+      };
+      
+      return true;
+    } catch (error) {
+      console.error('Error accessing media devices:', error);
+      alert('❌ Unable to access camera/microphone. Please check permissions.');
+      return false;
     }
   };
 
-  const handleVideoCall = (contact) => {
-    console.log('Video call initiated for:', contact);
+  // End call
+  const endCall = () => {
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+    }
+    if (peerConnection.current) {
+      peerConnection.current.close();
+    }
+    setIsCallActive(false);
+    setCallType(null);
+    setLocalStream(null);
+    setRemoteStream(null);
+  };
+
+  const handleVoiceCall = async (contact) => {
+    console.log('Voice call initiated for:', contact);
     
-    // Enhanced video call modal instead of simple alert
     const contactName = contact.other_user?.display_name || contact.other_user?.username || contact.name || 'Unknown Contact';
     
-    if (window.confirm(`Start video call with ${contactName}?\n\n📹 Video calling will be available soon with WebRTC integration.`)) {
-      // TODO: Implement WebRTC video calling
-      alert('📹 Connecting to video call system... (Feature in development)');
+    if (window.confirm(`Start voice call with ${contactName}?`)) {
+      const success = await initializeWebRTC('voice');
+      if (success) {
+        setIsCallActive(true);
+        setCallType('voice');
+        
+        // In a real app, you'd send call invitation through signaling server
+        setTimeout(() => {
+          alert(`📞 Voice call started with ${contactName}!\n\nThis is a demo. In production, this would connect through WebRTC signaling.`);
+        }, 1000);
+      }
+    }
+  };
+
+  const handleVideoCall = async (contact) => {
+    console.log('Video call initiated for:', contact);
+    
+    const contactName = contact.other_user?.display_name || contact.other_user?.username || contact.name || 'Unknown Contact';
+    
+    if (window.confirm(`Start video call with ${contactName}?`)) {
+      const success = await initializeWebRTC('video');
+      if (success) {
+        setIsCallActive(true);
+        setCallType('video');
+        
+        // In a real app, you'd send call invitation through signaling server
+        setTimeout(() => {
+          alert(`📹 Video call started with ${contactName}!\n\nThis is a demo. In production, this would connect through WebRTC signaling.`);
+        }, 1000);
+      }
     }
   };
 
