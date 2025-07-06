@@ -4585,7 +4585,8 @@ async def add_emoji_reaction(message_id: str, reaction_data: dict, current_user 
                     "emoji": emoji
                 }
             }),
-            message["chat_id"]
+            message["chat_id"],
+            current_user["user_id"]
         )
         
         return {"status": "reaction_added", "emoji": emoji, "reaction_id": reaction["reaction_id"]}
