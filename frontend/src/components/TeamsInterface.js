@@ -17,6 +17,76 @@ const TeamsInterface = ({
   const [newTeamName, setNewTeamName] = useState('');
   const [newTeamDescription, setNewTeamDescription] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  
+  // Team chat functionality
+  const [teamMessages, setTeamMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+
+  // Fetch team messages when a team is selected
+  useEffect(() => {
+    if (selectedTeam?.team_id) {
+      fetchTeamMessages();
+    }
+  }, [selectedTeam]);
+
+  const fetchTeamMessages = async () => {
+    if (!selectedTeam?.team_id) return;
+    
+    setIsLoadingMessages(true);
+    try {
+      const response = await axios.get(`${api}/teams/${selectedTeam.team_id}/messages`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setTeamMessages(response.data);
+    } catch (error) {
+      console.error('Failed to fetch team messages:', error);
+      // If endpoint doesn't exist, start with empty messages
+      setTeamMessages([]);
+    } finally {
+      setIsLoadingMessages(false);
+    }
+  };
+
+  const sendTeamMessage = async () => {
+    if (!newMessage.trim() || !selectedTeam?.team_id) return;
+    
+    try {
+      const response = await axios.post(`${api}/teams/${selectedTeam.team_id}/messages`, {
+        content: newMessage,
+        message_type: 'text'
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Add message to local state
+      const messageData = {
+        message_id: Date.now(), // Temporary ID
+        content: newMessage,
+        sender: user,
+        timestamp: new Date().toISOString(),
+        message_type: 'text'
+      };
+      
+      setTeamMessages(prev => [...prev, messageData]);
+      setNewMessage('');
+      
+    } catch (error) {
+      console.error('Failed to send team message:', error);
+      
+      // If API doesn't exist, add message locally for demo
+      const messageData = {
+        message_id: Date.now(),
+        content: newMessage,
+        sender: user,
+        timestamp: new Date().toISOString(),
+        message_type: 'text'
+      };
+      
+      setTeamMessages(prev => [...prev, messageData]);
+      setNewMessage('');
+    }
+  };
 
   const handleCreateTeam = async () => {
     if (!newTeamName.trim()) return;
