@@ -4515,7 +4515,7 @@ async def update_document(
     return serialize_mongo_doc(updated_doc)
 
 # Include the router in the main app
-app.include_router(api_router)
+# app.include_router(api_router)  # Moved to the end of the file
 
 # Emoji Reactions Endpoints
 @api_router.post("/messages/{message_id}/reactions")
