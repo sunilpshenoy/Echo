@@ -3,6 +3,8 @@ import axios from 'axios';
 import QRCode from 'react-qr-code';
 import { useTranslation } from 'react-i18next';
 import CallInterface from './CallInterface';
+import EmojiPicker from './EmojiPicker';
+import MessageReactions from './MessageReactions';
 
 const ConnectionManager = ({ user, token, api, onConnectionUpdate }) => {
   const [showPinModal, setShowPinModal] = useState(false);
