@@ -108,7 +108,8 @@
     "unnamedTeam": "ਬਿਨਾਂ ਨਾਮ ਟੀਮ",
     "noRecentActivity": "ਕੋਈ ਹਾਲੀਆ ਗਤੀਵਿਧੀ ਨਹੀਂ",
     "teamCreatedSuccess": "ਟੀਮ ਸਫਲਤਾਪੂਰਵਕ ਬਣਾਈ ਗਈ!",
-    "teamCreationFailed": "ਟੀਮ ਬਣਾਉਣ ਵਿੱਚ ਅਸਫਲ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"
+    "teamCreationFailed": "ਟੀਮ ਬਣਾਉਣ ਵਿੱਚ ਅਸਫਲ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+    "connectionIssue": "Connection issue - messages may not be delivered in real-time"
   },
   "premium": {
     "title": "ਸੁਰੱਖਿਤ ਤਰੀਕੇ ਨਾਲ ਨਵੇਂ ਦੋਸਤ ਲੱਭੋ",

@@ -108,7 +108,8 @@
     "unnamedTeam": "بے نام ٹیم",
     "noRecentActivity": "کوئی حالیہ سرگرمی نہیں",
     "teamCreatedSuccess": "ٹیم کامیابی سے بن گئی!",
-    "teamCreationFailed": "ٹیم بنانے میں ناکامی۔ براہ کرم دوبارہ کوشش کریں۔"
+    "teamCreationFailed": "ٹیم بنانے میں ناکامی۔ براہ کرم دوبارہ کوشش کریں۔",
+    "connectionIssue": "Connection issue - messages may not be delivered in real-time"
   },
   "premium": {
     "title": "محفوظ طریقے سے نئے دوست تلاش کریں",

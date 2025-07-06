@@ -108,7 +108,8 @@
     "unnamedTeam": "പേരില്ലാത്ത ടീം",
     "noRecentActivity": "സമീപകാല പ്രവർത്തനം ഒന്നുമില്ല",
     "teamCreatedSuccess": "ടീം വിജയകരമായി സൃഷ്ടിച്ചു!",
-    "teamCreationFailed": "ടീം സൃഷ്ടിക്കുന്നതിൽ പരാജയപ്പെട്ടു. ദയവായി വീണ്ടും ശ്രമിക്കുക."
+    "teamCreationFailed": "ടീം സൃഷ്ടിക്കുന്നതിൽ പരാജയപ്പെട്ടു. ദയവായി വീണ്ടും ശ്രമിക്കുക.",
+    "connectionIssue": "Connection issue - messages may not be delivered in real-time"
   },
   "premium": {
     "title": "സുരക്ഷിതമായി പുതിയ സുഹൃത്തുക്കളെ കണ്ടെത്തുക",

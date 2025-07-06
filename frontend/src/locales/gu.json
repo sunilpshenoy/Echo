@@ -108,7 +108,8 @@
     "unnamedTeam": "નામ વિનાની ટીમ",
     "noRecentActivity": "કોઈ તાજેતરની પ્રવૃત્તિ નથી",
     "teamCreatedSuccess": "ટીમ સફળતાપૂર્વક બનાવાઈ!",
-    "teamCreationFailed": "ટીમ બનાવવામાં નિષ્ફળ. કૃપા કરીને ફરી પ્રયાસ કરો."
+    "teamCreationFailed": "ટીમ બનાવવામાં નિષ્ફળ. કૃપા કરીને ફરી પ્રયાસ કરો.",
+    "connectionIssue": "Connection issue - messages may not be delivered in real-time"
   },
   "premium": {
     "title": "સુરક્ષિત રીતે નવા મિત્રો શોધો",

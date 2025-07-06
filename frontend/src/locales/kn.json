@@ -108,7 +108,8 @@
     "unnamedTeam": "ಹೆಸರಿಲ್ಲದ ತಂಡ",
     "noRecentActivity": "ಯಾವುದೇ ಇತ್ತೀಚಿನ ಚಟುವಟಿಕೆ ಇಲ್ಲ",
     "teamCreatedSuccess": "ತಂಡವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ!",
-    "teamCreationFailed": "ತಂಡವನ್ನು ರಚಿಸುವಲ್ಲಿ ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
+    "teamCreationFailed": "ತಂಡವನ್ನು ರಚಿಸುವಲ್ಲಿ ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    "connectionIssue": "Connection issue - messages may not be delivered in real-time"
   },
   "premium": {
     "title": "ಸುರಕ್ಷಿತವಾಗಿ ಹೊಸ ಸ್ನೇಹಿತರನ್ನು ಕಂಡುಹಿಡಿಯಿರಿ",

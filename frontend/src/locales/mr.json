@@ -108,7 +108,8 @@
     "unnamedTeam": "नावहीन संघ",
     "noRecentActivity": "अलीकडील कोणतीही क्रिया नाही",
     "teamCreatedSuccess": "संघ यशस्वीरित्या तयार झाला!",
-    "teamCreationFailed": "संघ तयार करण्यात अपयश. कृपया पुन्हा प्रयत्न करा."
+    "teamCreationFailed": "संघ तयार करण्यात अपयश. कृपया पुन्हा प्रयत्न करा.",
+    "connectionIssue": "Connection issue - messages may not be delivered in real-time"
   },
   "premium": {
     "title": "सुरक्षितपणे नवीन मित्र शोधा",
