@@ -162,6 +162,36 @@ backend:
         agent: "testing"
         comment: "Comprehensive testing of Teams Chat Functionality completed. All endpoints are working correctly including team creation, team messaging, and WebSocket notifications. Created a dedicated test script (teams_chat_test.py) that verifies: 1) Team Creation - Successfully tested POST /api/teams for creating teams with different configurations, 2) Team Retrieval - Successfully tested GET /api/teams for retrieving teams a user belongs to, 3) Team Messages - Successfully tested both direct team message endpoints (/api/teams/{team_id}/messages) and chat-based team message endpoints (/api/chats/{chat_id}/messages), 4) Team Access Control - Successfully verified that only team members can access team messages, 5) WebSocket Notifications - Successfully verified that team messages trigger WebSocket notifications to all team members. All tests passed with no issues."
 
+  - task: "Emoji Reactions Functionality"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "Initial testing of emoji reactions functionality revealed critical issues. The emoji-related endpoints (/api/messages/{message_id}/reactions and /api/emojis/custom) were returning 404 Not Found errors. This was because these endpoints were defined after the app.include_router(api_router) line in server.py, which meant they were not being included in the router and were not accessible."
+      - working: true
+        agent: "testing"
+        comment: "Successfully fixed and tested the emoji reactions functionality. Created a comprehensive test script (backend_test.py) that verifies: 1) Adding Emoji Reactions - Successfully tested POST /api/messages/{message_id}/reactions for adding emoji reactions to messages, 2) Reaction Toggle Behavior - Successfully tested the toggle behavior (adding/removing the same emoji), 3) Retrieving Message Reactions - Successfully tested GET /api/messages/{message_id}/reactions for retrieving all reactions for a message with proper user information, 4) WebSocket Notifications - Successfully verified that reaction_added and reaction_removed events are sent via WebSocket when reactions are added or removed, 5) Multiple Reactions - Successfully tested adding multiple different emoji reactions to the same message, 6) Multiple Users - Successfully tested multiple users reacting to the same message with proper aggregation. All tests passed with no issues."
+
+  - task: "Custom Emoji Functionality"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "Initial testing of custom emoji functionality revealed critical issues. The custom emoji endpoints (/api/emojis/custom) were returning 404 Not Found errors. This was because these endpoints were defined after the app.include_router(api_router) line in server.py, which meant they were not being included in the router and were not accessible."
+      - working: true
+        agent: "testing"
+        comment: "Successfully fixed and tested the custom emoji functionality. Created a comprehensive test script (backend_test.py) that verifies: 1) Custom Emoji Upload - Successfully tested POST /api/emojis/custom for uploading custom emoji images, 2) Retrieving Custom Emojis - Successfully tested GET /api/emojis/custom for retrieving all custom emojis for the current user, 3) Deleting Custom Emojis - Successfully tested DELETE /api/emojis/custom/{emoji_id} for deleting custom emojis, 4) File Validation - Successfully verified that only image files are allowed for custom emojis and that there's a size limit of 2MB, 5) Name Validation - Successfully verified that emoji names must be 2-32 characters and must be unique for each user, 6) Access Control - Successfully verified that users can only access and manage their own custom emojis. All tests passed with no issues."
+
   - task: "Voice/Video Calling"
     implemented: true
     working: true
