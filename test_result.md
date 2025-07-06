@@ -247,6 +247,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Conducted additional comprehensive testing of emoji reactions functionality. Created a dedicated test script (emoji_gif_customization_test.py) that verifies: 1) WebSocket Notifications - Successfully verified that reaction_added and reaction_removed events are sent via WebSocket in real-time when reactions are added or removed, 2) Multiple User Reactions - Successfully tested multiple users reacting to the same message with proper aggregation, 3) Reaction Toggle Behavior - Successfully verified that adding the same emoji again removes it (toggle behavior). All tests passed successfully, confirming that the emoji reactions functionality is working correctly."
+      - working: true
+        agent: "testing"
+        comment: "Conducted additional testing with a new test script (emoji_gif_customization_test_new.py) that specifically focuses on WebSocket notifications for emoji reactions. Successfully verified that the reaction_added and reaction_removed events are properly sent via WebSocket when emoji reactions are added and removed. The toggle behavior (adding the same emoji removes it) works correctly. All tests passed successfully, confirming that the emoji reactions functionality is fully operational."
 
   - task: "Custom Emoji Functionality"
     implemented: true
