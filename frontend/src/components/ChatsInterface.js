@@ -320,6 +320,45 @@ const ChatsInterface = ({
           return newSet;
         });
         break;
+
+      // Call-related WebSocket messages
+      case 'incoming_call':
+        console.log('Incoming call:', message.data);
+        setIncomingCall(message.data);
+        break;
+        
+      case 'call_accepted':
+        console.log('Call accepted:', message.data);
+        if (currentCall && message.data.call_id === currentCall.call_id) {
+          setCurrentCall(prev => ({ ...prev, status: 'active' }));
+        }
+        break;
+        
+      case 'call_declined':
+        console.log('Call declined:', message.data);
+        if (currentCall && message.data.call_id === currentCall.call_id) {
+          handleCallEnded();
+        }
+        break;
+        
+      case 'call_ended':
+        console.log('Call ended:', message.data);
+        if (currentCall && message.data.call_id === currentCall.call_id) {
+          handleCallEnded();
+        }
+        break;
+        
+      case 'webrtc_offer':
+        handleWebRTCOffer(message.data);
+        break;
+        
+      case 'webrtc_answer':
+        handleWebRTCAnswer(message.data);
+        break;
+        
+      case 'webrtc_ice':
+        handleWebRTCIce(message.data);
+        break;
         
       default:
         console.log('Unknown message type:', message.type);
