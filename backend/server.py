@@ -4517,6 +4517,207 @@ async def update_document(
 # Include the router in the main app
 app.include_router(api_router)
 
+# Emoji Reactions Endpoints
+@api_router.post("/messages/{message_id}/reactions")
+async def add_emoji_reaction(message_id: str, reaction_data: dict, current_user = Depends(get_current_user)):
+    """Add an emoji reaction to a message"""
+    emoji = reaction_data.get("emoji")
+    if not emoji:
+        raise HTTPException(status_code=400, detail="Emoji is required")
+    
+    # Check if message exists
+    message = await db.messages.find_one({"message_id": message_id})
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    # Check if user has access to the chat
+    chat = await db.chats.find_one({"chat_id": message["chat_id"]})
+    if not chat or current_user["user_id"] not in chat["participants"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Create reaction document
+    reaction = {
+        "reaction_id": str(uuid.uuid4()),
+        "message_id": message_id,
+        "user_id": current_user["user_id"],
+        "emoji": emoji,
+        "created_at": datetime.utcnow()
+    }
+    
+    # Check if user already reacted with this emoji
+    existing_reaction = await db.emoji_reactions.find_one({
+        "message_id": message_id,
+        "user_id": current_user["user_id"],
+        "emoji": emoji
+    })
+    
+    if existing_reaction:
+        # Remove existing reaction (toggle behavior)
+        await db.emoji_reactions.delete_one({"reaction_id": existing_reaction["reaction_id"]})
+        
+        # Notify via WebSocket
+        await manager.broadcast_to_chat(
+            json.dumps({
+                "type": "reaction_removed",
+                "data": {
+                    "message_id": message_id,
+                    "user_id": current_user["user_id"],
+                    "emoji": emoji
+                }
+            }),
+            message["chat_id"]
+        )
+        
+        return {"status": "reaction_removed", "emoji": emoji}
+    else:
+        # Add new reaction
+        await db.emoji_reactions.insert_one(reaction)
+        
+        # Notify via WebSocket
+        await manager.broadcast_to_chat(
+            json.dumps({
+                "type": "reaction_added",
+                "data": {
+                    "message_id": message_id,
+                    "user_id": current_user["user_id"],
+                    "user_name": current_user.get("display_name", current_user["username"]),
+                    "emoji": emoji
+                }
+            }),
+            message["chat_id"]
+        )
+        
+        return {"status": "reaction_added", "emoji": emoji, "reaction_id": reaction["reaction_id"]}
+
+@api_router.get("/messages/{message_id}/reactions")
+async def get_message_reactions(message_id: str, current_user = Depends(get_current_user)):
+    """Get all reactions for a message"""
+    # Check if message exists and user has access
+    message = await db.messages.find_one({"message_id": message_id})
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    chat = await db.chats.find_one({"chat_id": message["chat_id"]})
+    if not chat or current_user["user_id"] not in chat["participants"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Get all reactions for this message
+    reactions = await db.emoji_reactions.find({"message_id": message_id}).to_list(1000)
+    
+    # Group reactions by emoji and include user info
+    reaction_summary = {}
+    for reaction in reactions:
+        emoji = reaction["emoji"]
+        if emoji not in reaction_summary:
+            reaction_summary[emoji] = {
+                "emoji": emoji,
+                "count": 0,
+                "users": [],
+                "user_reacted": False
+            }
+        
+        # Get user info
+        user = await db.users.find_one({"user_id": reaction["user_id"]})
+        user_info = {
+            "user_id": reaction["user_id"],
+            "username": user.get("username", "Unknown") if user else "Unknown",
+            "display_name": user.get("display_name", user.get("username", "Unknown")) if user else "Unknown"
+        }
+        
+        reaction_summary[emoji]["count"] += 1
+        reaction_summary[emoji]["users"].append(user_info)
+        
+        if reaction["user_id"] == current_user["user_id"]:
+            reaction_summary[emoji]["user_reacted"] = True
+    
+    return {"reactions": list(reaction_summary.values())}
+
+# Custom Emoji Endpoints
+@api_router.post("/emojis/custom")
+async def upload_custom_emoji(
+    file: UploadFile = File(...), 
+    name: str = Form(...),
+    category: str = Form(default="custom"),
+    current_user = Depends(get_current_user)
+):
+    """Upload a custom emoji"""
+    # Validate file type (images only for emojis)
+    allowed_types = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Only image files are allowed for custom emojis")
+    
+    # Size limit for emojis (2MB)
+    max_size = 2 * 1024 * 1024  # 2MB
+    if file.size > max_size:
+        raise HTTPException(status_code=413, detail="Emoji file too large. Maximum size is 2MB")
+    
+    # Validate emoji name
+    if not name or len(name) < 2 or len(name) > 32:
+        raise HTTPException(status_code=400, detail="Emoji name must be 2-32 characters")
+    
+    # Check if emoji name already exists for this user
+    existing_emoji = await db.custom_emojis.find_one({
+        "name": name,
+        "user_id": current_user["user_id"]
+    })
+    if existing_emoji:
+        raise HTTPException(status_code=409, detail="Emoji name already exists")
+    
+    try:
+        # Read and encode file
+        file_content = await file.read()
+        file_base64 = base64.b64encode(file_content).decode()
+        
+        # Create custom emoji document
+        custom_emoji = {
+            "emoji_id": str(uuid.uuid4()),
+            "name": name,
+            "category": category,
+            "file_data": file_base64,
+            "file_type": file.content_type,
+            "file_size": file.size,
+            "user_id": current_user["user_id"],
+            "created_at": datetime.utcnow(),
+            "usage_count": 0
+        }
+        
+        await db.custom_emojis.insert_one(custom_emoji)
+        
+        return {
+            "message": "Custom emoji uploaded successfully",
+            "emoji_id": custom_emoji["emoji_id"],
+            "name": name,
+            "category": category,
+            "file_data": file_base64
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload custom emoji: {str(e)}")
+
+@api_router.get("/emojis/custom")
+async def get_custom_emojis(current_user = Depends(get_current_user)):
+    """Get user's custom emojis"""
+    custom_emojis = await db.custom_emojis.find({
+        "user_id": current_user["user_id"]
+    }).sort("created_at", -1).to_list(100)
+    
+    return {"custom_emojis": serialize_mongo_doc(custom_emojis)}
+
+@api_router.delete("/emojis/custom/{emoji_id}")
+async def delete_custom_emoji(emoji_id: str, current_user = Depends(get_current_user)):
+    """Delete a custom emoji"""
+    emoji = await db.custom_emojis.find_one({
+        "emoji_id": emoji_id,
+        "user_id": current_user["user_id"]
+    })
+    
+    if not emoji:
+        raise HTTPException(status_code=404, detail="Custom emoji not found")
+    
+    await db.custom_emojis.delete_one({"emoji_id": emoji_id})
+    
+    return {"message": "Custom emoji deleted successfully"}
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
