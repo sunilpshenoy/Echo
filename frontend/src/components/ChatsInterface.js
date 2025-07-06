@@ -770,6 +770,50 @@ const ChatsInterface = ({
     setShowEmojiPicker(false);
   };
 
+  const handleGifSelect = async (gif) => {
+    if (!selectedChat) return;
+    
+    try {
+      // Send GIF as a message
+      const response = await axios.post(`${api}/chats/${selectedChat.chat_id}/messages`, {
+        content: gif.title,
+        message_type: 'gif',
+        gif_data: {
+          id: gif.id,
+          url: gif.url,
+          preview: gif.preview,
+          width: gif.width,
+          height: gif.height,
+          title: gif.title
+        }
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Refresh messages
+      onSelectChat(selectedChat);
+      
+    } catch (error) {
+      console.error('Failed to send GIF:', error);
+      // Show error notification
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-4 right-4 bg-red-500 text-white p-3 rounded-lg shadow-lg z-50 flex items-center space-x-2';
+      notification.innerHTML = `
+        <span>❌</span>
+        <span>Failed to send GIF. Please try again.</span>
+      `;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        if (document.body.contains(notification)) {
+          document.body.removeChild(notification);
+        }
+      }, 3000);
+    }
+    
+    setShowGifPicker(false);
+  };
+
   const uploadCustomEmoji = async (file, name, category = 'custom') => {
     try {
       const formData = new FormData();
