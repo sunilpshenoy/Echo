@@ -193,16 +193,29 @@ def test_emoji_reactions():
     ws_client1.clear_messages()
     ws_client2.clear_messages()
     
+    # Debug: Check available endpoints
+    print("Checking available endpoints...")
+    response = requests.get(f"{API_URL}")
+    print(f"API root response: {response.status_code}")
+    
     # Test 1: Add emoji reaction
     print("Test 1: Adding emoji reaction...")
     headers = {"Authorization": f"Bearer {user1_token}"}
     reaction_data = {"emoji": "👍"}
+    
+    # Debug: Print request details
+    print(f"Making request to: {API_URL}/messages/{test_message_id}/reactions")
+    print(f"Headers: {headers}")
+    print(f"Data: {reaction_data}")
     
     response = requests.post(
         f"{API_URL}/messages/{test_message_id}/reactions", 
         json=reaction_data, 
         headers=headers
     )
+    print(f"Response status: {response.status_code}")
+    print(f"Response body: {response.text}")
+    
     assert response.status_code == 200, f"Failed to add reaction: {response.text}"
     result = response.json()
     assert result["status"] == "reaction_added", "Reaction was not added"
