@@ -29,6 +29,11 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const [authenticityDetails, setAuthenticityDetails] = useState(null);
   const [isLoadingAuthenticity, setIsLoadingAuthenticity] = useState(false);
   
+  // Theme customization state
+  const [showThemeCustomizer, setShowThemeCustomizer] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState('default');
+  const [appliedTheme, setAppliedTheme] = useState(null);
+  
   // Connection management state
   const [connections, setConnections] = useState([]);
   const [isLoadingConnections, setIsLoadingConnections] = useState(false);
