@@ -133,7 +133,9 @@
     "callEnded": "Call ended",
     "callDeclined": "Call declined",
     "callMissed": "Call missed",
-    "duration": "Duration"
+    "duration": "Duration",
+    "accept": "Accept",
+    "decline": "Decline"
   },
   "premium": {
     "title": "Safely Discover New Friends",
