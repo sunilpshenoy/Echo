@@ -1426,7 +1426,7 @@ frontend:
     implemented: true
     working: false
     file: "src/components/MessageReactions.js, src/components/ChatsInterface.js"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: true
     status_history:
@@ -1436,6 +1436,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Unable to test the message reactions system due to authentication issues. The login functionality is not working properly, preventing access to the chat interface where message reactions would be available. The code review shows that the MessageReactions component is well-implemented with reaction display, tooltips, and toggle behavior, but functional testing is blocked by the authentication issue."
+      - working: false
+        agent: "testing"
+        comment: "Attempted to test the message reactions system again but still encountered authentication issues. The login page loads correctly with proper styling and branding, but login attempts with both existing and new user credentials do not redirect to the chat interface. The 'Create account' link is also not functioning properly. The backend logs show both successful and failed login attempts (200 OK and 401 Unauthorized), but the frontend is not properly handling the successful responses. This prevents access to the chat interface where the message reactions would be available."
 
   - task: "GIF Picker Integration"
     implemented: true
