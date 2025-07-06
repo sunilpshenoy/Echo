@@ -1444,7 +1444,7 @@ frontend:
     implemented: true
     working: false
     file: "src/components/GifPicker.js, src/components/ChatsInterface.js"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: true
     status_history:
@@ -1454,6 +1454,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Unable to test the GIF picker integration due to authentication issues. The login functionality is not working properly, preventing access to the chat interface where the GIF picker would be available. The code review shows that the GifPicker component is well-implemented with categories, search, and favorites system, but functional testing is blocked by the authentication issue."
+      - working: false
+        agent: "testing"
+        comment: "Attempted to test the GIF picker integration again but still encountered authentication issues. The login page loads correctly with proper styling and branding, but login attempts with both existing and new user credentials do not redirect to the chat interface. The 'Create account' link is also not functioning properly. The backend logs show both successful and failed login attempts (200 OK and 401 Unauthorized), but the frontend is not properly handling the successful responses. This prevents access to the chat interface where the GIF picker would be available."
 
   - task: "Theme Customization"
     implemented: true
