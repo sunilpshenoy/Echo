@@ -4532,7 +4532,7 @@ async def add_emoji_reaction(message_id: str, reaction_data: dict, current_user 
     
     # Check if user has access to the chat
     chat = await db.chats.find_one({"chat_id": message["chat_id"]})
-    if not chat or current_user["user_id"] not in chat["participants"]:
+    if not chat or current_user["user_id"] not in chat["members"]:
         raise HTTPException(status_code=403, detail="Access denied")
     
     # Create reaction document
