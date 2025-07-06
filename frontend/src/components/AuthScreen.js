@@ -72,9 +72,9 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
           {/* Pulse Logo */}
           <div className="mb-6 flex flex-col items-center">
             <img 
-              src="/pulse-logo.svg" 
+              src="/pulse-logo.png" 
               alt="Pulse Logo" 
-              className="h-16 mb-4 drop-shadow-lg"
+              className="h-20 mb-4 drop-shadow-lg"
             />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">{t('auth.welcomeBack')}</h1>
