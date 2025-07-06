@@ -347,47 +347,61 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
 
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto flex h-[calc(100vh-120px)]">
-        <div className="flex-1 flex">
-          {activeTab === 'chats' && (
-            <ChatsInterface 
-              user={user}
-              token={token}
-              api={api}
-              chats={chats}
-              selectedChat={selectedChat}
-              chatMessages={chatMessages}
-              newMessage={newMessage}
-              setNewMessage={setNewMessage}
-              onSelectChat={selectChat}
-              onSendMessage={sendMessage}
-              isLoading={isLoadingChats}
+        <div className="flex-1 flex relative">
+          {/* Pulse Logo Background */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+            <img 
+              src="/pulse-logo.png" 
+              alt="Pulse Background" 
+              className="w-96 h-auto opacity-5 transform rotate-12 scale-150"
             />
-          )}
+          </div>
           
-          {activeTab === 'teams' && (
-            <TeamsInterface 
-              user={user}
-              token={token}
-              api={api}
-              teams={teams}
-              selectedTeam={selectedTeam}
-              isLoading={isLoadingTeams}
-            />
-          )}
-          
-          {activeTab === 'discover' && (
-            <DiscoverInterface 
-              user={user}
-              token={token}
-              api={api}
-              isPremium={isPremium}
-              authenticityDetails={authenticityDetails}
-              fetchAuthenticityDetails={fetchAuthenticityDetails}
-              isLoadingAuthenticity={isLoadingAuthenticity}
-              connections={connections}
-              fetchConnections={fetchConnections}
-            />
-          )}
+          {/* Tab Content */}
+          <div className="relative z-10 flex-1 flex">
+            {activeTab === 'chats' && (
+              <ChatsInterface 
+                user={user}
+                token={token}
+                api={api}
+                chats={chats}
+                selectedChat={selectedChat}
+                chatMessages={chatMessages}
+                newMessage={newMessage}
+                setNewMessage={setNewMessage}
+                onSelectChat={selectChat}
+                onSendMessage={sendMessage}
+                isLoading={isLoadingChats}
+              />
+            )}
+            
+            {activeTab === 'teams' && (
+              <TeamsInterface 
+                user={user}
+                token={token}
+                api={api}
+                teams={teams}
+                selectedTeam={selectedTeam}
+                isLoading={isLoadingTeams}
+                onTeamSelect={selectTeam}
+                onTeamsRefresh={fetchTeams}
+              />
+            )}
+            
+            {activeTab === 'discover' && (
+              <DiscoverInterface 
+                user={user}
+                token={token}
+                api={api}
+                isPremium={isPremium}
+                authenticityDetails={authenticityDetails}
+                fetchAuthenticityDetails={fetchAuthenticityDetails}
+                isLoadingAuthenticity={isLoadingAuthenticity}
+                connections={connections}
+                fetchConnections={fetchConnections}
+              />
+            )}
+          </div>
         </div>
       </div>
 
