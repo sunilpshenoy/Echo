@@ -1319,12 +1319,13 @@ const ChatsInterface = ({
 
   const renderMessage = (message) => {
     const isOwnMessage = message.sender_id === user.user_id;
+    const reactions = messageReactions[message.message_id] || [];
     
     return (
       <div 
         key={message.message_id} 
         id={`message-${message.message_id}`}
-        className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-3 transition-colors duration-500`}
+        className={`group flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-3 transition-colors duration-500`}
       >
         <div className={`max-w-xs lg:max-w-md px-3 py-2 rounded-lg ${
           isOwnMessage 
@@ -1358,6 +1359,15 @@ const ChatsInterface = ({
           <p className={`text-xs mt-1 ${isOwnMessage ? 'text-blue-100' : 'text-gray-500'}`}>
             {formatTime(message.created_at)}
           </p>
+
+          {/* Message Reactions */}
+          <MessageReactions
+            messageId={message.message_id}
+            reactions={reactions}
+            onAddReaction={addEmojiReaction}
+            onRemoveReaction={removeEmojiReaction}
+            currentUserId={user.user_id}
+          />
         </div>
       </div>
     );
