@@ -320,7 +320,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
               { id: 'chats', label: t('dashboard.chats'), icon: '💬', description: t('dashboard.directMessages') },
               { id: 'teams', label: t('dashboard.teams'), icon: '👥', description: t('dashboard.groupsWorkspaces') },
               { 
-                id: 'discover', 
+                id: 'premium', 
                 label: t('dashboard.premium'), 
                 icon: '⭐', 
                 description: t('dashboard.findPeopleSafely'),
