@@ -1,25 +1,26 @@
 <svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#4A1A5C"/>
-      <stop offset="50%" style="stop-color:#8B4A9C"/>
-      <stop offset="100%" style="stop-color:#E85A8A"/>
-    </linearGradient>
-    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#FF7B54"/>
-      <stop offset="100%" style="stop-color:#FFB347"/>
+    <!-- Purple gradient background -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6B46C1"/>
+      <stop offset="50%" style="stop-color:#8B5CF6"/>
+      <stop offset="100%" style="stop-color:#A855F7"/>
     </linearGradient>
   </defs>
   
   <!-- Background circle -->
   <circle cx="96" cy="96" r="96" fill="url(#bgGradient)"/>
   
-  <!-- Shield shape -->
-  <path d="M60 50 L132 50 L140 65 L132 130 L96 150 L60 130 L52 65 Z" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
-  
-  <!-- Heart icon -->
-  <path d="M96 85 C88 75, 72 75, 72 95 C72 115, 96 135, 96 135 C96 135, 120 115, 120 95 C120 75, 104 75, 96 85 Z" fill="rgba(255,255,255,0.9)"/>
+  <!-- Interlocking circles logo -->
+  <g transform="translate(96, 96) scale(2)">
+    <!-- Left circle -->
+    <circle cx="-15" cy="0" r="18" fill="none" stroke="#FBBF24" stroke-width="3" opacity="0.9"/>
+    <!-- Right circle -->
+    <circle cx="15" cy="0" r="18" fill="none" stroke="#F59E0B" stroke-width="3" opacity="0.9"/>
+    <!-- Center connection -->
+    <circle cx="0" cy="0" r="8" fill="#FBBF24" opacity="0.8"/>
+  </g>
   
   <!-- P letter -->
-  <text x="96" y="165" text-anchor="middle" fill="url(#textGradient)" font-size="24" font-weight="bold" font-family="Arial, sans-serif">P</text>
+  <text x="96" y="140" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="white">P</text>
 </svg>
