@@ -50,6 +50,53 @@
     "chats": "Chats",
     "teams": "Teams",
     "premium": "Premium",
+    "discover": "Discover",
+    "settings": "Settings"
+  },
+  "groups": {
+    "title": "Groups & Communities",
+    "create": "Create Group",
+    "join": "Join",
+    "joined": "Joined",
+    "leave": "Leave",
+    "members": "members",
+    "categories": {
+      "all": "All Categories",
+      "food": "Food & Dining",
+      "business": "Business & Tech",
+      "outdoor": "Outdoor & Sports",
+      "creative": "Arts & Creative",
+      "education": "Learning & Books",
+      "sports": "Sports & Fitness",
+      "music": "Music & Arts",
+      "gaming": "Gaming",
+      "lifestyle": "Lifestyle"
+    },
+    "locations": {
+      "all": "All Locations",
+      "online": "Online"
+    },
+    "search": {
+      "placeholder": "Search groups by name, description, or tags...",
+      "results": "Found {{count}} groups matching your criteria"
+    },
+    "tabs": {
+      "discover": "Discover Groups",
+      "activities": "Activities",
+      "myGroups": "My Groups"
+    },
+    "myGroups": {
+      "description": "Groups you've joined will appear here",
+      "empty": "You haven't joined any groups yet",
+      "emptyDescription": "Discover amazing communities and connect with like-minded people"
+    }
+  },
+  "activities": {
+    "coming_soon": "Activities Coming Soon",
+    "description": "Group activities and events will be available here soon"
+  },
+    "teams": "Teams",
+    "premium": "Premium",
     "directMessages": "Direct messages",
     "groupsWorkspaces": "Groups & workspaces",
     "findPeopleSafely": "Find new people safely",
