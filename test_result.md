@@ -228,6 +228,42 @@ agent_communication:
 user_problem_statement: "Build an authentic connections app centered around a 5-layer progressive trust system (Anonymous → Chat → Voice → Video → Meetup) with AI-powered compatibility matching and authenticity ratings. The app focuses on genuine relationships through gradual trust building, moving away from superficial interactions to meaningful connections. USER REPORTED CRITICAL FRONTEND ISSUES: Buttons not working, QR code not generated, cannot create new groups, Discover tab getting stuck, upgrade to premium button not working."
 
 backend:
+  - task: "Map View API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested the Map View API endpoints. The GET /api/map/groups endpoint correctly returns location-based group discovery with radius filtering. The GET /api/map/activities endpoint correctly returns activity discovery with geographic filtering. Both endpoints require latitude and longitude parameters and properly handle radius filtering. The response format includes coordinates, group details, and activity information as expected."
+
+  - task: "Channels/Sub-groups API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested the Channels/Sub-groups API endpoints. The GET /api/teams/{team_id}/channels endpoint correctly returns channels for a team. The POST /api/teams/{team_id}/channels endpoint successfully creates new channels within teams. The GET /api/channels/{channel_id}/messages endpoint correctly retrieves channel messages. The POST /api/channels/{channel_id}/messages endpoint successfully sends messages to channels. All endpoints return proper data structures and handle team membership validation."
+
+  - task: "Calendar Integration API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested the Calendar Integration API endpoints. The GET /api/calendar/events endpoint correctly retrieves events with date range filtering. The POST /api/calendar/events endpoint successfully creates new events. The response format includes all required event data including title, description, start/end times, location, and attendees. The API properly validates event data and handles date ranges correctly."
+
   - task: "Teams Chat Functionality"
     implemented: true
     working: true
