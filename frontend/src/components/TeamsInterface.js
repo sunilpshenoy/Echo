@@ -362,42 +362,7 @@ const TeamsInterface = ({
       </div>
 
               
-              <div ref={messagesEndRef} />
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center max-w-sm">
-                <div className="text-4xl mb-4">💬</div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {t('teams.welcomeTo')} {selectedTeam.name}
-                </h3>
-                <p className="text-gray-600 mb-4 text-sm">
-                  {selectedTeam.description || t('teams.startCollaborating')}
-                </p>
-                <button 
-                  onClick={() => document.getElementById('team-message-input').focus()}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm"
-                >
-                  {t('teams.sendFirstMessage')}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
 
-        {/* Message Input */}
-        <div className="bg-white p-4 border-t border-gray-200">
-          <div className="flex items-center space-x-3">
-            <button className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100">
-              📎
-            </button>
-            <input
-              id="team-message-input"
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={`${t('teams.messageTeam')} ${selectedTeam.name}`}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
               disabled={isSendingMessage}
             />
