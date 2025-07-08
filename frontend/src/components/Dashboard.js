@@ -374,17 +374,6 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto flex h-[calc(100vh-120px)]">
         <div className="flex-1 flex relative">
-          {/* Pulse Logo Background - Only for Chats and Teams tabs */}
-          {(activeTab === 'chats' || activeTab === 'teams') && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
-              <img 
-                src="/pulse-logo.png" 
-                alt="Pulse Background" 
-                className="w-80 h-auto opacity-10 transform -rotate-12"
-              />
-            </div>
-          )}
-          
           {/* Tab Content */}
           <div className="relative z-10 flex-1 flex">
             {activeTab === 'chats' && (
