@@ -112,9 +112,14 @@ def test_map_view_api():
     print("Test 1: Getting groups on map...")
     headers = {"Authorization": f"Bearer {user1_token}"}
     
-    # Test with default parameters
+    # Test with required parameters
+    params = {
+        "lat": 37.7749,
+        "lng": -122.4194
+    }
     response = requests.get(
         f"{API_URL}/map/groups",
+        params=params,
         headers=headers
     )
     assert response.status_code == 200, f"Failed to get groups on map: {response.text}"
