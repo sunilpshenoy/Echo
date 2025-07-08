@@ -310,7 +310,6 @@ const TeamsInterface = ({
                   <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
                     <span className="text-white text-xl font-bold">
                       {selectedTeam.name?.[0]?.toUpperCase()}
-            <div className="p-4 space-y-4">
               {teamMessages.map((msg, index) => (
                 <div key={msg.message_id || index} className="flex items-start space-x-3">
                   <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
