@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import ChannelsInterface from './ChannelsInterface';
 
 const TeamsInterface = ({ 
   user, 
