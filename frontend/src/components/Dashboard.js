@@ -296,39 +296,6 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 relative">
-      {/* Pulse Logo Background - Exact Match */}
-      <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
-        <div className="opacity-8 transform scale-125">
-          <svg width="150" height="195" viewBox="0 0 120 160">
-            <defs>
-              <linearGradient id="bgShieldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#D946EF"/>
-                <stop offset="30%" stopColor="#EC4899"/>
-                <stop offset="70%" stopColor="#F97316"/>
-                <stop offset="100%" stopColor="#FB923C"/>
-              </linearGradient>
-            </defs>
-            
-            {/* Hexagonal shield - exactly like your design */}
-            <path d="M25 35 C20 30, 20 30, 25 30 L95 30 C100 30, 100 30, 95 35 L105 50 L100 80 C100 85, 95 85, 90 85 L60 90 L30 85 C25 85, 20 85, 20 80 L15 50 Z" 
-                  fill="url(#bgShieldGradient)" 
-                  opacity="0.4"/>
-            
-            {/* Interlocked hearts */}
-            <g transform="translate(60, 55)">
-              <path d="M-12 -8 C-18 -15, -28 -15, -28 -5 C-28 5, -12 18, 0 25 C6 20, 12 15, 18 10" 
-                    fill="#2D1B69" 
-                    opacity="0.3"/>
-              <path d="M12 -8 C18 -15, 28 -15, 28 -5 C28 5, 12 18, 0 25 C-6 20, -12 15, -18 10" 
-                    fill="#2D1B69" 
-                    opacity="0.3"/>
-              <path d="M-8 0 C-5 -5, 5 -5, 8 0 C5 5, -5 5, -8 0" 
-                    fill="#2D1B69" 
-                    opacity="0.2"/>
-            </g>
-          </svg>
-        </div>
-      </div>
       
       {/* Main content with higher z-index */}
       <div className="relative z-10">
