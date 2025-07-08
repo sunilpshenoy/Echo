@@ -360,43 +360,7 @@ const TeamsInterface = ({
           </div>
         )}
       </div>
-                <div key={msg.message_id || index} className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
-                      {msg.sender?.display_name?.[0]?.toUpperCase() || 
-                       msg.sender?.username?.[0]?.toUpperCase() || 'U'}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-gray-900">
-                        {msg.sender?.display_name || msg.sender?.username || 'Unknown User'}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {new Date(msg.timestamp).toLocaleTimeString()}
-                      </span>
-                    </div>
-                    <div className="mt-1 text-sm text-gray-700">
-                      {msg.content}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              
-              {/* Typing indicator */}
-              {typingUsers[selectedTeam?.team_id] && typingUsers[selectedTeam.team_id].length > 0 && (
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                  </div>
-                  <span>
-                    {typingUsers[selectedTeam.team_id].map(user => user.display_name || user.username).join(', ')} 
-                    {typingUsers[selectedTeam.team_id].length === 1 ? ' is' : ' are'} typing...
-                  </span>
-                </div>
-              )}
+
               
               <div ref={messagesEndRef} />
             </div>
