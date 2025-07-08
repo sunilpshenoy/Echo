@@ -1373,6 +1373,42 @@ backend:
         comment: "Successfully verified the trust requirements checking. The system correctly checks if a user meets the requirements for the next trust level before allowing level up. Requirements include minimum number of connections, days active, interactions, and video calls depending on the level."
 
 frontend:
+  - task: "Map View Interface"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/MapView.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Based on code review, the Map View interface is properly implemented with the following features: 1) Interactive map with location-based filtering, 2) Search radius controls (5km to 100km), 3) Category filtering (All, Food & Dining, Outdoor & Sports, etc.), 4) Map markers for groups and activities, 5) Info cards for selected markers, 6) User location detection with fallback to default location. The component properly integrates with the backend API endpoints (/api/map/groups and /api/map/activities) and handles responses correctly. Unable to test actual functionality due to authentication issues."
+
+  - task: "Channels/Sub-groups Interface"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/ChannelsInterface.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Based on code review, the Channels/Sub-groups interface is properly implemented with the following features: 1) Channel listing within teams, 2) Channel creation modal with name, description, type, and privacy settings, 3) Channel navigation with proper visual indicators, 4) Message sending and display within channels, 5) Proper integration with TeamsInterface component. The component properly integrates with the backend API endpoints (/api/teams/{team_id}/channels and /api/channels/{channel_id}/messages) and handles responses correctly. Unable to test actual functionality due to authentication issues."
+
+  - task: "Calendar Integration Interface"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/CalendarView.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Based on code review, the Calendar Integration interface is properly implemented with the following features: 1) Month/week/day view tabs, 2) Calendar grid with proper date display, 3) Event creation modal with title, description, date/time, and location fields, 4) Event display on calendar with proper formatting, 5) Date selection to view event details. The component properly integrates with the backend API endpoints (/api/calendar/events) and handles responses correctly. The week and day views are placeholders with 'coming soon' messages. Unable to test actual functionality due to authentication issues."
+
   - task: "Contact Name Display Fix"
     implemented: true
     working: true
