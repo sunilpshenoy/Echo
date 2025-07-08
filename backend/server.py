@@ -1915,6 +1915,111 @@ async def get_teams(current_user = Depends(get_current_user)):
     
     return serialize_mongo_doc(teams)
 
+@api_router.get("/teams/discover")
+async def discover_teams(
+    category: str = None,
+    location: str = None,
+    search: str = None,
+    current_user = Depends(get_current_user)
+):
+    """Discover public teams based on filters"""
+    query = {"settings.is_public": True}
+    
+    if category and category != 'all':
+        query["category"] = category
+    
+    if location and location != 'all':
+        query["location"] = {"$regex": location, "$options": "i"}
+    
+    if search:
+        query["$or"] = [
+            {"name": {"$regex": search, "$options": "i"}},
+            {"description": {"$regex": search, "$options": "i"}},
+            {"tags": {"$in": [{"$regex": search, "$options": "i"}]}}
+        ]
+    
+    teams = await db.teams.find(query).to_list(100)
+    
+    # Add member count and join status
+    for team in teams:
+        team["member_count"] = len(team.get("members", []))
+        team["is_joined"] = current_user["user_id"] in team.get("members", [])
+        
+        # Get team creator info
+        if team.get("created_by"):
+            creator = await db.users.find_one({"user_id": team["created_by"]})
+            if creator:
+                team["creator"] = {
+                    "user_id": creator["user_id"],
+                    "display_name": creator.get("display_name", creator["username"])
+                }
+    
+    return serialize_mongo_doc(teams)
+
+@api_router.post("/teams/{team_id}/join")
+async def join_team(team_id: str, current_user = Depends(get_current_user)):
+    """Join a public team"""
+    team = await db.teams.find_one({"team_id": team_id})
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found")
+    
+    if not team.get("settings", {}).get("is_public", False):
+        raise HTTPException(status_code=403, detail="Team is not public")
+    
+    if current_user["user_id"] in team.get("members", []):
+        raise HTTPException(status_code=400, detail="Already a member")
+    
+    # Add user to team
+    await db.teams.update_one(
+        {"team_id": team_id},
+        {
+            "$push": {"members": current_user["user_id"]},
+            "$set": {"last_activity": datetime.utcnow()}
+        }
+    )
+    
+    # Add user to team chat if exists
+    team_chat = await db.chats.find_one({"team_id": team_id})
+    if team_chat:
+        await db.chats.update_one(
+            {"team_id": team_id},
+            {"$push": {"members": current_user["user_id"]}}
+        )
+    
+    return {"message": "Successfully joined team"}
+
+@api_router.post("/teams/{team_id}/leave")
+async def leave_team(team_id: str, current_user = Depends(get_current_user)):
+    """Leave a team"""
+    team = await db.teams.find_one({"team_id": team_id})
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found")
+    
+    if current_user["user_id"] not in team.get("members", []):
+        raise HTTPException(status_code=400, detail="Not a member")
+    
+    if team.get("created_by") == current_user["user_id"]:
+        raise HTTPException(status_code=400, detail="Team creator cannot leave")
+    
+    # Remove user from team
+    await db.teams.update_one(
+        {"team_id": team_id},
+        {
+            "$pull": {"members": current_user["user_id"]},
+            "$set": {"last_activity": datetime.utcnow()}
+        }
+    )
+    
+    # Remove user from team chat if exists
+    team_chat = await db.chats.find_one({"team_id": team_id})
+    if team_chat:
+        await db.chats.update_one(
+            {"team_id": team_id},
+            {"$pull": {"members": current_user["user_id"]}}
+        )
+    
+    return {"message": "Successfully left team"}
+
 @api_router.post("/teams")
 async def create_team(
     team_data: dict,
