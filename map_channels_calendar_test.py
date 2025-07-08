@@ -300,9 +300,17 @@ def test_calendar_api():
     print("Test 1: Getting calendar events...")
     headers = {"Authorization": f"Bearer {user1_token}"}
     
-    # Test with default parameters
+    # Test with required parameters
+    today = datetime.now()
+    one_month_later = today + timedelta(days=30)
+    
+    params = {
+        "start_date": today.isoformat(),
+        "end_date": one_month_later.isoformat()
+    }
     response = requests.get(
         f"{API_URL}/calendar/events",
+        params=params,
         headers=headers
     )
     assert response.status_code == 200, f"Failed to get calendar events: {response.text}"
