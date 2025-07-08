@@ -2344,7 +2344,596 @@ async def get_friend_activity_recommendations(user_id):
     
     return recommendations
 
-# Enhanced Activity System
+# Enhanced Data Models for New Features
+
+# Sub-groups/Channels Data Model
+class Channel(BaseModel):
+    channel_id: str
+    team_id: str
+    name: str
+    description: Optional[str] = ""
+    type: str = "general"  # general, announcements, activities, private
+    is_private: bool = False
+    created_by: str
+    members: List[str] = []
+    admins: List[str] = []
+    created_at: datetime
+    last_activity: Optional[datetime] = None
+    message_count: int = 0
+    settings: Dict[str, Any] = {}
+
+# Calendar/Events Data Model  
+class CalendarEvent(BaseModel):
+    event_id: str
+    team_id: Optional[str] = None
+    activity_id: Optional[str] = None
+    title: str
+    description: Optional[str] = ""
+    start_time: datetime
+    end_time: datetime
+    location: Optional[str] = ""
+    location_coordinates: Optional[Dict[str, float]] = None
+    is_all_day: bool = False
+    recurrence_rule: Optional[str] = None
+    attendees: List[str] = []
+    created_by: str
+    calendar_provider: Optional[str] = None  # google, outlook, apple
+    external_event_id: Optional[str] = None
+    reminder_settings: List[Dict[str, Any]] = []
+    created_at: datetime
+    updated_at: datetime
+
+# Geolocation for Groups and Activities
+class LocationData(BaseModel):
+    address: Optional[str] = ""
+    city: Optional[str] = ""
+    state: Optional[str] = ""
+    country: Optional[str] = ""
+    coordinates: Optional[Dict[str, float]] = None  # {"lat": float, "lng": float}
+    radius: Optional[float] = None  # in kilometers
+    venue_name: Optional[str] = ""
+    venue_type: Optional[str] = ""
+
+# Map View and Geolocation Endpoints
+@api_router.get("/map/groups")
+async def get_groups_map_view(
+    lat: float,
+    lng: float,
+    radius: float = 50.0,  # kilometers
+    category: str = None,
+    current_user = Depends(get_current_user)
+):
+    """Get groups for map view within radius"""
+    try:
+        # Build query for geospatial search
+        query = {
+            "settings.is_public": True,
+            "location_data.coordinates": {
+                "$geoWithin": {
+                    "$centerSphere": [[lng, lat], radius / 6378.1]  # Earth radius in km
+                }
+            }
+        }
+        
+        if category and category != 'all':
+            query["category"] = category
+        
+        groups = await db.teams.find(query).to_list(100)
+        
+        # Transform for map view
+        map_groups = []
+        for group in groups:
+            location_data = group.get("location_data", {})
+            coordinates = location_data.get("coordinates")
+            
+            if coordinates:
+                map_groups.append({
+                    "id": group["team_id"],
+                    "name": group["name"],
+                    "description": group.get("description", ""),
+                    "category": group.get("category", "general"),
+                    "emoji": group.get("emoji", "👥"),
+                    "member_count": len(group.get("members", [])),
+                    "coordinates": coordinates,
+                    "address": location_data.get("address", ""),
+                    "venue_name": location_data.get("venue_name", ""),
+                    "health_score": await calculate_group_health_score(group),
+                    "is_joined": current_user["user_id"] in group.get("members", [])
+                })
+        
+        return serialize_mongo_doc(map_groups)
+        
+    except Exception as e:
+        logging.error(f"Map view error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load map data")
+
+@api_router.get("/map/activities")
+async def get_activities_map_view(
+    lat: float,
+    lng: float,
+    radius: float = 50.0,
+    start_date: str = None,
+    end_date: str = None,
+    current_user = Depends(get_current_user)
+):
+    """Get activities for map view within radius and date range"""
+    try:
+        query = {
+            "status": "upcoming",
+            "location_coordinates": {
+                "$geoWithin": {
+                    "$centerSphere": [[lng, lat], radius / 6378.1]
+                }
+            }
+        }
+        
+        if start_date and end_date:
+            query["start_time"] = {
+                "$gte": datetime.fromisoformat(start_date),
+                "$lte": datetime.fromisoformat(end_date)
+            }
+        
+        activities = await db.activities.find(query).to_list(100)
+        
+        # Check user permissions for each activity
+        map_activities = []
+        for activity in activities:
+            # Check if user has access to the team
+            team = await db.teams.find_one({"team_id": activity["team_id"]})
+            if team and (team.get("settings", {}).get("is_public") or 
+                        current_user["user_id"] in team.get("members", [])):
+                
+                map_activities.append({
+                    "id": activity["activity_id"],
+                    "title": activity["title"],
+                    "description": activity.get("description", ""),
+                    "team_name": team["name"],
+                    "team_emoji": team.get("emoji", "👥"),
+                    "start_time": activity["start_time"],
+                    "coordinates": activity.get("location_coordinates"),
+                    "location": activity.get("location", ""),
+                    "attendee_count": len(activity.get("attendees", [])),
+                    "max_attendees": activity.get("max_attendees", 50),
+                    "cost": activity.get("cost", "free"),
+                    "category": activity.get("category", "general"),
+                    "is_attending": current_user["user_id"] in activity.get("attendees", [])
+                })
+        
+        return serialize_mongo_doc(map_activities)
+        
+    except Exception as e:
+        logging.error(f"Activities map view error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load activities map")
+
+# Sub-groups/Channels Endpoints
+@api_router.get("/teams/{team_id}/channels")
+async def get_team_channels(
+    team_id: str,
+    current_user = Depends(get_current_user)
+):
+    """Get all channels in a team"""
+    # Verify team membership
+    team = await db.teams.find_one({"team_id": team_id})
+    if not team or current_user["user_id"] not in team.get("members", []):
+        raise HTTPException(status_code=403, detail="Not a team member")
+    
+    channels = await db.channels.find({
+        "team_id": team_id,
+        "$or": [
+            {"is_private": False},
+            {"members": current_user["user_id"]}
+        ]
+    }).sort("created_at", 1).to_list(50)
+    
+    # Add member counts and unread message counts
+    for channel in channels:
+        channel["member_count"] = len(channel.get("members", []))
+        # TODO: Add unread message count logic
+        channel["unread_count"] = 0
+    
+    return serialize_mongo_doc(channels)
+
+@api_router.post("/teams/{team_id}/channels")
+async def create_team_channel(
+    team_id: str,
+    channel_data: dict,
+    current_user = Depends(get_current_user)
+):
+    """Create a new channel in a team"""
+    # Verify team membership and permissions
+    team = await db.teams.find_one({"team_id": team_id})
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found")
+    
+    if current_user["user_id"] not in team.get("members", []):
+        raise HTTPException(status_code=403, detail="Not a team member")
+    
+    # Check if user can create channels (admin or creator)
+    is_admin = (current_user["user_id"] == team.get("created_by") or 
+                current_user["user_id"] in team.get("admins", []))
+    
+    if not is_admin and channel_data.get("type") != "general":
+        raise HTTPException(status_code=403, detail="Only admins can create special channels")
+    
+    channel = {
+        "channel_id": str(uuid.uuid4()),
+        "team_id": team_id,
+        "name": channel_data["name"],
+        "description": channel_data.get("description", ""),
+        "type": channel_data.get("type", "general"),
+        "is_private": channel_data.get("is_private", False),
+        "created_by": current_user["user_id"],
+        "members": [current_user["user_id"]] if channel_data.get("is_private") else team.get("members", []),
+        "admins": [current_user["user_id"]],
+        "created_at": datetime.utcnow(),
+        "last_activity": datetime.utcnow(),
+        "message_count": 0,
+        "settings": channel_data.get("settings", {})
+    }
+    
+    await db.channels.insert_one(channel)
+    return serialize_mongo_doc(channel)
+
+@api_router.get("/channels/{channel_id}/messages")
+async def get_channel_messages(
+    channel_id: str,
+    limit: int = 50,
+    before: str = None,
+    current_user = Depends(get_current_user)
+):
+    """Get messages from a specific channel"""
+    # Verify channel access
+    channel = await db.channels.find_one({"channel_id": channel_id})
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    
+    # Check access permissions
+    if (channel.get("is_private") and 
+        current_user["user_id"] not in channel.get("members", [])):
+        raise HTTPException(status_code=403, detail="No access to private channel")
+    
+    # Build query
+    query = {"channel_id": channel_id}
+    if before:
+        query["created_at"] = {"$lt": datetime.fromisoformat(before)}
+    
+    messages = await db.messages.find(query).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    # Add sender information
+    for message in messages:
+        sender = await db.users.find_one({"user_id": message.get("sender_id")})
+        if sender:
+            message["sender_name"] = sender.get("display_name", sender["username"])
+            message["sender_avatar"] = sender.get("avatar")
+    
+    return serialize_mongo_doc(list(reversed(messages)))
+
+@api_router.post("/channels/{channel_id}/messages")
+async def send_channel_message(
+    channel_id: str,
+    message_data: dict,
+    current_user = Depends(get_current_user)
+):
+    """Send a message to a channel"""
+    # Verify channel access
+    channel = await db.channels.find_one({"channel_id": channel_id})
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    
+    # Check permissions
+    if (channel.get("is_private") and 
+        current_user["user_id"] not in channel.get("members", [])):
+        raise HTTPException(status_code=403, detail="Cannot send to private channel")
+    
+    message = {
+        "message_id": str(uuid.uuid4()),
+        "channel_id": channel_id,
+        "team_id": channel["team_id"],
+        "sender_id": current_user["user_id"],
+        "sender_name": current_user.get("display_name", current_user["username"]),
+        "content": message_data["content"],
+        "message_type": message_data.get("type", "text"),
+        "created_at": datetime.utcnow(),
+        "edited_at": None,
+        "reactions": {},
+        "thread_id": message_data.get("thread_id"),
+        "file_data": message_data.get("file_data")
+    }
+    
+    await db.messages.insert_one(message)
+    
+    # Update channel activity
+    await db.channels.update_one(
+        {"channel_id": channel_id},
+        {
+            "$set": {"last_activity": datetime.utcnow()},
+            "$inc": {"message_count": 1}
+        }
+    )
+    
+    # TODO: Send WebSocket notification to channel members
+    
+    return serialize_mongo_doc(message)
+
+# Calendar Integration Endpoints
+@api_router.get("/calendar/events")
+async def get_user_calendar_events(
+    start_date: str,
+    end_date: str,
+    include_team_events: bool = True,
+    current_user = Depends(get_current_user)
+):
+    """Get user's calendar events within date range"""
+    try:
+        start_dt = datetime.fromisoformat(start_date)
+        end_dt = datetime.fromisoformat(end_date)
+        
+        query = {
+            "$and": [
+                {
+                    "$or": [
+                        {"attendees": current_user["user_id"]},
+                        {"created_by": current_user["user_id"]}
+                    ]
+                },
+                {
+                    "$or": [
+                        {
+                            "start_time": {"$gte": start_dt, "$lte": end_dt}
+                        },
+                        {
+                            "end_time": {"$gte": start_dt, "$lte": end_dt}
+                        },
+                        {
+                            "$and": [
+                                {"start_time": {"$lte": start_dt}},
+                                {"end_time": {"$gte": end_dt}}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+        
+        events = await db.calendar_events.find(query).sort("start_time", 1).to_list(200)
+        
+        # Add team/activity context
+        for event in events:
+            if event.get("team_id"):
+                team = await db.teams.find_one({"team_id": event["team_id"]})
+                if team:
+                    event["team_name"] = team["name"]
+                    event["team_emoji"] = team.get("emoji", "📅")
+            
+            if event.get("activity_id"):
+                activity = await db.activities.find_one({"activity_id": event["activity_id"]})
+                if activity:
+                    event["activity_title"] = activity["title"]
+                    event["activity_type"] = activity.get("type", "meetup")
+        
+        return serialize_mongo_doc(events)
+        
+    except Exception as e:
+        logging.error(f"Calendar events error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load calendar events")
+
+@api_router.post("/calendar/events")
+async def create_calendar_event(
+    event_data: dict,
+    current_user = Depends(get_current_user)
+):
+    """Create a new calendar event"""
+    try:
+        # Validate required fields
+        required_fields = ["title", "start_time", "end_time"]
+        for field in required_fields:
+            if field not in event_data:
+                raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
+        
+        # Parse coordinates if location provided
+        location_coordinates = None
+        if event_data.get("location"):
+            # TODO: Implement geocoding service integration
+            # For now, use placeholder coordinates
+            location_coordinates = {"lat": 0.0, "lng": 0.0}
+        
+        event = {
+            "event_id": str(uuid.uuid4()),
+            "team_id": event_data.get("team_id"),
+            "activity_id": event_data.get("activity_id"),
+            "title": event_data["title"],
+            "description": event_data.get("description", ""),
+            "start_time": datetime.fromisoformat(event_data["start_time"]),
+            "end_time": datetime.fromisoformat(event_data["end_time"]),
+            "location": event_data.get("location", ""),
+            "location_coordinates": location_coordinates,
+            "is_all_day": event_data.get("is_all_day", False),
+            "recurrence_rule": event_data.get("recurrence_rule"),
+            "attendees": event_data.get("attendees", [current_user["user_id"]]),
+            "created_by": current_user["user_id"],
+            "calendar_provider": event_data.get("calendar_provider"),
+            "external_event_id": event_data.get("external_event_id"),
+            "reminder_settings": event_data.get("reminder_settings", []),
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+        
+        await db.calendar_events.insert_one(event)
+        
+        # If connected to external calendar, sync there too
+        if event_data.get("sync_to_external", False):
+            # TODO: Implement Google Calendar API integration
+            pass
+        
+        return serialize_mongo_doc(event)
+        
+    except Exception as e:
+        logging.error(f"Create calendar event error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create calendar event")
+
+@api_router.get("/calendar/availability")
+async def check_user_availability(
+    start_time: str,
+    end_time: str,
+    user_ids: str,  # comma-separated list
+    current_user = Depends(get_current_user)
+):
+    """Check availability of multiple users for a time slot"""
+    try:
+        start_dt = datetime.fromisoformat(start_time)
+        end_dt = datetime.fromisoformat(end_time)
+        user_id_list = user_ids.split(",")
+        
+        availability_result = {}
+        
+        for user_id in user_id_list:
+            # Check if user has events during this time
+            conflicting_events = await db.calendar_events.find({
+                "attendees": user_id,
+                "$or": [
+                    {
+                        "$and": [
+                            {"start_time": {"$lte": start_dt}},
+                            {"end_time": {"$gt": start_dt}}
+                        ]
+                    },
+                    {
+                        "$and": [
+                            {"start_time": {"$lt": end_dt}},
+                            {"end_time": {"$gte": end_dt}}
+                        ]
+                    },
+                    {
+                        "$and": [
+                            {"start_time": {"$gte": start_dt}},
+                            {"end_time": {"$lte": end_dt}}
+                        ]
+                    }
+                ]
+            }).to_list(50)
+            
+            availability_result[user_id] = {
+                "is_available": len(conflicting_events) == 0,
+                "conflicting_events_count": len(conflicting_events),
+                "conflicts": [
+                    {
+                        "title": event["title"],
+                        "start_time": event["start_time"],
+                        "end_time": event["end_time"]
+                    } for event in conflicting_events
+                ]
+            }
+        
+        return availability_result
+        
+    except Exception as e:
+        logging.error(f"Availability check error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to check availability")
+
+# Enhanced team creation with location data
+@api_router.post("/teams")
+async def create_team(
+    team_data: dict,
+    current_user = Depends(get_current_user)
+):
+    """Create a new team with enhanced location and channel support"""
+    # Parse location data and coordinates
+    location_data = {}
+    if team_data.get("location"):
+        location_data = {
+            "address": team_data.get("location", ""),
+            "city": team_data.get("city", ""),
+            "state": team_data.get("state", ""),
+            "country": team_data.get("country", ""),
+            "coordinates": team_data.get("coordinates"),  # {"lat": float, "lng": float}
+            "venue_name": team_data.get("venue_name", ""),
+            "venue_type": team_data.get("venue_type", "")
+        }
+    
+    team = {
+        "team_id": str(uuid.uuid4()),
+        "name": team_data["name"],
+        "description": team_data.get("description", ""),
+        "category": team_data.get("category", "general"),
+        "location": team_data.get("location", "Online"),
+        "location_data": location_data,
+        "tags": team_data.get("tags", []),
+        "emoji": team_data.get("emoji", "👥"),
+        "type": team_data.get("type", "group"),
+        "created_by": current_user["user_id"],
+        "members": [current_user["user_id"]],
+        "admins": [current_user["user_id"]],
+        "created_at": datetime.utcnow(),
+        "last_activity": datetime.utcnow(),
+        "settings": {
+            "is_public": team_data.get("privacy", "public") == "public",
+            "allow_member_invite": team_data.get("allow_member_invite", True),
+            "max_members": team_data.get("max_members", 1024),
+            "require_approval": team_data.get("require_approval", False),
+            "auto_archive_inactive": team_data.get("auto_archive_inactive", True),
+            "enable_channels": team_data.get("enable_channels", True)
+        },
+        # Enhanced fields
+        "schedule_preference": team_data.get("schedule_preference", "flexible"),
+        "cost_type": team_data.get("cost_type", "free"),
+        "primary_language": team_data.get("primary_language", "english"),
+        "target_age_group": team_data.get("target_age_group", "all"),
+        "activity_level": team_data.get("activity_level", "medium"),
+        "group_purpose": team_data.get("group_purpose", "social"),
+        "meeting_frequency": team_data.get("meeting_frequency", "weekly"),
+        "safety_features": {
+            "emergency_contacts": team_data.get("emergency_contacts", []),
+            "safety_guidelines": team_data.get("safety_guidelines", ""),
+            "check_in_required": team_data.get("check_in_required", False)
+        },
+        "points": 0,
+        "level": 1,
+        "achievements": [],
+        "challenges": [],
+        "analytics": {
+            "total_activities": 0,
+            "total_messages": 0,
+            "member_retention_rate": 100.0,
+            "activity_completion_rate": 0.0
+        }
+    }
+    
+    await db.teams.insert_one(team)
+    
+    # Create default channels if enabled
+    if team["settings"]["enable_channels"]:
+        default_channels = [
+            {
+                "name": "general",
+                "description": "General team discussions",
+                "type": "general",
+                "is_private": False
+            },
+            {
+                "name": "announcements", 
+                "description": "Important team announcements",
+                "type": "announcements",
+                "is_private": False
+            }
+        ]
+        
+        for channel_data in default_channels:
+            channel = {
+                "channel_id": str(uuid.uuid4()),
+                "team_id": team["team_id"],
+                "name": channel_data["name"],
+                "description": channel_data["description"],
+                "type": channel_data["type"],
+                "is_private": channel_data["is_private"],
+                "created_by": current_user["user_id"],
+                "members": team["members"],
+                "admins": [current_user["user_id"]],
+                "created_at": datetime.utcnow(),
+                "last_activity": datetime.utcnow(),
+                "message_count": 0,
+                "settings": {}
+            }
+            await db.channels.insert_one(channel)
 @api_router.post("/teams/{team_id}/activities")
 async def create_team_activity(
     team_id: str,
