@@ -310,7 +310,56 @@ const TeamsInterface = ({
                   <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
                     <span className="text-white text-xl font-bold">
                       {selectedTeam.name?.[0]?.toUpperCase()}
-              {teamMessages.map((msg, index) => (
+                    </span>
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">{selectedTeam.name}</h2>
+                    <p className="text-gray-600 text-sm">
+                      {selectedTeam.members?.length || 0} members • Team
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                    📞
+                  </button>
+                  <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                    📹
+                  </button>
+                  <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                    ⚙️
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Channels Interface */}
+            <div className="flex-1">
+              <ChannelsInterface 
+                team={selectedTeam}
+                user={user}
+                token={token}
+                api={api}
+                onChannelSelect={(channel) => {
+                  console.log('Selected channel:', channel);
+                }}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-6xl mb-4">👥</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                {t('teams.selectTeam')}
+              </h3>
+              <p className="text-gray-600">
+                {t('teams.selectTeamMessage')}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
                 <div key={msg.message_id || index} className="flex items-start space-x-3">
                   <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
