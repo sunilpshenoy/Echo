@@ -95,13 +95,6 @@
     "coming_soon": "Activities Coming Soon",
     "description": "Group activities and events will be available here soon"
   },
-    "teams": "Teams",
-    "premium": "Premium",
-    "directMessages": "Direct messages",
-    "groupsWorkspaces": "Groups & workspaces",
-    "findPeopleSafely": "Find new people safely",
-    "signOut": "Sign Out"
-  },
   "chat": {
     "startConversation": "Start your conversation",
     "typeMessage": "Type a message...",
