@@ -369,13 +369,11 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
             </div>
           </div>
           
-          {/* Top Tabs - Enhanced with New Features */}
+          {/* Top Tabs - Streamlined Navigation */}
           <div className="flex border-b overflow-x-auto">
             {[
-              { id: 'chats', label: t('dashboard.chats'), icon: '💬', description: 'Direct messages' },
-              { id: 'teams', label: 'Groups', icon: '👥', description: 'Smart group discovery' },
-              { id: 'map', label: 'Map', icon: '🗺️', description: 'Discover nearby groups & activities' },
-              { id: 'calendar', label: 'Calendar', icon: '📅', description: 'Schedule & events' },
+              { id: 'chats', label: t('dashboard.chats'), icon: '💬', description: 'Direct messages & conversations' },
+              { id: 'teams', label: 'Groups', icon: '👥', description: 'Discover groups, map view & events' },
               { 
                 id: 'premium', 
                 label: t('dashboard.premium'), 
