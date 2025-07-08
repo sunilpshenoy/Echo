@@ -153,9 +153,14 @@ def test_map_view_api():
     # Test 2: Get activities on map
     print("Test 2: Getting activities on map...")
     
-    # Test with default parameters
+    # Test with required parameters
+    params = {
+        "lat": 37.7749,
+        "lng": -122.4194
+    }
     response = requests.get(
         f"{API_URL}/map/activities",
+        params=params,
         headers=headers
     )
     assert response.status_code == 200, f"Failed to get activities on map: {response.text}"
