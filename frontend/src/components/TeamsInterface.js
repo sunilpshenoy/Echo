@@ -300,91 +300,17 @@ const TeamsInterface = ({
           </div>
         </div>
 
-        {/* Team Content Area */}
-        {selectedTeam ? (
-          <div className="flex-1 flex flex-col">
-            {/* Team Header */}
-            <div className="bg-white border-b border-gray-200 px-6 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
-                    <span className="text-white text-xl font-bold">
-                      {selectedTeam.name?.[0]?.toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900">{selectedTeam.name}</h2>
-                    <p className="text-gray-600 text-sm">
-                      {selectedTeam.members?.length || 0} members • Team
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
-                    📞
-                  </button>
-                  <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
-                    📹
-                  </button>
-                  <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
-                    ⚙️
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Channels Interface */}
-            <div className="flex-1">
-              <ChannelsInterface 
-                team={selectedTeam}
-                user={user}
-                token={token}
-                api={api}
-                onChannelSelect={(channel) => {
-                  console.log('Selected channel:', channel);
-                }}
-              />
-            </div>
-          </div>
-        ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-6xl mb-4">👥</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {t('teams.selectTeam')}
-              </h3>
-              <p className="text-gray-600">
-                {t('teams.selectTeamMessage')}
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-
-              
-
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-              disabled={isSendingMessage}
-            />
-            <button 
-              onClick={sendTeamMessage}
-              disabled={!newMessage.trim() || isSendingMessage}
-              className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSendingMessage ? (
-                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-              ) : (
-                '➤'
-              )}
-            </button>
-          </div>
-          
-          {/* Connection status */}
-          {!isConnected && (
-            <div className="text-xs text-red-500 mt-2">
-              {t('teams.connectionIssue')}
-            </div>
-          )}
+        {/* Channels Interface */}
+        <div className="flex-1">
+          <ChannelsInterface 
+            team={selectedTeam}
+            user={user}
+            token={token}
+            api={api}
+            onChannelSelect={(channel) => {
+              console.log('Selected channel:', channel);
+            }}
+          />
         </div>
       </div>
     );
