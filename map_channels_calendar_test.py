@@ -304,10 +304,17 @@ def test_calendar_api():
     today = datetime.now()
     one_month_later = today + timedelta(days=30)
     
+    # Format dates as strings in ISO format
+    start_date_str = today.strftime("%Y-%m-%dT%H:%M:%S")
+    end_date_str = one_month_later.strftime("%Y-%m-%dT%H:%M:%S")
+    
     params = {
-        "start_date": today.isoformat(),
-        "end_date": one_month_later.isoformat()
+        "start_date": start_date_str,
+        "end_date": end_date_str
     }
+    
+    print(f"Using date parameters: {params}")
+    
     response = requests.get(
         f"{API_URL}/calendar/events",
         params=params,
