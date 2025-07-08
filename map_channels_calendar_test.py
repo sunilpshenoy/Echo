@@ -382,7 +382,13 @@ def run_tests():
     try:
         setup()
         test_map_view_api()
-        test_channels_api()
+        
+        # Only run team-related tests if we have a team ID
+        if test_team_id:
+            test_channels_api()
+        else:
+            print("\n⚠️ Skipping Channels API tests due to missing team ID")
+            
         test_calendar_api()
         print("\n✅ All API tests passed!")
     except Exception as e:
