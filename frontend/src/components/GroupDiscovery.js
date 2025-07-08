@@ -8,8 +8,15 @@ const GroupDiscovery = ({ user, token, api }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedLocation, setSelectedLocation] = useState('all');
+  const [selectedSchedule, setSelectedSchedule] = useState('all');
+  const [selectedCost, setSelectedCost] = useState('all');
+  const [selectedLanguage, setSelectedLanguage] = useState('all');
+  
   const [groups, setGroups] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
+  const [trendingGroups, setTrendingGroups] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const categories = [
     { value: 'all', label: t('groups.categories.all'), icon: '🌟' },
@@ -36,20 +43,44 @@ const GroupDiscovery = ({ user, token, api }) => {
     { value: 'online', label: t('groups.locations.online') }
   ];
 
-  // Fetch groups from backend
+  const scheduleOptions = [
+    { value: 'all', label: 'Any Schedule' },
+    { value: 'weekend', label: 'Weekends' },
+    { value: 'weekday', label: 'Weekdays' },
+    { value: 'evening', label: 'Evenings' }
+  ];
+
+  const costOptions = [
+    { value: 'all', label: 'Any Cost' },
+    { value: 'free', label: 'Free' },
+    { value: 'paid', label: 'Paid Activities' },
+    { value: 'premium', label: 'Premium' }
+  ];
+
+  const languageOptions = [
+    { value: 'all', label: 'All Languages' },
+    { value: 'english', label: 'English' },
+    { value: 'hindi', label: 'Hindi' },
+    { value: 'marathi', label: 'Marathi' },
+    { value: 'gujarati', label: 'Gujarati' }
+  ];
+
+  // Fetch groups with advanced filtering
   const fetchGroups = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${api}/teams/discover`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: {
-          category: selectedCategory !== 'all' ? selectedCategory : undefined,
-          location: selectedLocation !== 'all' ? selectedLocation : undefined,
-          search: searchQuery || undefined
-        }
+      const params = new URLSearchParams();
+      if (selectedCategory !== 'all') params.append('category', selectedCategory);
+      if (selectedLocation !== 'all') params.append('location', selectedLocation);
+      if (selectedSchedule !== 'all') params.append('schedule', selectedSchedule);
+      if (selectedCost !== 'all') params.append('cost', selectedCost);
+      if (selectedLanguage !== 'all') params.append('language', selectedLanguage);
+      if (searchQuery) params.append('search', searchQuery);
+
+      const response = await axios.get(`${api}/teams/discover?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       
-      // Transform teams data to match group structure
       const transformedGroups = response.data.map(team => ({
         id: team.team_id,
         name: team.name,
@@ -59,10 +90,13 @@ const GroupDiscovery = ({ user, token, api }) => {
         members: team.member_count || 0,
         image: team.emoji || '👥',
         tags: team.tags || [],
-        activity: 'Recently active',
+        activity: team.activity_level || 'quiet',
         isJoined: team.is_joined || false,
-        created_at: team.created_at,
-        privacy: team.settings?.is_public ? 'public' : 'private'
+        healthScore: team.health_score || 0,
+        isTrending: team.is_trending || false,
+        mutualFriends: team.mutual_friends || 0,
+        recentActivity: team.recent_activity || [],
+        creator: team.creator
       }));
       
       setGroups(transformedGroups);
@@ -73,6 +107,30 @@ const GroupDiscovery = ({ user, token, api }) => {
     }
   };
 
+  // Fetch smart recommendations
+  const fetchRecommendations = async () => {
+    try {
+      const response = await axios.get(`${api}/teams/recommendations`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setRecommendations(response.data);
+    } catch (error) {
+      console.error('Failed to fetch recommendations:', error);
+    }
+  };
+
+  // Fetch trending groups
+  const fetchTrendingGroups = async () => {
+    try {
+      const response = await axios.get(`${api}/teams/trending`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setTrendingGroups(response.data);
+    } catch (error) {
+      console.error('Failed to fetch trending groups:', error);
+    }
+  };
+
   // Join group
   const joinGroup = async (groupId) => {
     try {
@@ -80,12 +138,18 @@ const GroupDiscovery = ({ user, token, api }) => {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      // Update local state
-      setGroups(groups.map(group => 
-        group.id === groupId 
-          ? { ...group, isJoined: true, members: group.members + 1 }
-          : group
-      ));
+      // Update all relevant state arrays
+      const updateGroupInArray = (groupsArray, setGroupsArray) => {
+        setGroupsArray(prev => prev.map(group => 
+          group.id === groupId 
+            ? { ...group, isJoined: true, members: group.members + 1 }
+            : group
+        ));
+      };
+
+      updateGroupInArray(groups, setGroups);
+      updateGroupInArray(recommendations, setRecommendations);
+      updateGroupInArray(trendingGroups, setTrendingGroups);
     } catch (error) {
       console.error('Failed to join group:', error);
     }
@@ -98,12 +162,17 @@ const GroupDiscovery = ({ user, token, api }) => {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      // Update local state
-      setGroups(groups.map(group => 
-        group.id === groupId 
-          ? { ...group, isJoined: false, members: Math.max(0, group.members - 1) }
-          : group
-      ));
+      const updateGroupInArray = (groupsArray, setGroupsArray) => {
+        setGroupsArray(prev => prev.map(group => 
+          group.id === groupId 
+            ? { ...group, isJoined: false, members: Math.max(0, group.members - 1) }
+            : group
+        ));
+      };
+
+      updateGroupInArray(groups, setGroups);
+      updateGroupInArray(recommendations, setRecommendations);
+      updateGroupInArray(trendingGroups, setTrendingGroups);
     } catch (error) {
       console.error('Failed to leave group:', error);
     }
@@ -111,19 +180,65 @@ const GroupDiscovery = ({ user, token, api }) => {
 
   useEffect(() => {
     fetchGroups();
-  }, [selectedCategory, selectedLocation, searchQuery]);
+  }, [selectedCategory, selectedLocation, selectedSchedule, selectedCost, selectedLanguage, searchQuery]);
 
-  // Filter groups based on search and filters
-  const filteredGroups = groups.filter(group => {
-    const matchesSearch = searchQuery === '' || 
-                         group.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         group.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         group.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesSearch;
-  });
+  useEffect(() => {
+    if (activeTab === 'discover') {
+      fetchRecommendations();
+      fetchTrendingGroups();
+    }
+  }, [activeTab]);
 
-  const GroupCard = ({ group }) => (
-    <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100">
+  const ActivityIndicator = ({ level }) => {
+    const colors = {
+      'very_high': 'bg-green-500',
+      'high': 'bg-green-400', 
+      'medium': 'bg-yellow-400',
+      'low': 'bg-orange-400',
+      'quiet': 'bg-gray-400'
+    };
+    
+    const labels = {
+      'very_high': 'Very Active',
+      'high': 'Active',
+      'medium': 'Moderate',
+      'low': 'Light',
+      'quiet': 'Quiet'
+    };
+
+    return (
+      <div className="flex items-center space-x-1">
+        <div className={`w-2 h-2 rounded-full ${colors[level] || 'bg-gray-400'}`}></div>
+        <span className="text-xs text-gray-600">{labels[level] || 'Unknown'}</span>
+      </div>
+    );
+  };
+
+  const HealthScore = ({ score }) => {
+    const getColor = (score) => {
+      if (score >= 80) return 'text-green-600 bg-green-100';
+      if (score >= 60) return 'text-yellow-600 bg-yellow-100';
+      if (score >= 40) return 'text-orange-600 bg-orange-100';
+      return 'text-red-600 bg-red-100';
+    };
+
+    return (
+      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getColor(score)}`}>
+        <span className="mr-1">💚</span>
+        {score}% healthy
+      </div>
+    );
+  };
+
+  const GroupCard = ({ group, showRecommendationReason = false }) => (
+    <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 relative">
+      {group.isTrending && (
+        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full flex items-center">
+          <span className="mr-1">🔥</span>
+          Trending
+        </div>
+      )}
+      
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
@@ -134,16 +249,52 @@ const GroupDiscovery = ({ user, token, api }) => {
                 <span className="mr-1">📍</span>
                 {group.location}
               </div>
+              {group.creator && (
+                <div className="flex items-center text-xs text-gray-400 mt-1">
+                  <span className="mr-1">👑</span>
+                  by {group.creator.display_name}
+                </div>
+              )}
             </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-gray-400 hover:text-red-500 cursor-pointer">❤️</span>
-            <span className="text-gray-400 hover:text-yellow-500 cursor-pointer">⭐</span>
           </div>
         </div>
         
         <p className="text-gray-600 mb-4">{group.description}</p>
         
+        {/* Health Score and Activity Level */}
+        <div className="flex items-center space-x-3 mb-4">
+          <HealthScore score={group.healthScore} />
+          <ActivityIndicator level={group.activity} />
+        </div>
+
+        {/* Mutual Friends Indicator */}
+        {group.mutualFriends > 0 && (
+          <div className="bg-blue-50 text-blue-700 text-sm px-3 py-2 rounded-lg mb-4">
+            <span className="mr-1">👥</span>
+            {group.mutualFriends} mutual friend{group.mutualFriends > 1 ? 's' : ''} in this group
+          </div>
+        )}
+
+        {/* Recommendation Reason */}
+        {showRecommendationReason && group.recommendation_reason && (
+          <div className="bg-purple-50 text-purple-700 text-sm px-3 py-2 rounded-lg mb-4">
+            <span className="mr-1">✨</span>
+            {group.recommendation_reason}
+          </div>
+        )}
+
+        {/* Recent Activity Preview */}
+        {group.recentActivity && group.recentActivity.length > 0 && (
+          <div className="bg-gray-50 rounded-lg p-3 mb-4">
+            <div className="text-xs text-gray-500 mb-2">Recent Activity:</div>
+            {group.recentActivity.slice(0, 2).map((activity, index) => (
+              <div key={index} className="text-xs text-gray-600 mb-1">
+                <span className="font-medium">{activity.sender}:</span> {activity.content}
+              </div>
+            ))}
+          </div>
+        )}
+
         {group.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {group.tags.map((tag, index) => (
@@ -159,10 +310,6 @@ const GroupDiscovery = ({ user, token, api }) => {
             <div className="flex items-center">
               <span className="mr-1">👥</span>
               {group.members} members
-            </div>
-            <div className="flex items-center">
-              <span className="mr-1">🕒</span>
-              {group.activity}
             </div>
           </div>
           
@@ -187,7 +334,7 @@ const GroupDiscovery = ({ user, token, api }) => {
       <div className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">Groups & Communities</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Smart Group Discovery</h1>
             <button 
               onClick={() => {/* TODO: Open create group modal */}}
               className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -207,17 +354,27 @@ const GroupDiscovery = ({ user, token, api }) => {
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              Discover Groups
+              🔍 Discover
             </button>
             <button
-              onClick={() => setActiveTab('activities')}
+              onClick={() => setActiveTab('recommendations')}
               className={`pb-2 px-1 font-medium text-sm transition-colors ${
-                activeTab === 'activities'
+                activeTab === 'recommendations'
                   ? 'text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              Activities
+              ✨ For You
+            </button>
+            <button
+              onClick={() => setActiveTab('trending')}
+              className={`pb-2 px-1 font-medium text-sm transition-colors ${
+                activeTab === 'trending'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              🔥 Trending
             </button>
             <button
               onClick={() => setActiveTab('my-groups')}
@@ -227,7 +384,7 @@ const GroupDiscovery = ({ user, token, api }) => {
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              My Groups
+              👥 My Groups
             </button>
           </div>
         </div>
@@ -236,7 +393,7 @@ const GroupDiscovery = ({ user, token, api }) => {
       <div className="max-w-6xl mx-auto px-4 py-6">
         {activeTab === 'discover' && (
           <>
-            {/* Search and Filters */}
+            {/* Enhanced Search and Filters */}
             <div className="mb-6 space-y-4">
               <div className="relative">
                 <span className="absolute left-3 top-3 text-gray-400">🔍</span>
@@ -250,42 +407,89 @@ const GroupDiscovery = ({ user, token, api }) => {
               </div>
               
               <div className="flex flex-wrap gap-4">
-                <div className="flex items-center space-x-2">
-                  <span className="text-gray-500">🔽</span>
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    {categories.map(cat => (
-                      <option key={cat.value} value={cat.value}>
-                        {cat.icon} {cat.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  {categories.map(cat => (
+                    <option key={cat.value} value={cat.value}>
+                      {cat.icon} {cat.label}
+                    </option>
+                  ))}
+                </select>
                 
-                <div className="flex items-center space-x-2">
-                  <span className="text-gray-500">📍</span>
-                  <select
-                    value={selectedLocation}
-                    onChange={(e) => setSelectedLocation(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    {locations.map(loc => (
-                      <option key={loc.value} value={loc.value}>
-                        {loc.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <select
+                  value={selectedLocation}
+                  onChange={(e) => setSelectedLocation(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  {locations.map(loc => (
+                    <option key={loc.value} value={loc.value}>
+                      📍 {loc.label}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  🔧 Advanced Filters
+                </button>
               </div>
+
+              {/* Advanced Filters */}
+              {showAdvancedFilters && (
+                <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Schedule</label>
+                      <select
+                        value={selectedSchedule}
+                        onChange={(e) => setSelectedSchedule(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        {scheduleOptions.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Cost</label>
+                      <select
+                        value={selectedCost}
+                        onChange={(e) => setSelectedCost(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        {costOptions.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
+                      <select
+                        value={selectedLanguage}
+                        onChange={(e) => setSelectedLanguage(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        {languageOptions.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Results */}
             <div className="mb-4">
               <p className="text-gray-600">
-                Found {filteredGroups.length} groups matching your criteria
+                Found {groups.length} groups matching your criteria
               </p>
             </div>
 
@@ -297,7 +501,7 @@ const GroupDiscovery = ({ user, token, api }) => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredGroups.map(group => (
+                {groups.map(group => (
                   <GroupCard key={group.id} group={group} />
                 ))}
               </div>
@@ -305,19 +509,81 @@ const GroupDiscovery = ({ user, token, api }) => {
           </>
         )}
 
-        {activeTab === 'activities' && (
-          <div className="text-center py-12">
-            <span className="text-6xl">📅</span>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-4">Activities Coming Soon</h3>
-            <p className="text-gray-600">Group activities and events will be available here soon</p>
+        {activeTab === 'recommendations' && (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">✨ Recommended For You</h2>
+              <p className="text-gray-600">Groups we think you'll love based on your interests and activity</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {recommendations.map(group => (
+                <GroupCard key={group.team_id} group={{
+                  id: group.team_id,
+                  name: group.name,
+                  description: group.description,
+                  category: group.category,
+                  location: group.location,
+                  members: group.member_count || 0,
+                  image: group.emoji || '👥',
+                  tags: group.tags || [],
+                  isJoined: group.is_joined,
+                  recommendation_reason: group.recommendation_reason,
+                  healthScore: 85 // Default for recommendations
+                }} showRecommendationReason={true} />
+              ))}
+            </div>
+            
+            {recommendations.length === 0 && (
+              <div className="text-center py-12">
+                <span className="text-6xl">🤖</span>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-4">Building Your Recommendations</h3>
+                <p className="text-gray-600">Join a few groups to get personalized recommendations</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'trending' && (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">🔥 Trending Groups</h2>
+              <p className="text-gray-600">Hot groups gaining momentum in your area</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {trendingGroups.map(group => (
+                <GroupCard key={group.team_id} group={{
+                  id: group.team_id,
+                  name: group.name,
+                  description: group.description,
+                  category: group.category,
+                  location: group.location,
+                  members: group.member_count || 0,
+                  image: group.emoji || '👥',
+                  tags: group.tags || [],
+                  isJoined: group.is_joined,
+                  isTrending: true,
+                  healthScore: 90 // High for trending
+                }} />
+              ))}
+            </div>
+            
+            {trendingGroups.length === 0 && (
+              <div className="text-center py-12">
+                <span className="text-6xl">📈</span>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-4">No Trending Groups Yet</h3>
+                <p className="text-gray-600">Check back later for trending groups in your area</p>
+              </div>
+            )}
           </div>
         )}
 
         {activeTab === 'my-groups' && (
           <div>
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">My Groups</h2>
-              <p className="text-gray-600">Groups you've joined will appear here</p>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">👥 My Groups</h2>
+              <p className="text-gray-600">Groups you've joined and communities you're part of</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
