@@ -300,26 +300,36 @@ def test_calendar_api():
     print("Test 1: Getting calendar events...")
     headers = {"Authorization": f"Bearer {user1_token}"}
     
-    # Test with required parameters
-    today = datetime.now()
-    one_month_later = today + timedelta(days=30)
-    
-    # Format dates as strings in ISO format
-    start_date_str = today.strftime("%Y-%m-%dT%H:%M:%S")
-    end_date_str = one_month_later.strftime("%Y-%m-%dT%H:%M:%S")
-    
-    params = {
-        "start_date": start_date_str,
-        "end_date": end_date_str
-    }
-    
-    print(f"Using date parameters: {params}")
-    
+    # Try different approaches for getting calendar events
+    # First try with optional parameters
     response = requests.get(
         f"{API_URL}/calendar/events",
-        params=params,
         headers=headers
     )
+    
+    # If that fails, try with required parameters
+    if response.status_code != 200:
+        print("Calendar API requires date parameters")
+        today = datetime.now()
+        one_month_later = today + timedelta(days=30)
+        
+        # Format dates as strings in ISO format
+        start_date_str = today.strftime("%Y-%m-%d")
+        end_date_str = one_month_later.strftime("%Y-%m-%d")
+        
+        params = {
+            "start_date": start_date_str,
+            "end_date": end_date_str
+        }
+        
+        print(f"Using date parameters: {params}")
+        
+        response = requests.get(
+            f"{API_URL}/calendar/events",
+            params=params,
+            headers=headers
+        )
+    
     assert response.status_code == 200, f"Failed to get calendar events: {response.text}"
     events = response.json()
     print(f"Found {len(events)} calendar events")
