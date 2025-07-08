@@ -2796,7 +2796,7 @@ async def create_team(
     team_data: dict,
     current_user = Depends(get_current_user)
 ):
-    """Create a new team"""
+    """Create a new team with enhanced features"""
     team = {
         "team_id": str(uuid.uuid4()),
         "name": team_data["name"],
@@ -2812,8 +2812,36 @@ async def create_team(
         "last_activity": datetime.utcnow(),
         "settings": {
             "is_public": team_data.get("privacy", "public") == "public",
-            "allow_member_invite": True,
-            "max_members": 1024
+            "allow_member_invite": team_data.get("allow_member_invite", True),
+            "max_members": team_data.get("max_members", 1024),
+            "require_approval": team_data.get("require_approval", False),
+            "auto_archive_inactive": team_data.get("auto_archive_inactive", True)
+        },
+        # Enhanced fields for smart discovery
+        "schedule_preference": team_data.get("schedule_preference", "flexible"),
+        "cost_type": team_data.get("cost_type", "free"),
+        "primary_language": team_data.get("primary_language", "english"),
+        "target_age_group": team_data.get("target_age_group", "all"),
+        "activity_level": team_data.get("activity_level", "medium"),
+        "group_purpose": team_data.get("group_purpose", "social"),
+        "meeting_frequency": team_data.get("meeting_frequency", "weekly"),
+        # Safety and moderation
+        "safety_features": {
+            "emergency_contacts": team_data.get("emergency_contacts", []),
+            "safety_guidelines": team_data.get("safety_guidelines", ""),
+            "check_in_required": team_data.get("check_in_required", False)
+        },
+        # Gamification
+        "points": 0,
+        "level": 1,
+        "achievements": [],
+        "challenges": [],
+        # Analytics
+        "analytics": {
+            "total_activities": 0,
+            "total_messages": 0,
+            "member_retention_rate": 100.0,
+            "activity_completion_rate": 0.0
         }
     }
     
