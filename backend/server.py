@@ -2344,7 +2344,390 @@ async def get_friend_activity_recommendations(user_id):
     
     return recommendations
 
-@api_router.post("/teams/{team_id}/join")
+# Enhanced Activity System
+@api_router.post("/teams/{team_id}/activities")
+async def create_team_activity(
+    team_id: str,
+    activity_data: dict,
+    current_user = Depends(get_current_user)
+):
+    """Create a new activity for a team"""
+    team = await db.teams.find_one({"team_id": team_id})
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found")
+    
+    if current_user["user_id"] not in team.get("members", []):
+        raise HTTPException(status_code=403, detail="Not a team member")
+    
+    activity = {
+        "activity_id": str(uuid.uuid4()),
+        "team_id": team_id,
+        "title": activity_data["title"],
+        "description": activity_data.get("description", ""),
+        "type": activity_data.get("type", "meetup"),  # meetup, event, recurring, challenge
+        "category": activity_data.get("category", "general"),
+        "location": activity_data.get("location", ""),
+        "virtual_location": activity_data.get("virtual_location", ""),
+        "start_time": activity_data["start_time"],
+        "end_time": activity_data.get("end_time"),
+        "max_attendees": activity_data.get("max_attendees", 50),
+        "cost": activity_data.get("cost", "free"),
+        "cost_amount": activity_data.get("cost_amount", 0),
+        "skill_level": activity_data.get("skill_level", "all"),
+        "age_group": activity_data.get("age_group", "all"),
+        "requirements": activity_data.get("requirements", []),
+        "what_to_bring": activity_data.get("what_to_bring", []),
+        "recurring": activity_data.get("recurring", False),
+        "recurring_pattern": activity_data.get("recurring_pattern", {}),
+        "created_by": current_user["user_id"],
+        "attendees": [current_user["user_id"]],  # Creator is first attendee
+        "waitlist": [],
+        "status": "upcoming",
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow(),
+        "votes": [],  # For collaborative planning
+        "proposals": [],  # Alternative suggestions
+        "check_ins": [],  # Safety check-ins
+        "photos": [],
+        "reviews": []
+    }
+    
+    await db.activities.insert_one(activity)
+    
+    # Notify team members
+    await notify_team_members(team_id, f"New activity: {activity['title']}", current_user)
+    
+    return serialize_mongo_doc(activity)
+
+@api_router.get("/teams/{team_id}/activities")
+async def get_team_activities(
+    team_id: str,
+    status: str = "upcoming",
+    current_user = Depends(get_current_user)
+):
+    """Get activities for a team"""
+    team = await db.teams.find_one({"team_id": team_id})
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found")
+    
+    if current_user["user_id"] not in team.get("members", []):
+        raise HTTPException(status_code=403, detail="Not a team member")
+    
+    query = {"team_id": team_id}
+    if status != "all":
+        query["status"] = status
+    
+    activities = await db.activities.find(query).sort("start_time", 1).to_list(100)
+    
+    # Add attendance info and creator details
+    for activity in activities:
+        activity["attendee_count"] = len(activity.get("attendees", []))
+        activity["is_attending"] = current_user["user_id"] in activity.get("attendees", [])
+        activity["is_waitlisted"] = current_user["user_id"] in activity.get("waitlist", [])
+        
+        # Get creator info
+        if activity.get("created_by"):
+            creator = await db.users.find_one({"user_id": activity["created_by"]})
+            if creator:
+                activity["creator"] = {
+                    "user_id": creator["user_id"],
+                    "display_name": creator.get("display_name", creator["username"]),
+                    "avatar": creator.get("avatar")
+                }
+    
+    return serialize_mongo_doc(activities)
+
+@api_router.post("/activities/{activity_id}/join")
+async def join_activity(
+    activity_id: str,
+    current_user = Depends(get_current_user)
+):
+    """Join an activity"""
+    activity = await db.activities.find_one({"activity_id": activity_id})
+    if not activity:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    
+    # Check if user is team member
+    team = await db.teams.find_one({"team_id": activity["team_id"]})
+    if current_user["user_id"] not in team.get("members", []):
+        raise HTTPException(status_code=403, detail="Not a team member")
+    
+    attendees = activity.get("attendees", [])
+    waitlist = activity.get("waitlist", [])
+    max_attendees = activity.get("max_attendees", 50)
+    
+    if current_user["user_id"] in attendees:
+        raise HTTPException(status_code=400, detail="Already joined")
+    
+    if current_user["user_id"] in waitlist:
+        raise HTTPException(status_code=400, detail="Already on waitlist")
+    
+    # Add to attendees or waitlist
+    if len(attendees) < max_attendees:
+        await db.activities.update_one(
+            {"activity_id": activity_id},
+            {"$push": {"attendees": current_user["user_id"]}}
+        )
+        status = "joined"
+    else:
+        await db.activities.update_one(
+            {"activity_id": activity_id},
+            {"$push": {"waitlist": current_user["user_id"]}}
+        )
+        status = "waitlisted"
+    
+    return {"message": f"Successfully {status}", "status": status}
+
+@api_router.post("/activities/{activity_id}/propose")
+async def propose_activity_change(
+    activity_id: str,
+    proposal_data: dict,
+    current_user = Depends(get_current_user)
+):
+    """Propose changes to an activity (collaborative planning)"""
+    activity = await db.activities.find_one({"activity_id": activity_id})
+    if not activity:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    
+    # Check if user is attendee
+    if current_user["user_id"] not in activity.get("attendees", []):
+        raise HTTPException(status_code=403, detail="Must be attending to propose changes")
+    
+    proposal = {
+        "proposal_id": str(uuid.uuid4()),
+        "proposed_by": current_user["user_id"],
+        "type": proposal_data["type"],  # time_change, location_change, add_stop, etc.
+        "description": proposal_data["description"],
+        "details": proposal_data.get("details", {}),
+        "votes_for": [current_user["user_id"]],
+        "votes_against": [],
+        "created_at": datetime.utcnow(),
+        "status": "open"
+    }
+    
+    await db.activities.update_one(
+        {"activity_id": activity_id},
+        {"$push": {"proposals": proposal}}
+    )
+    
+    return {"message": "Proposal submitted", "proposal_id": proposal["proposal_id"]}
+
+@api_router.post("/activities/{activity_id}/vote")
+async def vote_on_proposal(
+    activity_id: str,
+    vote_data: dict,
+    current_user = Depends(get_current_user)
+):
+    """Vote on activity proposal"""
+    activity = await db.activities.find_one({"activity_id": activity_id})
+    if not activity:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    
+    if current_user["user_id"] not in activity.get("attendees", []):
+        raise HTTPException(status_code=403, detail="Must be attending to vote")
+    
+    proposal_id = vote_data["proposal_id"]
+    vote = vote_data["vote"]  # "for" or "against"
+    
+    # Find and update the proposal
+    proposals = activity.get("proposals", [])
+    proposal_found = False
+    
+    for proposal in proposals:
+        if proposal["proposal_id"] == proposal_id:
+            proposal_found = True
+            
+            # Remove from both arrays first
+            proposal["votes_for"] = [v for v in proposal["votes_for"] if v != current_user["user_id"]]
+            proposal["votes_against"] = [v for v in proposal["votes_against"] if v != current_user["user_id"]]
+            
+            # Add to appropriate array
+            if vote == "for":
+                proposal["votes_for"].append(current_user["user_id"])
+            else:
+                proposal["votes_against"].append(current_user["user_id"])
+            
+            break
+    
+    if not proposal_found:
+        raise HTTPException(status_code=404, detail="Proposal not found")
+    
+    # Update the activity
+    await db.activities.update_one(
+        {"activity_id": activity_id},
+        {"$set": {"proposals": proposals}}
+    )
+    
+    return {"message": "Vote recorded"}
+
+@api_router.get("/activities/feed")
+async def get_activity_feed(current_user = Depends(get_current_user)):
+    """Get personalized activity feed"""
+    # Get user's teams
+    teams = await db.teams.find({
+        "members": current_user["user_id"]
+    }).to_list(50)
+    
+    team_ids = [team["team_id"] for team in teams]
+    
+    # Get upcoming activities from user's teams
+    activities = await db.activities.find({
+        "team_id": {"$in": team_ids},
+        "status": "upcoming",
+        "start_time": {"$gte": datetime.utcnow()}
+    }).sort("start_time", 1).to_list(50)
+    
+    # Add team info and attendance status
+    for activity in activities:
+        activity["attendee_count"] = len(activity.get("attendees", []))
+        activity["is_attending"] = current_user["user_id"] in activity.get("attendees", [])
+        
+        # Get team info
+        team = next((t for t in teams if t["team_id"] == activity["team_id"]), None)
+        if team:
+            activity["team_name"] = team["name"]
+            activity["team_emoji"] = team.get("emoji", "👥")
+    
+    return serialize_mongo_doc(activities)
+
+@api_router.post("/activities/{activity_id}/check-in")
+async def activity_check_in(
+    activity_id: str,
+    check_in_data: dict,
+    current_user = Depends(get_current_user)
+):
+    """Safety check-in for activities"""
+    activity = await db.activities.find_one({"activity_id": activity_id})
+    if not activity:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    
+    if current_user["user_id"] not in activity.get("attendees", []):
+        raise HTTPException(status_code=403, detail="Must be attending to check in")
+    
+    check_in = {
+        "user_id": current_user["user_id"],
+        "timestamp": datetime.utcnow(),
+        "location": check_in_data.get("location"),
+        "status": check_in_data.get("status", "safe"),  # safe, help_needed, emergency
+        "message": check_in_data.get("message", "")
+    }
+    
+    await db.activities.update_one(
+        {"activity_id": activity_id},
+        {"$push": {"check_ins": check_in}}
+    )
+    
+    # If help needed or emergency, notify organizer
+    if check_in["status"] in ["help_needed", "emergency"]:
+        await notify_activity_organizer(activity_id, check_in)
+    
+    return {"message": "Check-in recorded"}
+
+# Achievement System
+@api_router.get("/users/{user_id}/achievements")
+async def get_user_achievements(
+    user_id: str,
+    current_user = Depends(get_current_user)
+):
+    """Get user achievements and badges"""
+    achievements = await calculate_user_achievements(user_id)
+    return {"achievements": achievements}
+
+async def calculate_user_achievements(user_id):
+    """Calculate achievements for a user"""
+    achievements = []
+    
+    # Group participation achievements
+    teams = await db.teams.find({"members": user_id}).to_list(100)
+    if len(teams) >= 1:
+        achievements.append({
+            "id": "first_group",
+            "title": "Community Starter",
+            "description": "Joined your first group",
+            "icon": "👥",
+            "earned_at": teams[0].get("created_at")
+        })
+    
+    if len(teams) >= 5:
+        achievements.append({
+            "id": "group_explorer",
+            "title": "Group Explorer", 
+            "description": "Joined 5 different groups",
+            "icon": "🗺️",
+            "rarity": "uncommon"
+        })
+    
+    # Activity participation achievements
+    activities_attended = await db.activities.count_documents({
+        "attendees": user_id,
+        "status": "completed"
+    })
+    
+    if activities_attended >= 1:
+        achievements.append({
+            "id": "first_activity",
+            "title": "Activity Pioneer",
+            "description": "Attended your first group activity",
+            "icon": "🎯"
+        })
+    
+    if activities_attended >= 10:
+        achievements.append({
+            "id": "activity_enthusiast",
+            "title": "Activity Enthusiast",
+            "description": "Attended 10 group activities",
+            "icon": "⭐",
+            "rarity": "rare"
+        })
+    
+    # Leadership achievements
+    created_teams = await db.teams.count_documents({"created_by": user_id})
+    if created_teams >= 1:
+        achievements.append({
+            "id": "community_builder",
+            "title": "Community Builder",
+            "description": "Created your first group",
+            "icon": "🏗️"
+        })
+    
+    created_activities = await db.activities.count_documents({"created_by": user_id})
+    if created_activities >= 5:
+        achievements.append({
+            "id": "event_organizer",
+            "title": "Event Organizer",
+            "description": "Organized 5 activities",
+            "icon": "📅",
+            "rarity": "uncommon"
+        })
+    
+    # Social achievements
+    connections = await db.connections.count_documents({
+        "$or": [
+            {"user_id": user_id, "status": "connected"},
+            {"connected_user_id": user_id, "status": "connected"}
+        ]
+    })
+    
+    if connections >= 10:
+        achievements.append({
+            "id": "social_butterfly",
+            "title": "Social Butterfly",
+            "description": "Connected with 10 people",
+            "icon": "🦋"
+        })
+    
+    return achievements
+
+# Helper functions
+async def notify_team_members(team_id, message, creator):
+    """Notify team members about new activity"""
+    # Implementation for push notifications
+    pass
+
+async def notify_activity_organizer(activity_id, check_in):
+    """Notify activity organizer about check-in status"""
+    # Implementation for emergency notifications
+    pass
 async def join_team(team_id: str, current_user = Depends(get_current_user)):
     """Join a public team"""
     team = await db.teams.find_one({"team_id": team_id})
