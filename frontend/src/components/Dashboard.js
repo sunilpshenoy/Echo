@@ -447,6 +447,22 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
               />
             )}
             
+            {activeTab === 'map' && (
+              <MapView 
+                user={user}
+                token={token}
+                api={api}
+              />
+            )}
+            
+            {activeTab === 'calendar' && (
+              <CalendarView 
+                user={user}
+                token={token}
+                api={api}
+              />
+            )}
+            
             {activeTab === 'premium' && (
               <DiscoverInterface 
                 user={user}
