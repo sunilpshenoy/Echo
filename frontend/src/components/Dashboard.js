@@ -435,15 +435,10 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
             )}
             
             {activeTab === 'teams' && (
-              <TeamsInterface 
+              <GroupDiscovery 
                 user={user}
                 token={token}
                 api={api}
-                teams={teams}
-                selectedTeam={selectedTeam}
-                isLoading={isLoadingTeams}
-                onTeamSelect={selectTeam}
-                onTeamsRefresh={fetchTeams}
               />
             )}
             
