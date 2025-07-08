@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import ChatsInterface from './ChatsInterface';
 import TeamsInterface from './TeamsInterface';
+import GroupDiscovery from './GroupDiscovery';
 import DiscoverInterface from './DiscoverInterface';
 import TrustSystem from './TrustSystem';
 import LanguageSelector from './LanguageSelector';
