@@ -1915,16 +1915,23 @@ async def get_teams(current_user = Depends(get_current_user)):
     
     return serialize_mongo_doc(teams)
 
+# Enhanced Teams Management with Smart Recommendations
 @api_router.get("/teams/discover")
 async def discover_teams(
     category: str = None,
     location: str = None,
     search: str = None,
+    schedule: str = None,  # weekend, weekday, evening
+    cost: str = None,      # free, paid, premium
+    language: str = None,
+    age_group: str = None,
+    activity_level: str = None,  # low, medium, high
     current_user = Depends(get_current_user)
 ):
-    """Discover public teams based on filters"""
+    """Enhanced team discovery with smart filtering and recommendations"""
     query = {"settings.is_public": True}
     
+    # Basic filters
     if category and category != 'all':
         query["category"] = category
     
@@ -1938,12 +1945,44 @@ async def discover_teams(
             {"tags": {"$in": [{"$regex": search, "$options": "i"}]}}
         ]
     
+    # Advanced filters
+    if schedule:
+        query["schedule_preference"] = schedule
+    
+    if cost:
+        query["cost_type"] = cost
+    
+    if language and language != 'all':
+        query["primary_language"] = language
+    
+    if age_group:
+        query["target_age_group"] = age_group
+    
     teams = await db.teams.find(query).to_list(100)
     
-    # Add member count and join status
+    # Calculate group health scores and add metadata
     for team in teams:
         team["member_count"] = len(team.get("members", []))
         team["is_joined"] = current_user["user_id"] in team.get("members", [])
+        
+        # Calculate health score (0-100)
+        health_score = await calculate_group_health_score(team)
+        team["health_score"] = health_score
+        
+        # Add activity level indicator
+        team["activity_level"] = await get_activity_level(team["team_id"])
+        
+        # Get recent activity preview
+        team["recent_activity"] = await get_recent_activity_preview(team["team_id"])
+        
+        # Add trending indicator
+        team["is_trending"] = await is_group_trending(team["team_id"])
+        
+        # Get mutual friends count
+        team["mutual_friends"] = await get_mutual_friends_count(
+            current_user["user_id"], 
+            team.get("members", [])
+        )
         
         # Get team creator info
         if team.get("created_by"):
@@ -1951,10 +1990,359 @@ async def discover_teams(
             if creator:
                 team["creator"] = {
                     "user_id": creator["user_id"],
-                    "display_name": creator.get("display_name", creator["username"])
+                    "display_name": creator.get("display_name", creator["username"]),
+                    "avatar": creator.get("avatar"),
+                    "trust_level": creator.get("trust_level", 1)
                 }
     
+    # Sort by relevance score (health + mutual friends + user interests match)
+    teams = await sort_by_relevance(teams, current_user)
+    
     return serialize_mongo_doc(teams)
+
+@api_router.get("/teams/recommendations")
+async def get_smart_recommendations(current_user = Depends(get_current_user)):
+    """Get AI-powered group recommendations based on user activity and interests"""
+    
+    # Get user's interests, activity patterns, and joined groups
+    user_interests = current_user.get("interests", [])
+    user_location = current_user.get("location", "")
+    joined_teams = await db.teams.find({
+        "members": current_user["user_id"]
+    }).to_list(50)
+    
+    # Calculate recommendation scores
+    recommendations = []
+    
+    # Interest-based recommendations
+    interest_recs = await get_interest_based_recommendations(
+        user_interests, current_user["user_id"]
+    )
+    recommendations.extend(interest_recs)
+    
+    # Location-based recommendations
+    location_recs = await get_location_based_recommendations(
+        user_location, current_user["user_id"]
+    )
+    recommendations.extend(location_recs)
+    
+    # Activity pattern recommendations
+    activity_recs = await get_activity_pattern_recommendations(
+        current_user["user_id"]
+    )
+    recommendations.extend(activity_recs)
+    
+    # Friend activity recommendations
+    friend_recs = await get_friend_activity_recommendations(
+        current_user["user_id"]
+    )
+    recommendations.extend(friend_recs)
+    
+    # Remove duplicates and sort by score
+    unique_recs = {}
+    for rec in recommendations:
+        team_id = rec["team_id"]
+        if team_id not in unique_recs or rec["score"] > unique_recs[team_id]["score"]:
+            unique_recs[team_id] = rec
+    
+    # Get top 10 recommendations
+    sorted_recs = sorted(unique_recs.values(), key=lambda x: x["score"], reverse=True)[:10]
+    
+    return serialize_mongo_doc(sorted_recs)
+
+@api_router.get("/teams/trending")
+async def get_trending_teams(current_user = Depends(get_current_user)):
+    """Get trending groups in user's area"""
+    
+    user_location = current_user.get("location", "")
+    
+    # Get teams with recent activity surge
+    trending = await db.teams.aggregate([
+        {"$match": {
+            "settings.is_public": True,
+            "location": {"$regex": user_location.split(",")[0] if user_location else "", "$options": "i"}
+        }},
+        {"$lookup": {
+            "from": "messages",
+            "localField": "team_id", 
+            "foreignField": "chat_id",
+            "as": "recent_messages"
+        }},
+        {"$addFields": {
+            "recent_activity_count": {
+                "$size": {
+                    "$filter": {
+                        "input": "$recent_messages",
+                        "cond": {
+                            "$gte": ["$$this.created_at", datetime.utcnow() - timedelta(days=7)]
+                        }
+                    }
+                }
+            },
+            "member_growth": {
+                "$size": "$members"
+            }
+        }},
+        {"$sort": {"recent_activity_count": -1, "member_growth": -1}},
+        {"$limit": 10}
+    ]).to_list(10)
+    
+    # Add metadata for each trending team
+    for team in trending:
+        team["member_count"] = len(team.get("members", []))
+        team["is_joined"] = current_user["user_id"] in team.get("members", [])
+        team["is_trending"] = True
+        team["trend_reason"] = "high_activity"  # Could be "fast_growing", "high_engagement", etc.
+    
+    return serialize_mongo_doc(trending)
+
+# Helper functions for smart recommendations
+async def calculate_group_health_score(team):
+    """Calculate group health score based on activity, engagement, and admin responsiveness"""
+    score = 0
+    
+    # Recent activity (40 points)
+    recent_messages = await db.messages.count_documents({
+        "chat_id": team["team_id"],
+        "created_at": {"$gte": datetime.utcnow() - timedelta(days=7)}
+    })
+    activity_score = min(recent_messages * 2, 40)  # Cap at 40
+    score += activity_score
+    
+    # Member engagement (30 points) 
+    active_members = await db.messages.distinct("sender_id", {
+        "chat_id": team["team_id"],
+        "created_at": {"$gte": datetime.utcnow() - timedelta(days=30)}
+    })
+    engagement_rate = len(active_members) / max(len(team.get("members", [])), 1)
+    engagement_score = min(engagement_rate * 30, 30)
+    score += engagement_score
+    
+    # Admin responsiveness (20 points)
+    # Check if admin has been active recently
+    admin_activity = await db.messages.count_documents({
+        "chat_id": team["team_id"],
+        "sender_id": team.get("created_by"),
+        "created_at": {"$gte": datetime.utcnow() - timedelta(days=14)}
+    })
+    admin_score = min(admin_activity * 5, 20)
+    score += admin_score
+    
+    # Growth trend (10 points)
+    # This would require tracking member join dates
+    growth_score = 10  # Placeholder
+    score += growth_score
+    
+    return min(int(score), 100)
+
+async def get_activity_level(team_id):
+    """Get activity level indicator for a team"""
+    recent_messages = await db.messages.count_documents({
+        "chat_id": team_id,
+        "created_at": {"$gte": datetime.utcnow() - timedelta(days=7)}
+    })
+    
+    if recent_messages >= 50:
+        return "very_high"
+    elif recent_messages >= 20:
+        return "high" 
+    elif recent_messages >= 5:
+        return "medium"
+    elif recent_messages >= 1:
+        return "low"
+    else:
+        return "quiet"
+
+async def get_recent_activity_preview(team_id):
+    """Get preview of recent team activity"""
+    recent_messages = await db.messages.find({
+        "chat_id": team_id
+    }).sort("created_at", -1).limit(3).to_list(3)
+    
+    preview = []
+    for msg in recent_messages:
+        preview.append({
+            "type": "message",
+            "content": msg.get("content", "")[:50] + ("..." if len(msg.get("content", "")) > 50 else ""),
+            "sender": msg.get("sender_name", "Unknown"),
+            "time": msg.get("created_at")
+        })
+    
+    return preview
+
+async def is_group_trending(team_id):
+    """Check if group is trending based on recent activity surge"""
+    # Get message count for last 7 days vs previous 7 days
+    last_week = await db.messages.count_documents({
+        "chat_id": team_id,
+        "created_at": {"$gte": datetime.utcnow() - timedelta(days=7)}
+    })
+    
+    prev_week = await db.messages.count_documents({
+        "chat_id": team_id,
+        "created_at": {
+            "$gte": datetime.utcnow() - timedelta(days=14),
+            "$lt": datetime.utcnow() - timedelta(days=7)
+        }
+    })
+    
+    # Trending if 50% increase in activity
+    return last_week > prev_week * 1.5 if prev_week > 0 else last_week > 10
+
+async def get_mutual_friends_count(user_id, team_members):
+    """Get count of mutual friends in a team"""
+    # Get user's connections
+    user_connections = await db.connections.find({
+        "$or": [
+            {"user_id": user_id, "status": "connected"},
+            {"connected_user_id": user_id, "status": "connected"}
+        ]
+    }).to_list(100)
+    
+    friend_ids = set()
+    for conn in user_connections:
+        if conn["user_id"] == user_id:
+            friend_ids.add(conn["connected_user_id"])
+        else:
+            friend_ids.add(conn["user_id"])
+    
+    # Count mutual friends in team
+    mutual_count = len(friend_ids.intersection(set(team_members)))
+    return mutual_count
+
+async def sort_by_relevance(teams, current_user):
+    """Sort teams by relevance score combining multiple factors"""
+    user_interests = set(current_user.get("interests", []))
+    
+    for team in teams:
+        score = 0
+        
+        # Health score weight (40%)
+        score += team.get("health_score", 0) * 0.4
+        
+        # Interest match weight (30%)
+        team_tags = set(team.get("tags", []))
+        interest_match = len(user_interests.intersection(team_tags)) / max(len(user_interests), 1)
+        score += interest_match * 30
+        
+        # Mutual friends weight (20%)
+        score += team.get("mutual_friends", 0) * 5
+        
+        # Trending bonus (10%)
+        if team.get("is_trending"):
+            score += 10
+        
+        team["relevance_score"] = score
+    
+    return sorted(teams, key=lambda x: x.get("relevance_score", 0), reverse=True)
+
+async def get_interest_based_recommendations(user_interests, user_id):
+    """Get recommendations based on user interests"""
+    recommendations = []
+    
+    for interest in user_interests:
+        teams = await db.teams.find({
+            "settings.is_public": True,
+            "members": {"$ne": user_id},  # Not already joined
+            "$or": [
+                {"tags": {"$in": [interest]}},
+                {"category": interest},
+                {"name": {"$regex": interest, "$options": "i"}}
+            ]
+        }).limit(5).to_list(5)
+        
+        for team in teams:
+            recommendations.append({
+                **team,
+                "recommendation_reason": f"Based on your interest in {interest}",
+                "score": 85
+            })
+    
+    return recommendations
+
+async def get_location_based_recommendations(user_location, user_id):
+    """Get recommendations based on user location"""
+    if not user_location:
+        return []
+    
+    city = user_location.split(",")[0].strip()
+    
+    teams = await db.teams.find({
+        "settings.is_public": True,
+        "members": {"$ne": user_id},
+        "location": {"$regex": city, "$options": "i"}
+    }).limit(10).to_list(10)
+    
+    recommendations = []
+    for team in teams:
+        recommendations.append({
+            **team,
+            "recommendation_reason": f"Popular in {city}",
+            "score": 75
+        })
+    
+    return recommendations
+
+async def get_activity_pattern_recommendations(user_id):
+    """Get recommendations based on user's activity patterns"""
+    # Analyze when user is most active
+    user_messages = await db.messages.find({
+        "sender_id": user_id
+    }).limit(100).to_list(100)
+    
+    # Simple heuristic: if user messages more on weekends, recommend weekend-focused groups
+    weekend_messages = sum(1 for msg in user_messages 
+                          if msg.get("created_at") and msg["created_at"].weekday() >= 5)
+    
+    if weekend_messages > len(user_messages) * 0.6:  # 60% weekend activity
+        teams = await db.teams.find({
+            "settings.is_public": True,
+            "members": {"$ne": user_id},
+            "schedule_preference": "weekend"
+        }).limit(5).to_list(5)
+        
+        return [{
+            **team,
+            "recommendation_reason": "Perfect for weekend activities",
+            "score": 80
+        } for team in teams]
+    
+    return []
+
+async def get_friend_activity_recommendations(user_id):
+    """Get recommendations based on friends' group activities"""
+    # Get user's friends
+    connections = await db.connections.find({
+        "$or": [
+            {"user_id": user_id, "status": "connected"},
+            {"connected_user_id": user_id, "status": "connected"}
+        ]
+    }).to_list(50)
+    
+    friend_ids = []
+    for conn in connections:
+        if conn["user_id"] == user_id:
+            friend_ids.append(conn["connected_user_id"])
+        else:
+            friend_ids.append(conn["user_id"])
+    
+    # Find teams where friends are active
+    teams_with_friends = await db.teams.find({
+        "settings.is_public": True,
+        "members": {"$in": friend_ids, "$ne": user_id}
+    }).to_list(20)
+    
+    recommendations = []
+    for team in teams_with_friends:
+        friend_count = len(set(friend_ids).intersection(set(team.get("members", []))))
+        recommendations.append({
+            **team,
+            "recommendation_reason": f"{friend_count} friend{'s' if friend_count > 1 else ''} in this group",
+            "score": 90 + friend_count * 5,
+            "friend_count": friend_count
+        })
+    
+    return recommendations
 
 @api_router.post("/teams/{team_id}/join")
 async def join_team(team_id: str, current_user = Depends(get_current_user)):
