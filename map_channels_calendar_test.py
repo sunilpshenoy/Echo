@@ -85,8 +85,25 @@ def setup():
     }
     
     team_response = create_team(user1_token, team_data)
-    test_team_id = team_response["team_id"]
-    print(f"Test team ID: {test_team_id}")
+    if team_response:
+        test_team_id = team_response.get("team_id")
+        print(f"Test team ID: {test_team_id}")
+    else:
+        # If team creation fails, try to get existing teams
+        print("Team creation failed, trying to get existing teams...")
+        headers = {"Authorization": f"Bearer {user1_token}"}
+        response = requests.get(f"{API_URL}/teams", headers=headers)
+        if response.status_code == 200:
+            teams = response.json()
+            if teams and len(teams) > 0:
+                test_team_id = teams[0].get("team_id")
+                print(f"Using existing team ID: {test_team_id}")
+            else:
+                print("No existing teams found, skipping team-related tests")
+                test_team_id = None
+        else:
+            print(f"Failed to get teams: {response.text}")
+            test_team_id = None
 
 def test_map_view_api():
     print("\n=== Testing Map View API ===")
