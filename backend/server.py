@@ -2030,13 +2030,17 @@ async def create_team(
         "team_id": str(uuid.uuid4()),
         "name": team_data["name"],
         "description": team_data.get("description", ""),
+        "category": team_data.get("category", "general"),
+        "location": team_data.get("location", "Online"),
+        "tags": team_data.get("tags", []),
+        "emoji": team_data.get("emoji", "👥"),
         "type": team_data.get("type", "group"),
         "created_by": current_user["user_id"],
         "members": [current_user["user_id"]],  # Creator is first member
         "created_at": datetime.utcnow(),
         "last_activity": datetime.utcnow(),
         "settings": {
-            "is_public": False,
+            "is_public": team_data.get("privacy", "public") == "public",
             "allow_member_invite": True,
             "max_members": 1024
         }
