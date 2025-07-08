@@ -2721,13 +2721,90 @@ async def calculate_user_achievements(user_id):
 # Helper functions
 async def notify_team_members(team_id, message, creator):
     """Notify team members about new activity"""
-    # Implementation for push notifications
-    pass
+    try:
+        team = await db.teams.find_one({"team_id": team_id})
+        if not team:
+            return
+        
+        # Get team members (excluding creator)
+        member_ids = [m for m in team.get("members", []) if m != creator["user_id"]]
+        
+        # Create notifications for each member
+        notifications = []
+        for member_id in member_ids:
+            notification = {
+                "notification_id": str(uuid.uuid4()),
+                "user_id": member_id,
+                "type": "team_activity",
+                "title": f"New activity in {team['name']}",
+                "message": message,
+                "data": {
+                    "team_id": team_id,
+                    "team_name": team["name"],
+                    "creator_name": creator.get("display_name", creator["username"])
+                },
+                "read": False,
+                "created_at": datetime.utcnow()
+            }
+            notifications.append(notification)
+        
+        if notifications:
+            await db.notifications.insert_many(notifications)
+            
+    except Exception as e:
+        logging.error(f"Failed to notify team members: {e}")
 
 async def notify_activity_organizer(activity_id, check_in):
     """Notify activity organizer about check-in status"""
-    # Implementation for emergency notifications
-    pass
+    try:
+        activity = await db.activities.find_one({"activity_id": activity_id})
+        if not activity:
+            return
+        
+        organizer_id = activity.get("created_by")
+        if not organizer_id or check_in["user_id"] == organizer_id:
+            return
+        
+        # Get user info for the check-in
+        user = await db.users.find_one({"user_id": check_in["user_id"]})
+        user_name = user.get("display_name", user["username"]) if user else "Unknown user"
+        
+        # Create notification based on check-in status
+        if check_in["status"] == "emergency":
+            title = "🚨 EMERGENCY - Activity Check-in"
+            message = f"{user_name} needs emergency help during {activity['title']}"
+        elif check_in["status"] == "help_needed":
+            title = "⚠️ Help Needed - Activity Check-in"
+            message = f"{user_name} needs assistance during {activity['title']}"
+        else:
+            return  # Only notify for emergency/help situations
+        
+        notification = {
+            "notification_id": str(uuid.uuid4()),
+            "user_id": organizer_id,
+            "type": "activity_emergency",
+            "title": title,
+            "message": message,
+            "data": {
+                "activity_id": activity_id,
+                "activity_title": activity["title"],
+                "check_in_user": user_name,
+                "check_in_status": check_in["status"],
+                "check_in_location": check_in.get("location"),
+                "check_in_message": check_in.get("message"),
+                "timestamp": check_in["timestamp"]
+            },
+            "read": False,
+            "created_at": datetime.utcnow(),
+            "priority": "high"
+        }
+        
+        await db.notifications.insert_one(notification)
+        
+        # TODO: In production, also send push notification, SMS, or email for emergencies
+        
+    except Exception as e:
+        logging.error(f"Failed to notify activity organizer: {e}")
 async def join_team(team_id: str, current_user = Depends(get_current_user)):
     """Join a public team"""
     team = await db.teams.find_one({"team_id": team_id})
