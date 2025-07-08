@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 
@@ -17,22 +17,23 @@ const GroupDiscovery = ({ user, token, api }) => {
   const [trendingGroups, setTrendingGroups] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [error, setError] = useState(null);
 
   const categories = [
-    { value: 'all', label: t('groups.categories.all'), icon: '🌟' },
-    { value: 'food', label: t('groups.categories.food'), icon: '🍛' },
-    { value: 'business', label: t('groups.categories.business'), icon: '💻' },
-    { value: 'outdoor', label: t('groups.categories.outdoor'), icon: '🏔️' },
-    { value: 'creative', label: t('groups.categories.creative'), icon: '🎨' },
-    { value: 'education', label: t('groups.categories.education'), icon: '📚' },
-    { value: 'sports', label: t('groups.categories.sports'), icon: '⚽' },
-    { value: 'music', label: t('groups.categories.music'), icon: '🎵' },
-    { value: 'gaming', label: t('groups.categories.gaming'), icon: '🎮' },
-    { value: 'lifestyle', label: t('groups.categories.lifestyle'), icon: '✨' }
+    { value: 'all', label: 'All Categories', icon: '🌟' },
+    { value: 'food', label: 'Food & Dining', icon: '🍛' },
+    { value: 'business', label: 'Business & Tech', icon: '💻' },
+    { value: 'outdoor', label: 'Outdoor & Sports', icon: '🏔️' },
+    { value: 'creative', label: 'Arts & Creative', icon: '🎨' },
+    { value: 'education', label: 'Learning & Books', icon: '📚' },
+    { value: 'sports', label: 'Sports & Fitness', icon: '⚽' },
+    { value: 'music', label: 'Music & Arts', icon: '🎵' },
+    { value: 'gaming', label: 'Gaming', icon: '🎮' },
+    { value: 'lifestyle', label: 'Lifestyle', icon: '✨' }
   ];
 
   const locations = [
-    { value: 'all', label: t('groups.locations.all') },
+    { value: 'all', label: 'All Locations' },
     { value: 'mumbai', label: 'Mumbai' },
     { value: 'delhi', label: 'Delhi' },
     { value: 'bangalore', label: 'Bangalore' },
@@ -40,7 +41,7 @@ const GroupDiscovery = ({ user, token, api }) => {
     { value: 'hyderabad', label: 'Hyderabad' },
     { value: 'chennai', label: 'Chennai' },
     { value: 'kolkata', label: 'Kolkata' },
-    { value: 'online', label: t('groups.locations.online') }
+    { value: 'online', label: 'Online' }
   ];
 
   const scheduleOptions = [
@@ -66,8 +67,12 @@ const GroupDiscovery = ({ user, token, api }) => {
   ];
 
   // Fetch groups with advanced filtering
-  const fetchGroups = async () => {
+  const fetchGroups = useCallback(async () => {
+    if (!token || !api) return;
+    
     setIsLoading(true);
+    setError(null);
+    
     try {
       const params = new URLSearchParams();
       if (selectedCategory !== 'all') params.append('category', selectedCategory);
@@ -102,13 +107,16 @@ const GroupDiscovery = ({ user, token, api }) => {
       setGroups(transformedGroups);
     } catch (error) {
       console.error('Failed to fetch groups:', error);
+      setError('Failed to load groups. Please try again.');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [api, token, selectedCategory, selectedLocation, selectedSchedule, selectedCost, selectedLanguage, searchQuery]);
 
   // Fetch smart recommendations
-  const fetchRecommendations = async () => {
+  const fetchRecommendations = useCallback(async () => {
+    if (!token || !api) return;
+    
     try {
       const response = await axios.get(`${api}/teams/recommendations`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -117,10 +125,12 @@ const GroupDiscovery = ({ user, token, api }) => {
     } catch (error) {
       console.error('Failed to fetch recommendations:', error);
     }
-  };
+  }, [api, token]);
 
   // Fetch trending groups
-  const fetchTrendingGroups = async () => {
+  const fetchTrendingGroups = useCallback(async () => {
+    if (!token || !api) return;
+    
     try {
       const response = await axios.get(`${api}/teams/trending`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -129,17 +139,15 @@ const GroupDiscovery = ({ user, token, api }) => {
     } catch (error) {
       console.error('Failed to fetch trending groups:', error);
     }
-  };
+  }, [api, token]);
 
-  // Join group
-  const joinGroup = async (groupId) => {
+  // Join group with optimistic updates
+  const joinGroup = useCallback(async (groupId) => {
+    if (!token || !api) return;
+    
     try {
-      await axios.post(`${api}/teams/${groupId}/join`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      // Update all relevant state arrays
-      const updateGroupInArray = (groupsArray, setGroupsArray) => {
+      // Optimistic update
+      const updateGroupInState = (groupsArray, setGroupsArray) => {
         setGroupsArray(prev => prev.map(group => 
           group.id === groupId 
             ? { ...group, isJoined: true, members: group.members + 1 }
@@ -147,22 +155,39 @@ const GroupDiscovery = ({ user, token, api }) => {
         ));
       };
 
-      updateGroupInArray(groups, setGroups);
-      updateGroupInArray(recommendations, setRecommendations);
-      updateGroupInArray(trendingGroups, setTrendingGroups);
-    } catch (error) {
-      console.error('Failed to join group:', error);
-    }
-  };
+      updateGroupInState(groups, setGroups);
+      updateGroupInState(recommendations, setRecommendations);
+      updateGroupInState(trendingGroups, setTrendingGroups);
 
-  // Leave group
-  const leaveGroup = async (groupId) => {
-    try {
-      await axios.post(`${api}/teams/${groupId}/leave`, {}, {
+      await axios.post(`${api}/teams/${groupId}/join`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
+    } catch (error) {
+      console.error('Failed to join group:', error);
+      // Revert optimistic update
+      const revertGroupInState = (groupsArray, setGroupsArray) => {
+        setGroupsArray(prev => prev.map(group => 
+          group.id === groupId 
+            ? { ...group, isJoined: false, members: group.members - 1 }
+            : group
+        ));
+      };
+
+      revertGroupInState(groups, setGroups);
+      revertGroupInState(recommendations, setRecommendations);
+      revertGroupInState(trendingGroups, setTrendingGroups);
       
-      const updateGroupInArray = (groupsArray, setGroupsArray) => {
+      setError('Failed to join group. Please try again.');
+    }
+  }, [api, token, groups, recommendations, trendingGroups]);
+
+  // Leave group with optimistic updates
+  const leaveGroup = useCallback(async (groupId) => {
+    if (!token || !api) return;
+    
+    try {
+      // Optimistic update
+      const updateGroupInState = (groupsArray, setGroupsArray) => {
         setGroupsArray(prev => prev.map(group => 
           group.id === groupId 
             ? { ...group, isJoined: false, members: Math.max(0, group.members - 1) }
@@ -170,24 +195,50 @@ const GroupDiscovery = ({ user, token, api }) => {
         ));
       };
 
-      updateGroupInArray(groups, setGroups);
-      updateGroupInArray(recommendations, setRecommendations);
-      updateGroupInArray(trendingGroups, setTrendingGroups);
+      updateGroupInState(groups, setGroups);
+      updateGroupInState(recommendations, setRecommendations);
+      updateGroupInState(trendingGroups, setTrendingGroups);
+
+      await axios.post(`${api}/teams/${groupId}/leave`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
     } catch (error) {
       console.error('Failed to leave group:', error);
+      // Revert optimistic update
+      const revertGroupInState = (groupsArray, setGroupsArray) => {
+        setGroupsArray(prev => prev.map(group => 
+          group.id === groupId 
+            ? { ...group, isJoined: true, members: group.members + 1 }
+            : group
+        ));
+      };
+
+      revertGroupInState(groups, setGroups);
+      revertGroupInState(recommendations, setRecommendations);
+      revertGroupInState(trendingGroups, setTrendingGroups);
+      
+      setError('Failed to leave group. Please try again.');
     }
-  };
+  }, [api, token, groups, recommendations, trendingGroups]);
 
   useEffect(() => {
     fetchGroups();
-  }, [selectedCategory, selectedLocation, selectedSchedule, selectedCost, selectedLanguage, searchQuery]);
+  }, [fetchGroups]);
 
   useEffect(() => {
     if (activeTab === 'discover') {
       fetchRecommendations();
       fetchTrendingGroups();
     }
-  }, [activeTab]);
+  }, [activeTab, fetchRecommendations, fetchTrendingGroups]);
+
+  // Clear error after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   const ActivityIndicator = ({ level }) => {
     const colors = {
@@ -328,8 +379,30 @@ const GroupDiscovery = ({ user, token, api }) => {
     </div>
   );
 
+  if (!token || !api) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Authentication Required</h2>
+          <p className="text-gray-600">Please log in to access group discovery features.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Error Message */}
+      {error && (
+        <div className="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
+          <div className="flex items-center">
+            <span className="mr-2">❌</span>
+            {error}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4">
@@ -346,46 +419,29 @@ const GroupDiscovery = ({ user, token, api }) => {
           
           {/* Tab Navigation */}
           <div className="flex space-x-6 border-b border-gray-200">
-            <button
-              onClick={() => setActiveTab('discover')}
-              className={`pb-2 px-1 font-medium text-sm transition-colors ${
-                activeTab === 'discover'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              🔍 Discover
-            </button>
-            <button
-              onClick={() => setActiveTab('recommendations')}
-              className={`pb-2 px-1 font-medium text-sm transition-colors ${
-                activeTab === 'recommendations'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              ✨ For You
-            </button>
-            <button
-              onClick={() => setActiveTab('trending')}
-              className={`pb-2 px-1 font-medium text-sm transition-colors ${
-                activeTab === 'trending'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              🔥 Trending
-            </button>
-            <button
-              onClick={() => setActiveTab('my-groups')}
-              className={`pb-2 px-1 font-medium text-sm transition-colors ${
-                activeTab === 'my-groups'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              👥 My Groups
-            </button>
+            {[
+              { key: 'discover', label: '🔍 Discover', count: groups.length },
+              { key: 'recommendations', label: '✨ For You', count: recommendations.length },
+              { key: 'trending', label: '🔥 Trending', count: trendingGroups.length },
+              { key: 'my-groups', label: '👥 My Groups', count: groups.filter(g => g.isJoined).length }
+            ].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`pb-2 px-1 font-medium text-sm transition-colors relative ${
+                  activeTab === tab.key
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {tab.label}
+                {tab.count > 0 && (
+                  <span className="ml-1 bg-gray-200 text-gray-600 text-xs rounded-full px-2 py-1">
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
         </div>
       </div>
