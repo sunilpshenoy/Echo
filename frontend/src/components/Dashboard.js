@@ -370,11 +370,13 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
             </div>
           </div>
           
-          {/* Top Tabs - WhatsApp Style */}
-          <div className="flex border-b">
+          {/* Top Tabs - Enhanced with New Features */}
+          <div className="flex border-b overflow-x-auto">
             {[
-              { id: 'chats', label: t('dashboard.chats'), icon: '💬', description: t('dashboard.directMessages') },
-              { id: 'teams', label: t('dashboard.teams'), icon: '👥', description: t('dashboard.groupsWorkspaces') },
+              { id: 'chats', label: t('dashboard.chats'), icon: '💬', description: 'Direct messages' },
+              { id: 'teams', label: 'Groups', icon: '👥', description: 'Smart group discovery' },
+              { id: 'map', label: 'Map', icon: '🗺️', description: 'Discover nearby groups & activities' },
+              { id: 'calendar', label: 'Calendar', icon: '📅', description: 'Schedule & events' },
               { 
                 id: 'premium', 
                 label: t('dashboard.premium'), 
@@ -386,7 +388,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-6 py-3 text-sm font-medium border-b-2 transition-all ${
+                className={`flex items-center space-x-2 px-6 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'border-purple-500 text-purple-700 bg-purple-50 font-semibold'
                     : 'border-transparent text-gray-700 hover:text-purple-600 hover:bg-purple-50'
