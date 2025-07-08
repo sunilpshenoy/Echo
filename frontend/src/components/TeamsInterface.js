@@ -300,13 +300,16 @@ const TeamsInterface = ({
           </div>
         </div>
 
-        {/* Team Messages Area */}
-        <div className="flex-1 bg-gray-50 overflow-y-auto">
-          {isLoadingMessages ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-            </div>
-          ) : teamMessages.length > 0 ? (
+        {/* Team Content Area */}
+        {selectedTeam ? (
+          <div className="flex-1 flex flex-col">
+            {/* Team Header */}
+            <div className="bg-white border-b border-gray-200 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-xl font-bold">
+                      {selectedTeam.name?.[0]?.toUpperCase()}
             <div className="p-4 space-y-4">
               {teamMessages.map((msg, index) => (
                 <div key={msg.message_id || index} className="flex items-start space-x-3">
