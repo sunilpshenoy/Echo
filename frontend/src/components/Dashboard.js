@@ -437,23 +437,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
             )}
             
             {activeTab === 'teams' && (
-              <GroupDiscovery 
-                user={user}
-                token={token}
-                api={api}
-              />
-            )}
-            
-            {activeTab === 'map' && (
-              <MapView 
-                user={user}
-                token={token}
-                api={api}
-              />
-            )}
-            
-            {activeTab === 'calendar' && (
-              <CalendarView 
+              <GroupsHub 
                 user={user}
                 token={token}
                 api={api}
