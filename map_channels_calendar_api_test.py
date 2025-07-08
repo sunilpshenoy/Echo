@@ -192,17 +192,18 @@ def test_teams_channels_api():
     
     if response.status_code == 200:
         team = response.json()
-        test_team_id = team.get("team_id")
-        print(f"Created team with ID: {test_team_id}")
-    else:
-        print(f"Failed to create team: {response.status_code} - {response.text}")
-        # Try to use an existing team
-        if teams and len(teams) > 0:
-            test_team_id = teams[0].get("team_id")
-            print(f"Using existing team with ID: {test_team_id}")
+        if team:
+            test_team_id = team.get("team_id")
+            print(f"Created team with ID: {test_team_id}")
         else:
-            print("No teams available, skipping team-specific tests")
-            return
+            print("Team creation response was empty")
+            # Try to use an existing team
+            if teams and len(teams) > 0:
+                test_team_id = teams[0].get("team_id")
+                print(f"Using existing team with ID: {test_team_id}")
+            else:
+                print("No teams available, skipping team-specific tests")
+                return
     
     # Test 3: Get team channels
     print("Test 3: Getting team channels...")
