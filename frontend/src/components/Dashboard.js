@@ -699,6 +699,45 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
       )}
       </div> {/* Close main content wrapper */}
     </div>
+
+      {/* Profile Setup Prompt Modal */}
+      {showProfilePrompt && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl">
+            <div className="text-center">
+              <div className="text-4xl mb-4">👤</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Complete Your Profile
+              </h3>
+              <p className="text-gray-600 mb-6">
+                To access {attemptedTab === 'teams' ? 'Groups' : 'Premium features'}, please complete your profile setup first.
+              </p>
+              
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleProfilePromptDismiss}
+                  className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowProfilePrompt(false);
+                    // You can integrate with ProfileSetup component here
+                    // For now, we'll just mark as completed
+                    onUserUpdate({ ...user, profile_completed: true });
+                    handleProfileComplete();
+                  }}
+                  className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Setup Profile
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
