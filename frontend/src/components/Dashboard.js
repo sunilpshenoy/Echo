@@ -52,8 +52,35 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const [isLoadingChats, setIsLoadingChats] = useState(false);
   const [chats, setChats] = useState([]);
   
-  // Teams state
-  const [teams, setTeams] = useState([]);
+  // Function to check if profile is required for a tab
+  const requiresProfile = (tabId) => {
+    return tabId === 'teams' || tabId === 'premium';
+  };
+
+  // Handle tab selection with profile requirement check
+  const handleTabSelection = (tabId) => {
+    if (requiresProfile(tabId) && !user?.profile_completed) {
+      setAttemptedTab(tabId);
+      setShowProfilePrompt(true);
+    } else {
+      setActiveTab(tabId);
+    }
+  };
+
+  // Handle profile completion
+  const handleProfileComplete = () => {
+    setShowProfilePrompt(false);
+    if (attemptedTab) {
+      setActiveTab(attemptedTab);
+      setAttemptedTab(null);
+    }
+  };
+
+  // Handle profile prompt dismissal
+  const handleProfilePromptDismiss = () => {
+    setShowProfilePrompt(false);
+    setAttemptedTab(null);
+  };
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [isLoadingTeams, setIsLoadingTeams] = useState(false);
   
