@@ -72,7 +72,176 @@ except:
 limiter = Limiter(key_func=get_remote_address)
 
 ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+# Military-grade security class
+class SecurityManager:
+    def __init__(self):
+        self.failed_attempts = {}
+        self.blocked_ips = set()
+        self.suspicious_requests = {}
+        
+    async def check_ip_reputation(self, ip: str) -> bool:
+        """Check if IP is blacklisted or suspicious"""
+        # Check local blacklist
+        if ip in self.blocked_ips:
+            return False
+            
+        # Check failed attempts
+        if ip in self.failed_attempts:
+            attempts = self.failed_attempts[ip]
+            if attempts['count'] >= SECURITY_CONFIG['MAX_LOGIN_ATTEMPTS']:
+                lockout_time = attempts['last_attempt'] + SECURITY_CONFIG['LOCKOUT_DURATION']
+                if time.time() < lockout_time:
+                    return False
+        
+        return True
+    
+    async def log_failed_attempt(self, ip: str):
+        """Log failed authentication attempt"""
+        current_time = time.time()
+        
+        if ip not in self.failed_attempts:
+            self.failed_attempts[ip] = {'count': 0, 'last_attempt': current_time}
+        
+        self.failed_attempts[ip]['count'] += 1
+        self.failed_attempts[ip]['last_attempt'] = current_time
+        
+        # Block IP after max attempts
+        if self.failed_attempts[ip]['count'] >= SECURITY_CONFIG['MAX_LOGIN_ATTEMPTS']:
+            self.blocked_ips.add(ip)
+            if REDIS_AVAILABLE:
+                redis_client.setex(f"blocked_ip:{ip}", SECURITY_CONFIG['LOCKOUT_DURATION'], "1")
+    
+    async def detect_malicious_payload(self, data: str) -> bool:
+        """Detect potentially malicious payloads"""
+        data_lower = data.lower()
+        
+        for pattern in SECURITY_CONFIG['SUSPICIOUS_PATTERNS']:
+            if pattern.lower() in data_lower:
+                return True
+        
+        return False
+    
+    async def check_user_agent(self, user_agent: str) -> bool:
+        """Check if user agent is from known attack tools"""
+        if not user_agent:
+            return False
+            
+        user_agent_lower = user_agent.lower()
+        
+        for blocked_agent in SECURITY_CONFIG['BLOCKED_USER_AGENTS']:
+            if blocked_agent in user_agent_lower:
+                return False
+        
+        return True
+    
+    async def log_suspicious_activity(self, ip: str, activity_type: str, details: str):
+        """Log suspicious activity for monitoring"""
+        current_time = time.time()
+        
+        if ip not in self.suspicious_requests:
+            self.suspicious_requests[ip] = []
+        
+        self.suspicious_requests[ip].append({
+            'type': activity_type,
+            'details': details,
+            'timestamp': current_time
+        })
+        
+        # Keep only last 100 entries per IP
+        if len(self.suspicious_requests[ip]) > 100:
+            self.suspicious_requests[ip] = self.suspicious_requests[ip][-100:]
+        
+        # Auto-block IP if too many suspicious activities
+        if len(self.suspicious_requests[ip]) > 20:
+            recent_activities = [
+                activity for activity in self.suspicious_requests[ip]
+                if current_time - activity['timestamp'] < 300  # Last 5 minutes
+            ]
+            
+            if len(recent_activities) > 10:
+                self.blocked_ips.add(ip)
+                if REDIS_AVAILABLE:
+                    redis_client.setex(f"blocked_ip:{ip}", SECURITY_CONFIG['LOCKOUT_DURATION'], "1")
+
+# Initialize security manager
+security_manager = SecurityManager()
+
+# Security middleware
+async def security_middleware(request: Request, call_next):
+    """Military-grade security middleware"""
+    start_time = time.time()
+    client_ip = get_remote_address(request)
+    user_agent = request.headers.get('user-agent', '')
+    
+    # Check IP reputation
+    if not await security_manager.check_ip_reputation(client_ip):
+        await security_manager.log_suspicious_activity(
+            client_ip, 'blocked_ip_access', f"Blocked IP attempted access: {request.url}"
+        )
+        return JSONResponse(
+            status_code=403,
+            content={"detail": "Access denied from this IP address"}
+        )
+    
+    # Check user agent
+    if not await security_manager.check_user_agent(user_agent):
+        await security_manager.log_suspicious_activity(
+            client_ip, 'malicious_user_agent', f"Suspicious user agent: {user_agent}"
+        )
+        return JSONResponse(
+            status_code=403,
+            content={"detail": "Invalid client"}
+        )
+    
+    # Check request size
+    content_length = request.headers.get('content-length')
+    if content_length and int(content_length) > SECURITY_CONFIG['MAX_REQUEST_SIZE']:
+        await security_manager.log_suspicious_activity(
+            client_ip, 'oversized_request', f"Request size: {content_length}"
+        )
+        return JSONResponse(
+            status_code=413,
+            content={"detail": "Request too large"}
+        )
+    
+    # Check for malicious payloads in query parameters
+    query_string = str(request.url.query)
+    if await security_manager.detect_malicious_payload(query_string):
+        await security_manager.log_suspicious_activity(
+            client_ip, 'malicious_query', f"Suspicious query: {query_string}"
+        )
+        return JSONResponse(
+            status_code=400,
+            content={"detail": "Invalid request parameters"}
+        )
+    
+    # Process request
+    try:
+        response = await call_next(request)
+        
+        # Add security headers
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        
+        # Log response time for monitoring
+        process_time = time.time() - start_time
+        response.headers["X-Process-Time"] = str(process_time)
+        
+        return response
+        
+    except Exception as e:
+        await security_manager.log_suspicious_activity(
+            client_ip, 'request_error', f"Request processing error: {str(e)}"
+        )
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Internal server error"}
+        )
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
