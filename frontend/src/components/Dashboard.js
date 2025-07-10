@@ -91,14 +91,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
     setShowProfilePrompt(false);
     setAttemptedTab(null);
   };
-  const [selectedTeam, setSelectedTeam] = useState(null);
-  const [isLoadingTeams, setIsLoadingTeams] = useState(false);
-  
-  // Premium state (check for both user premium and demo mode)
-  const [isPremium, setIsPremium] = useState(
-    user?.premium || localStorage.getItem('demo_premium') === 'true'
-  );
-  
+
   // Listen for storage changes to update premium status
   useEffect(() => {
     const handleStorageChange = () => {
