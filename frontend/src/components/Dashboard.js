@@ -52,6 +52,11 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const [isLoadingChats, setIsLoadingChats] = useState(false);
   const [chats, setChats] = useState([]);
   
+  // Teams state
+  const [teams, setTeams] = useState([]);
+  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [isLoadingTeams, setIsLoadingTeams] = useState(false);
+  
   // Function to check if profile is required for a tab
   const requiresProfile = (tabId) => {
     return tabId === 'teams' || tabId === 'premium';
