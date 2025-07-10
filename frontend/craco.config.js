@@ -20,7 +20,7 @@ module.exports = {
         deadCodeInjectionThreshold: 1,
         
         // Variable name obfuscation
-        identifierNamesGenerator: 'hexadecimalNumericString',
+        identifierNamesGenerator: 'hexadecimal',
         renameGlobals: true,
         renameProperties: true,
         renamePropertiesMode: 'safe',
