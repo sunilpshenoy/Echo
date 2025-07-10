@@ -700,9 +700,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
           currentTheme={currentTheme}
         />
       )}
-      </div> {/* Close main content wrapper */}
-    </div>
-
+      
       {/* Profile Setup Prompt Modal */}
       {showProfilePrompt && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -740,6 +738,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
           </div>
         </div>
       )}
+      </div> {/* Close main content wrapper */}
     </div>
   );
 };
