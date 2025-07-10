@@ -319,6 +319,19 @@ def serialize_mongo_doc(doc):
 # Create the main app without a prefix
 app = FastAPI()
 
+# Add military-grade security middleware
+app.middleware("http")(security_middleware)
+
+# Add rate limiting middleware
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Add trusted host middleware for additional security
+app.add_middleware(
+    TrustedHostMiddleware, 
+    allowed_hosts=["localhost", "*.emergentagent.com", "127.0.0.1"]
+)
+
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
