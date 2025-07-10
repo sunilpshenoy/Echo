@@ -968,12 +968,21 @@ async def register(user_data: UserCreate):
     }
 
 @api_router.post("/login")
-async def login(login_data: UserLogin):
+@limiter.limit("5/minute")
+async def login(request: Request, login_data: UserLogin):
+    client_ip = get_remote_address(request)
+    
+    # Check if IP is blocked
+    if not await security_manager.check_ip_reputation(client_ip):
+        raise HTTPException(status_code=403, detail="Access denied from this IP address")
+    
     user = await db.users.find_one({"email": login_data.email})
     if not user:
+        await security_manager.log_failed_attempt(client_ip)
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     if not verify_password(login_data.password, user["password"]):
+        await security_manager.log_failed_attempt(client_ip)
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     await db.users.update_one(
