@@ -1,14 +1,11 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import './App.css';
 import AuthScreen from './components/AuthScreen';
 import ProfileSetup from './components/ProfileSetup';
 import Dashboard from './components/Dashboard';
 import { useTranslation } from 'react-i18next';
 import './i18n';
-import SecurityShield from './security/SecurityShield';
-
-// Initialize military-grade security
-const securityShield = new SecurityShield();
 
 const App = () => {
   const { i18n } = useTranslation();
