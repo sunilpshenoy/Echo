@@ -13,7 +13,9 @@ import ChannelsInterface from './ChannelsInterface';
 
 const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState('chats');
+  const [activeTab, setActiveTab] = useState('chats'); // Default to chats
+  const [showProfilePrompt, setShowProfilePrompt] = useState(false);
+  const [attemptedTab, setAttemptedTab] = useState(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editProfileData, setEditProfileData] = useState({
     display_name: user?.display_name || user?.username || '',
