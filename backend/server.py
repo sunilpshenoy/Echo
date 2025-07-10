@@ -1,10 +1,19 @@
-from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Depends, File, Form, UploadFile, BackgroundTasks
+from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Depends, File, Form, UploadFile, BackgroundTasks, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
+import redis
+import hashlib
+import time
 from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any, Union
@@ -23,11 +32,44 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import secrets
-import hashlib
 import qrcode
 from io import BytesIO
 import zipfile
 import tempfile
+
+# Military-grade security configuration
+SECURITY_CONFIG = {
+    'MAX_REQUEST_SIZE': 10 * 1024 * 1024,  # 10MB
+    'MAX_REQUESTS_PER_MINUTE': 100,
+    'MAX_LOGIN_ATTEMPTS': 5,
+    'LOCKOUT_DURATION': 900,  # 15 minutes
+    'SUSPICIOUS_PATTERNS': [
+        'script', 'javascript:', 'vbscript:', 'onload=', 'onerror=',
+        'eval(', 'document.cookie', 'window.location', 'alert(',
+        '../', '..\\', '/etc/passwd', '/etc/shadow',
+        'UNION SELECT', 'DROP TABLE', 'INSERT INTO', 'UPDATE SET'
+    ],
+    'BLOCKED_USER_AGENTS': [
+        'sqlmap', 'nikto', 'w3af', 'burp', 'nmap', 'masscan',
+        'acunetix', 'netsparker', 'websecurify', 'havij'
+    ],
+    'ALLOWED_ORIGINS': [
+        'http://localhost:3000',
+        'https://b3c1e028-1222-4f2c-ab2f-bbec96be9091.preview.emergentagent.com'
+    ]
+}
+
+# Initialize Redis for security tracking
+try:
+    redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+    redis_client.ping()
+    REDIS_AVAILABLE = True
+except:
+    REDIS_AVAILABLE = False
+    print("⚠️ Redis not available - using memory-based rate limiting")
+
+# Rate limiter
+limiter = Limiter(key_func=get_remote_address)
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
