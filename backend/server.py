@@ -72,6 +72,8 @@ except:
 limiter = Limiter(key_func=get_remote_address)
 
 ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
+
 # Military-grade security class
 class SecurityManager:
     def __init__(self):
