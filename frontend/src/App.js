@@ -92,12 +92,9 @@ const App = () => {
     setToken(authToken);
     localStorage.setItem('token', authToken);
     
-    // Check if profile is complete
-    if (userData.profile_completed) {
-      setCurrentStep('dashboard');
-    } else {
-      setCurrentStep('profile_setup');
-    }
+    // Always go to dashboard - profile setup is now optional for basic chat
+    // Profile will be required only when accessing Groups or Premium tabs
+    setCurrentStep('dashboard');
   };
   
   const handleProfileComplete = (updatedUser) => {
