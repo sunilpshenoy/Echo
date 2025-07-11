@@ -52,15 +52,17 @@ fi
 
 # Check build directory is ignored
 echo "6. Verifying build files are ignored..."
-if [ -d "frontend/build" ]; then
-    if git check-ignore frontend/build/ >/dev/null 2>&1; then
-        echo "✅ Build files properly ignored"
-    else
-        echo "❌ WARNING: Build files not ignored!"
-        exit 1
-    fi
+mkdir -p frontend/build
+echo "test" > frontend/build/test.js
+if git check-ignore frontend/build/test.js >/dev/null 2>&1; then
+    echo "✅ Build files properly ignored"
+    rm -f frontend/build/test.js
+    rmdir frontend/build 2>/dev/null || true
 else
-    echo "✅ Build directory doesn't exist (will be ignored when created)"
+    echo "❌ WARNING: Build files not ignored!"
+    rm -f frontend/build/test.js
+    rmdir frontend/build 2>/dev/null || true
+    exit 1
 fi
 
 echo ""
