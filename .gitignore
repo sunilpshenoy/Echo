@@ -176,4 +176,8 @@ Thumbs.db
 .security/
 security-scan-results/
 vulnerability-reports/
-penetration-test-results/ frontend/build/
+penetration-test-results/
+
+# Additional build directories
+frontend/build/
+backend/build/
