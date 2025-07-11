@@ -1,5 +1,89 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# ===============================
+# MILITARY-GRADE SECURITY EXCLUSIONS
+# ===============================
+
+# Environment files (CRITICAL - NEVER COMMIT)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.staging
+*.env
+.env.*
+
+# Backend environment files
+backend/.env
+backend/.env.*
+backend/config.py
+backend/secrets.py
+
+# Frontend environment files  
+frontend/.env
+frontend/.env.*
+frontend/.env.local
+
+# Security and authentication
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+secrets/
+keys/
+certificates/
+auth/
+credentials/
+*credentials*
+*secret*
+*token*
+*password*
+*.jwt
+
+# Database files and dumps
+*.db
+*.sqlite
+*.sqlite3
+*.sql
+database/
+dumps/
+backups/
+*.dump
+*.backup
+
+# Configuration files with secrets
+config.json
+config.yaml
+config.yml
+settings.json
+app.config
+
+# API keys and tokens
+*api-key*
+*api_key*
+*access-token*
+*access_token*
+*.token
+
+# Production builds (contains obfuscated code)
+build/
+dist/
+.next/
+out/
+
+# Security logs and reports
+security-reports/
+audit-logs/
+*.security
+*.audit
+
+# ===============================
+# STANDARD EXCLUSIONS
+# ===============================
+
 # IDE and editors
 .idea/
 .vscode/
@@ -20,20 +104,8 @@ node_modules/
 /coverage
 
 # Next.js
-/.next/
-/out/
 next-env.d.ts
 *.tsbuildinfo
-
-# Production builds
-/build
-dist/
-dist
-
-# Environment files (comprehensive coverage)
-
-*token.json*
-*credentials.json*
 
 # Logs and debug files
 npm-debug.log*
@@ -41,16 +113,19 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 dump.rdb
+*.log
 
 # System files
 .DS_Store
-*.pem
+Thumbs.db
 
 # Python
 __pycache__/
 *pyc*
 venv/
 .venv/
+*.py[cod]
+*$py.class
 
 # Development tools
 chainlit.md
@@ -75,6 +150,30 @@ agenthub/agents/youtube/db
 
 # Build caches
 .cache/
+.tmp/
+temp/
 
 # Mobile development
-android-sdk/ 
+android-sdk/
+
+# Redis dumps
+dump.rdb
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ===============================
+# SECURITY MONITORING EXCLUSIONS
+# ===============================
+
+# Security testing tools output
+.security/
+security-scan-results/
+vulnerability-reports/
+penetration-test-results/ 
