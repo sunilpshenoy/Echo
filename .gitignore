@@ -176,4 +176,4 @@ Thumbs.db
 .security/
 security-scan-results/
 vulnerability-reports/
-penetration-test-results/ 
+penetration-test-results/ frontend/build/
