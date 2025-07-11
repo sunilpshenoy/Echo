@@ -16,7 +16,7 @@ fi
 
 # Check for hardcoded secrets in code
 echo "2. Scanning for hardcoded secrets..."
-if grep -r "password\s*=" --include="*.js" --include="*.py" frontend/ backend/ 2>/dev/null | grep -v "password_hash"; then
+if grep -r "password\s*=" --include="*.js" --include="*.py" --exclude-dir="node_modules" --exclude-dir="__pycache__" frontend/ backend/ 2>/dev/null | grep -v "password_hash"; then
     echo "❌ WARNING: Possible hardcoded passwords found!"
     exit 1
 else
@@ -25,7 +25,7 @@ fi
 
 # Check for API keys
 echo "3. Scanning for API keys..."
-if grep -r "api[_-]key\s*=" --include="*.js" --include="*.py" frontend/ backend/ 2>/dev/null; then
+if grep -r "api[_-]key\s*=" --include="*.js" --include="*.py" --exclude-dir="node_modules" --exclude-dir="__pycache__" frontend/ backend/ 2>/dev/null; then
     echo "❌ WARNING: Possible hardcoded API keys found!"
     exit 1
 else
