@@ -1,0 +1,19 @@
+# Git-crypt configuration - Encrypt sensitive files
+# Files and directories to encrypt in the repository
+
+# Security configurations
+craco.config.js filter=git-crypt diff=git-crypt
+frontend/src/security/** filter=git-crypt diff=git-crypt
+
+# Backend security components
+backend/server.py filter=git-crypt diff=git-crypt
+backend/requirements.txt filter=git-crypt diff=git-crypt
+
+# Any future security-related files
+**/security/** filter=git-crypt diff=git-crypt
+**/*security* filter=git-crypt diff=git-crypt
+**/*auth* filter=git-crypt diff=git-crypt
+
+# Configuration files that might contain sensitive settings
+**/config.js filter=git-crypt diff=git-crypt
+**/settings.js filter=git-crypt diff=git-crypt
