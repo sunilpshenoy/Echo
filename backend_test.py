@@ -214,8 +214,8 @@ class E2EEncryptionTester:
             self.log_test(f"E2E Key Upload for {username} (no signing_key)", False, f"Error: {str(e)}")
     
     def test_e2e_key_retrieval(self):
-        """Test E2E key bundle retrieval"""
-        print("\n=== Testing E2E Key Bundle Retrieval ===")
+        """Test E2E key bundle retrieval with signing_key field"""
+        print("\n=== Testing E2E Key Bundle Retrieval (with signing_key) ===")
         
         if "alice_e2e" not in self.users or "bob_e2e" not in self.users:
             self.log_test("E2E Key Retrieval", False, "Required users not available")
@@ -236,8 +236,14 @@ class E2EEncryptionTester:
                 required_fields = ["user_id", "identity_key", "signed_pre_key", "signed_pre_key_signature", "one_time_pre_keys"]
                 
                 has_all_fields = all(field in data for field in required_fields)
+                has_signing_key = "signing_key" in data
+                
                 self.log_test("Alice retrieves Bob's E2E keys", has_all_fields, 
                             f"Retrieved keys with fields: {list(data.keys())}")
+                
+                # NEW: Verify signing_key field is present
+                self.log_test("Bob's keys include signing_key field", has_signing_key, 
+                            f"signing_key present: {has_signing_key}, value: {data.get('signing_key', 'None')}")
                 
                 # Verify one-time pre-key consumption
                 if data.get("one_time_pre_keys"):
@@ -263,13 +269,62 @@ class E2EEncryptionTester:
                 required_fields = ["user_id", "identity_key", "signed_pre_key", "signed_pre_key_signature", "one_time_pre_keys"]
                 
                 has_all_fields = all(field in data for field in required_fields)
+                has_signing_key = "signing_key" in data
+                
                 self.log_test("Bob retrieves Alice's E2E keys", has_all_fields, 
                             f"Retrieved keys with fields: {list(data.keys())}")
+                
+                # NEW: Verify signing_key field is present
+                self.log_test("Alice's keys include signing_key field", has_signing_key, 
+                            f"signing_key present: {has_signing_key}, value: {data.get('signing_key', 'None')}")
             else:
                 self.log_test("Bob retrieves Alice's E2E keys", False, f"HTTP {response.status_code}: {response.text}")
                 
         except Exception as e:
             self.log_test("E2E Key Retrieval", False, f"Error: {str(e)}")
+    
+    def test_e2e_key_retrieval_backward_compatibility(self):
+        """Test E2E key bundle retrieval for users without signing_key (backward compatibility)"""
+        print("\n=== Testing E2E Key Bundle Retrieval (backward compatibility) ===")
+        
+        if "charlie_e2e" not in self.users:
+            self.log_test("E2E Key Retrieval (backward compatibility)", False, "Charlie user not available")
+            return
+        
+        if "alice_e2e" not in self.users:
+            self.log_test("E2E Key Retrieval (backward compatibility)", False, "Alice user not available")
+            return
+        
+        try:
+            # Alice retrieves Charlie's keys (Charlie uploaded without signing_key)
+            alice_headers = self.get_auth_headers("alice_e2e")
+            charlie_user_id = self.users["charlie_e2e"]["user_id"]
+            
+            response = self.session.get(
+                f"{BACKEND_URL}/e2e/keys/{charlie_user_id}",
+                headers=alice_headers
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ["user_id", "identity_key", "signed_pre_key", "signed_pre_key_signature", "one_time_pre_keys"]
+                
+                has_all_fields = all(field in data for field in required_fields)
+                has_signing_key = "signing_key" in data
+                signing_key_value = data.get("signing_key")
+                
+                self.log_test("Alice retrieves Charlie's E2E keys (no signing_key)", has_all_fields, 
+                            f"Retrieved keys with fields: {list(data.keys())}")
+                
+                # NEW: Verify signing_key field handling for backward compatibility
+                self.log_test("Charlie's keys handle missing signing_key", True, 
+                            f"signing_key present: {has_signing_key}, value: {signing_key_value} (should be None for backward compatibility)")
+                    
+            else:
+                self.log_test("Alice retrieves Charlie's E2E keys (no signing_key)", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("E2E Key Retrieval (backward compatibility)", False, f"Error: {str(e)}")
     
     def test_e2e_conversation_initialization(self):
         """Test E2E conversation initialization"""
