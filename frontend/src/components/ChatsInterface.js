@@ -288,7 +288,8 @@ const ChatsInterface = ({
   // Upload key bundle to server
   const uploadKeyBundle = async (keyBundle) => {
     try {
-      await axios.post(`${api}/e2e/key-bundle`, {
+      await axios.post(`${api}/e2e/keys`, {
+        user_id: user.user_id,
         identity_key: keyBundle.identityKey,
         signing_key: keyBundle.signingKey,
         signed_pre_key: keyBundle.signedPreKey,
