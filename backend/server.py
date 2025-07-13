@@ -138,6 +138,11 @@ class SecurityManager:
         
         return True
     
+    async def log_activity(self, ip: str, activity_type: str, details: str):
+        """Log general activity for monitoring"""
+        # For now, just log to console - in production this would go to proper logging system
+        logging.info(f"Activity [{activity_type}] from {ip}: {details}")
+    
     async def log_suspicious_activity(self, ip: str, activity_type: str, details: str):
         """Log suspicious activity for monitoring"""
         current_time = time.time()
