@@ -503,6 +503,29 @@ const MarketplaceInterface = ({ user, token, api }) => {
           >
             My Listings
           </button>
+          <button
+            onClick={() => setActiveView('verification')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium relative ${
+              activeView === 'verification'
+                ? 'bg-green-500 text-white'
+                : 'text-gray-600 hover:text-green-600'
+            }`}
+          >
+            🛡️ Verification
+            {!verificationStatus.government_id_verified && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-3 h-3"></span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveView('analytics')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium ${
+              activeView === 'analytics'
+                ? 'bg-purple-500 text-white'
+                : 'text-gray-600 hover:text-purple-600'
+            }`}
+          >
+            📊 Analytics
+          </button>
         </div>
 
         {/* Search and filters */}
