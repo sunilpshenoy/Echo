@@ -339,7 +339,7 @@ const MarketplaceInterface = ({ user, token, api }) => {
     }
   };
 
-  // Render listing card
+  // Enhanced listing card with verification badges and safety features
   const renderListingCard = (listing, isOwnListing = false) => (
     <div key={listing.listing_id} className="bg-white rounded-lg shadow-md p-4 mb-4">
       <div className="flex justify-between items-start mb-2">
@@ -360,13 +360,53 @@ const MarketplaceInterface = ({ user, token, api }) => {
         </div>
       </div>
 
+      {/* Seller verification badges */}
+      {listing.seller && (
+        <div className="flex items-center space-x-2 mb-2">
+          <span className="text-sm text-gray-600">By {listing.seller.display_name}</span>
+          <div className="flex space-x-1">
+            {listing.seller.email_verified && (
+              <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded" title="Email Verified">
+                📧
+              </span>
+            )}
+            {listing.seller.phone_verified && (
+              <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded" title="Phone Verified">
+                📱
+              </span>
+            )}
+            {listing.seller.government_id_verified && (
+              <span className="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded" title="Government ID Verified">
+                🆔
+              </span>
+            )}
+            <span className={`text-xs px-2 py-1 rounded ${
+              listing.seller.verification_level === 'premium' ? 'bg-gold-100 text-gold-700' :
+              listing.seller.verification_level === 'verified' ? 'bg-green-100 text-green-700' :
+              'bg-gray-100 text-gray-600'
+            }`}>
+              {listing.seller.verification_level.toUpperCase()}
+            </span>
+          </div>
+        </div>
+      )}
+
       <p className="text-gray-600 text-sm mb-3 line-clamp-2">{listing.description}</p>
+
+      {/* Location information */}
+      {listing.location && (
+        <div className="text-xs text-gray-500 mb-2">
+          📍 {listing.location.city && `${listing.location.city}, `}
+          {listing.location.state && `${listing.location.state} `}
+          {listing.location.pincode && `- ${listing.location.pincode}`}
+        </div>
+      )}
 
       <div className="flex justify-between items-center mb-3">
         <div>
           {listing.price && (
             <span className="text-lg font-bold text-green-600">
-              ${listing.price}
+              ₹{listing.price}
               {listing.price_type === 'hourly' && '/hr'}
             </span>
           )}
@@ -376,10 +416,6 @@ const MarketplaceInterface = ({ user, token, api }) => {
           {listing.price_type === 'free' && (
             <span className="text-lg font-bold text-blue-600">Free</span>
           )}
-        </div>
-        
-        <div className="text-xs text-gray-500">
-          By {listing.username || listing.owner?.username || 'Unknown'}
         </div>
       </div>
 
@@ -421,6 +457,15 @@ const MarketplaceInterface = ({ user, token, api }) => {
             className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
           >
             💬 Contact Seller
+          </button>
+          <button 
+            onClick={() => {
+              setSelectedListingForSafety(listing);
+              setShowSafetyModal(true);
+            }}
+            className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 text-sm"
+          >
+            🛡️ Safety Check-in
           </button>
           <button className="bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 text-sm">
             📁 Save
