@@ -290,6 +290,7 @@ const ChatsInterface = ({
     try {
       await axios.post(`${api}/e2e/key-bundle`, {
         identity_key: keyBundle.identityKey,
+        signing_key: keyBundle.signingKey,
         signed_pre_key: keyBundle.signedPreKey,
         signed_pre_key_signature: keyBundle.signedPreKeySignature,
         one_time_pre_keys: keyBundle.oneTimePreKeys
