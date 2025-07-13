@@ -6533,17 +6533,11 @@ async def delete_custom_emoji(emoji_id: str, current_user = Depends(get_current_
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://b3c1e028-1222-4f2c-ab2f-bbec96be9091.preview.emergentagent.com",
-        "https://*.preview.emergentagent.com",
-        "https://*.emergentagent.com"
-    ],
+    allow_origins=["*"],  # Allow all origins for preview environment
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
-    expose_headers=["X-Process-Time"],
-    max_age=600,  # Cache preflight for 10 minutes
+    expose_headers=["*"],
 )
 
 # Start background tasks
