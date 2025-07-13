@@ -1377,9 +1377,9 @@ backend:
 frontend:
   - task: "E2E Encryption Integration"
     implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
+    working: false
+    file: "/app/frontend/src/components/ChatsInterface.js"
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -1392,6 +1392,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "Comprehensive E2E encryption backend testing completed successfully. All 23 tests passed (100% success rate). Tested endpoints: POST/GET /api/e2e/keys (key bundle upload/retrieval), POST /api/e2e/conversation/init (conversation initialization), GET /api/e2e/conversation/pending (pending conversations), POST /api/e2e/message (encrypted message sending), GET /api/e2e/messages/{conversation_id} (encrypted message retrieval), POST /api/e2e/keys/refresh (one-time pre-key refresh). Key features verified: 1) Zero-knowledge architecture - server never sees private keys or decrypted content, 2) Signal Protocol-style key exchange with identity keys, signed pre-keys, and one-time pre-keys, 3) Proper access control - users can only upload their own keys and send messages as themselves, 4) One-time pre-key consumption and refresh mechanism, 5) Encrypted message storage with proper metadata (iv, ratchet_public_key, message_number, chain_length), 6) Integration with existing chat system, 7) WebSocket notifications for real-time E2E message delivery. Fixed minor issue: Added missing is_user_online() method to ConnectionManager class. All E2E encryption functionality is working correctly and ready for frontend integration."
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL E2E ENCRYPTION FRONTEND ISSUE FOUND: Comprehensive frontend testing revealed a critical cryptographic algorithm mismatch error. E2E encryption initialization is attempted on user login but fails with 'InvalidAccessError: key.algorithm does not match that of operation' error in the signData function. The error occurs during the signed pre-key signature generation process. Console logs show: 1) E2E encryption initialization starts correctly, 2) Key generation begins, 3) Fails at signData step with algorithm mismatch. The application gracefully falls back to unencrypted mode, and basic chat functionality works. Visual encryption indicators (🔒) are present in the UI. However, no actual E2E encryption is functioning due to this cryptographic implementation error. The issue appears to be in the E2EEncryption.js file where ECDH keys are being used for ECDSA signing operations. REQUIRES IMMEDIATE FIX: The key generation and signing algorithm implementation needs to be corrected to use proper key types for their respective operations."
     implemented: true
     working: "NA"
     file: "/app/frontend/src/components/MapView.js"
