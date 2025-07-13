@@ -16,14 +16,19 @@ class E2EEncryption {
    */
   async initialize() {
     try {
-      // Generate long-term identity key pair
+      // Generate long-term identity key pair for ECDH
       this.identityKeyPair = await this.generateKeyPair();
       
-      // Generate signed pre-key
+      // Generate signing key pair for ECDSA signatures
+      this.signingKeyPair = await this.generateSigningKeyPair();
+      
+      // Generate signed pre-key for ECDH
       this.signedPreKey = await this.generateKeyPair();
+      
+      // Sign the pre-key with the signing key (not identity key)
       this.signedPreKeySignature = await this.signData(
         await this.exportPublicKey(this.signedPreKey.publicKey),
-        this.identityKeyPair.privateKey
+        this.signingKeyPair.privateKey
       );
 
       // Generate one-time pre-keys (bundle of 10)
@@ -35,6 +40,7 @@ class E2EEncryption {
       console.log('✅ E2E Encryption initialized successfully');
       return {
         identityKey: await this.exportPublicKey(this.identityKeyPair.publicKey),
+        signingKey: await this.exportPublicKey(this.signingKeyPair.publicKey, 'ECDSA'),
         signedPreKey: await this.exportPublicKey(this.signedPreKey.publicKey),
         signedPreKeySignature: this.signedPreKeySignature,
         oneTimePreKeys: await Promise.all(
