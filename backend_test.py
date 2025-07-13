@@ -122,8 +122,8 @@ class E2EEncryptionTester:
         return len(self.users) >= 2
     
     def test_e2e_key_upload(self):
-        """Test E2E key bundle upload"""
-        print("\n=== Testing E2E Key Bundle Upload ===")
+        """Test E2E key bundle upload with signing_key field"""
+        print("\n=== Testing E2E Key Bundle Upload (with signing_key) ===")
         
         for username in ["alice_e2e", "bob_e2e"]:
             if username not in self.users:
@@ -131,13 +131,14 @@ class E2EEncryptionTester:
                 continue
             
             try:
-                # Generate mock keys
-                keys = self.generate_mock_keys()
+                # Generate mock keys with signing_key
+                keys = self.generate_mock_keys(include_signing_key=True)
                 
-                # Prepare key bundle
+                # Prepare key bundle with signing_key
                 key_bundle = {
                     "user_id": self.users[username]["user_id"],
                     "identity_key": keys["identity_key"],
+                    "signing_key": keys["signing_key"],  # NEW: Include signing_key for algorithm compatibility
                     "signed_pre_key": keys["signed_pre_key"],
                     "signed_pre_key_signature": keys["signed_pre_key_signature"],
                     "one_time_pre_keys": keys["one_time_pre_keys"],
@@ -155,15 +156,62 @@ class E2EEncryptionTester:
                 if response.status_code == 200:
                     data = response.json()
                     success = data.get("status") == "success"
-                    self.log_test(f"E2E Key Upload for {username}", success, data.get("message", ""))
+                    self.log_test(f"E2E Key Upload for {username} (with signing_key)", success, data.get("message", ""))
                     
                     # Store keys for later use
                     self.users[username]["keys"] = keys
                 else:
-                    self.log_test(f"E2E Key Upload for {username}", False, f"HTTP {response.status_code}: {response.text}")
+                    self.log_test(f"E2E Key Upload for {username} (with signing_key)", False, f"HTTP {response.status_code}: {response.text}")
                     
             except Exception as e:
-                self.log_test(f"E2E Key Upload for {username}", False, f"Error: {str(e)}")
+                self.log_test(f"E2E Key Upload for {username} (with signing_key)", False, f"Error: {str(e)}")
+    
+    def test_e2e_key_upload_without_signing_key(self):
+        """Test E2E key bundle upload without signing_key field (backward compatibility)"""
+        print("\n=== Testing E2E Key Bundle Upload (backward compatibility - no signing_key) ===")
+        
+        # Test with a third user to verify backward compatibility
+        username = "charlie_e2e"
+        success, user_data = self.register_test_user(username, f"{username}@test.com", "testpass123")
+        if not success:
+            self.log_test(f"E2E Key Upload for {username} (no signing_key)", False, f"User registration failed: {user_data}")
+            return
+        
+        try:
+            # Generate mock keys without signing_key
+            keys = self.generate_mock_keys(include_signing_key=False)
+            
+            # Prepare key bundle without signing_key
+            key_bundle = {
+                "user_id": self.users[username]["user_id"],
+                "identity_key": keys["identity_key"],
+                # NOTE: No signing_key field for backward compatibility test
+                "signed_pre_key": keys["signed_pre_key"],
+                "signed_pre_key_signature": keys["signed_pre_key_signature"],
+                "one_time_pre_keys": keys["one_time_pre_keys"],
+                "created_at": datetime.utcnow().isoformat(),
+                "updated_at": datetime.utcnow().isoformat()
+            }
+            
+            # Upload keys
+            response = self.session.post(
+                f"{BACKEND_URL}/e2e/keys",
+                json=key_bundle,
+                headers=self.get_auth_headers(username)
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                success = data.get("status") == "success"
+                self.log_test(f"E2E Key Upload for {username} (no signing_key)", success, data.get("message", ""))
+                
+                # Store keys for later use
+                self.users[username]["keys"] = keys
+            else:
+                self.log_test(f"E2E Key Upload for {username} (no signing_key)", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test(f"E2E Key Upload for {username} (no signing_key)", False, f"Error: {str(e)}")
     
     def test_e2e_key_retrieval(self):
         """Test E2E key bundle retrieval"""
