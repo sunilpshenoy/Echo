@@ -1557,7 +1557,7 @@ const ChatsInterface = ({
   };
 
   // Enhanced message rendering with decryption support
-  const renderMessage = (message) => {
+  const MessageComponent = ({ message }) => {
     const isOwnMessage = message.sender_id === user.user_id;
     const reactions = messageReactions[message.message_id] || [];
     const [decryptedContent, setDecryptedContent] = useState(null);
@@ -1665,6 +1665,15 @@ const ChatsInterface = ({
             onRemoveReaction={removeEmojiReaction}
             currentUserId={user.user_id}
           />
+        </div>
+      </div>
+    );
+  };
+
+  // Simple wrapper function for rendering messages
+  const renderMessage = (message) => {
+    return <MessageComponent key={message.message_id} message={message} />;
+  };
         </div>
       </div>
     );
