@@ -476,6 +476,10 @@ class ConnectionManager:
             chat_id,
             user_id
         )
+    
+    def is_user_online(self, user_id: str) -> bool:
+        """Check if a user is currently online (has active WebSocket connection)"""
+        return user_id in self.user_connections
 
 manager = ConnectionManager()
 
