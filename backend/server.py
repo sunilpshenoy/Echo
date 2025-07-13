@@ -927,6 +927,49 @@ class MarketplaceMessage(BaseModel):
     message: str = Field(..., min_length=1, max_length=500)
     offer_price: Optional[float] = None
 
+# Enhanced User Verification Models
+class UserVerification(BaseModel):
+    phone_number: Optional[str] = Field(None, regex=r"^\+91[6-9]\d{9}$")  # Indian mobile format
+    email_verified: bool = Field(default=False)
+    phone_verified: bool = Field(default=False)
+    government_id_verified: bool = Field(default=False)
+    verification_level: str = Field(default="basic", description="basic, verified, premium")
+
+class GovernmentIDVerification(BaseModel):
+    id_type: str = Field(..., description="aadhaar, pan, voter_id, passport, driving_license")
+    id_number: str = Field(..., min_length=6, max_length=20)
+    full_name: str = Field(..., min_length=2, max_length=100)
+    date_of_birth: Optional[str] = Field(None, regex=r"^\d{4}-\d{2}-\d{2}$")
+    address: Optional[str] = Field(None, max_length=500)
+    document_image: Optional[str] = None  # Base64 encoded image
+
+class LocationSearch(BaseModel):
+    state: Optional[str] = None
+    city: Optional[str] = None
+    pincode: Optional[str] = Field(None, regex=r"^\d{6}$")  # Indian pincode format
+    latitude: Optional[float] = Field(None, ge=-90, le=90)
+    longitude: Optional[float] = Field(None, ge=-180, le=180)
+    radius_km: Optional[int] = Field(10, ge=1, le=100)
+
+class EnhancedMarketplaceSearch(BaseModel):
+    query: Optional[str] = None
+    category: Optional[str] = None
+    min_price: Optional[float] = Field(None, ge=0)
+    max_price: Optional[float] = Field(None, ge=0)
+    location: Optional[LocationSearch] = None
+    verification_level: Optional[str] = Field(None, description="basic, verified, premium")
+    sort_by: str = Field(default="relevance", description="relevance, price_low, price_high, distance, date_new, date_old")
+    only_verified_sellers: bool = Field(default=False)
+
+class SafetyCheckIn(BaseModel):
+    listing_id: str
+    meeting_location: str
+    meeting_time: datetime
+    contact_phone: str = Field(..., regex=r"^\+91[6-9]\d{9}$")
+    emergency_contact_name: Optional[str] = None
+    emergency_contact_phone: Optional[str] = Field(None, regex=r"^\+91[6-9]\d{9}$")
+    status: str = Field(default="scheduled", description="scheduled, met, completed, emergency")
+
 class DocumentCreate(BaseModel):
     title: str
     content: str
