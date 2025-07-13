@@ -940,7 +940,7 @@ class GovernmentIDVerification(BaseModel):
     id_type: str = Field(..., description="aadhaar, pan, voter_id, passport, driving_license")
     id_number: str = Field(..., min_length=6, max_length=20)
     full_name: str = Field(..., min_length=2, max_length=100)
-    date_of_birth: Optional[str] = Field(None, regex=r"^\d{4}-\d{2}-\d{2}$")
+    date_of_birth: Optional[str] = Field(None, pattern=r"^\d{4}-\d{2}-\d{2}$")
     address: Optional[str] = Field(None, max_length=500)
     document_image: Optional[str] = None  # Base64 encoded image
 
