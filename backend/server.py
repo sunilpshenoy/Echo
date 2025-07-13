@@ -7139,8 +7139,8 @@ async def send_marketplace_message(request: Request, listing_id: str, message_da
         # Create or find existing chat between these users
         chat_filter = {
             "$or": [
-                {"participants": [current_user["user_id"], message_data.recipient_id]},
-                {"participants": [message_data.recipient_id, current_user["user_id"]]}
+                {"members": [current_user["user_id"], message_data.recipient_id]},
+                {"members": [message_data.recipient_id, current_user["user_id"]]}
             ]
         }
         
@@ -7153,7 +7153,7 @@ async def send_marketplace_message(request: Request, listing_id: str, message_da
             chat_id = str(uuid.uuid4())
             chat_data = {
                 "chat_id": chat_id,
-                "participants": [current_user["user_id"], message_data.recipient_id],
+                "members": [current_user["user_id"], message_data.recipient_id],
                 "created_at": datetime.utcnow(),
                 "is_group": False,
                 "marketplace_listing_id": listing_id  # Link to marketplace listing
