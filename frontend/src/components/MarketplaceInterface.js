@@ -128,7 +128,7 @@ const MarketplaceInterface = ({ user, token, api }) => {
     }
   };
 
-  // Fetch marketplace listings
+  // Enhanced fetch listings with filters
   const fetchListings = async () => {
     try {
       setLoading(true);
@@ -136,6 +136,14 @@ const MarketplaceInterface = ({ user, token, api }) => {
       
       if (selectedCategory) params.append('category', selectedCategory);
       if (searchQuery) params.append('query', searchQuery);
+      if (filters.state) params.append('state', filters.state);
+      if (filters.city) params.append('city', filters.city);
+      if (filters.pincode) params.append('pincode', filters.pincode);
+      if (filters.minPrice) params.append('min_price', filters.minPrice);
+      if (filters.maxPrice) params.append('max_price', filters.maxPrice);
+      if (filters.verificationLevel) params.append('verification_level', filters.verificationLevel);
+      if (filters.onlyVerifiedSellers) params.append('only_verified_sellers', 'true');
+      if (filters.sortBy) params.append('sort_by', filters.sortBy);
       
       const response = await axios.get(`${api}/marketplace/listings?${params}`, {
         headers: { Authorization: `Bearer ${token}` }
