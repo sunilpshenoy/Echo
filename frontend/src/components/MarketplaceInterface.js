@@ -528,37 +528,122 @@ const MarketplaceInterface = ({ user, token, api }) => {
           </button>
         </div>
 
-        {/* Search and filters */}
+        {/* Enhanced search and filters */}
         {activeView === 'browse' && (
-          <div className="flex space-x-2">
-            <input
-              type="text"
-              placeholder="Search listings..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-            
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Categories</option>
-              {categories.map(category => (
-                <option key={category.value} value={category.value}>
-                  {category.icon} {category.label}
-                </option>
-              ))}
-            </select>
-            
-            <button
-              onClick={handleSearch}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-            >
-              🔍
-            </button>
+          <div className="space-y-4">
+            {/* Main search bar */}
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                placeholder="Search listings..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleEnhancedSearch()}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+              
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Categories</option>
+                {categories.map(category => (
+                  <option key={category.value} value={category.value}>
+                    {category.icon} {category.label}
+                  </option>
+                ))}
+              </select>
+              
+              <button
+                onClick={handleEnhancedSearch}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+              >
+                🔍
+              </button>
+            </div>
+
+            {/* Enhanced filters for Indian market */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <input
+                type="text"
+                placeholder="State (e.g., Maharashtra)"
+                value={filters.state}
+                onChange={(e) => setFilters({...filters, state: e.target.value})}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+              <input
+                type="text"
+                placeholder="City (e.g., Mumbai)"
+                value={filters.city}
+                onChange={(e) => setFilters({...filters, city: e.target.value})}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+              <input
+                type="text"
+                placeholder="Pincode (6 digits)"
+                value={filters.pincode}
+                onChange={(e) => setFilters({...filters, pincode: e.target.value})}
+                maxLength={6}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+              <select
+                value={filters.sortBy}
+                onChange={(e) => setFilters({...filters, sortBy: e.target.value})}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              >
+                <option value="created_at">Latest First</option>
+                <option value="price_low">Price: Low to High</option>
+                <option value="price_high">Price: High to Low</option>
+                <option value="relevance">Most Relevant</option>
+              </select>
+            </div>
+
+            {/* Price and verification filters */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <input
+                type="number"
+                placeholder="Min Price (₹)"
+                value={filters.minPrice}
+                onChange={(e) => setFilters({...filters, minPrice: e.target.value})}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+              <input
+                type="number"
+                placeholder="Max Price (₹)"
+                value={filters.maxPrice}
+                onChange={(e) => setFilters({...filters, maxPrice: e.target.value})}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+              <select
+                value={filters.verificationLevel}
+                onChange={(e) => setFilters({...filters, verificationLevel: e.target.value})}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              >
+                <option value="">All Sellers</option>
+                <option value="basic">Basic</option>
+                <option value="verified">Verified</option>
+                <option value="premium">Premium</option>
+              </select>
+              <label className="flex items-center space-x-2 px-3 py-2">
+                <input
+                  type="checkbox"
+                  checked={filters.onlyVerifiedSellers}
+                  onChange={(e) => setFilters({...filters, onlyVerifiedSellers: e.target.checked})}
+                  className="rounded"
+                />
+                <span className="text-sm">Verified Only</span>
+              </label>
+              <button
+                onClick={() => setFilters({
+                  state: '', city: '', pincode: '', minPrice: '', maxPrice: '',
+                  verificationLevel: '', onlyVerifiedSellers: false, sortBy: 'created_at'
+                })}
+                className="text-sm text-gray-600 hover:text-red-600"
+              >
+                Clear Filters
+              </button>
+            </div>
           </div>
         )}
       </div>
