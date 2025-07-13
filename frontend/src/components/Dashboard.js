@@ -373,6 +373,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
           <div className="flex border-b overflow-x-auto">
             {[
               { id: 'chats', label: t('dashboard.chats'), icon: '💬', description: 'Direct messages & conversations' },
+              { id: 'marketplace', label: 'Marketplace', icon: '🛒', description: 'Buy, sell & trade items and services' },
               { id: 'teams', label: 'Groups', icon: '👥', description: 'Discover groups, map view & events' },
               { 
                 id: 'premium', 
