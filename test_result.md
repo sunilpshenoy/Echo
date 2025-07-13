@@ -1375,7 +1375,17 @@ backend:
         comment: "Successfully verified the trust requirements checking. The system correctly checks if a user meets the requirements for the next trust level before allowing level up. Requirements include minimum number of connections, days active, interactions, and video calls depending on the level."
 
 frontend:
-  - task: "Map View Interface"
+  - task: "E2E Encryption Integration"
+    implemented: false
+    working: "NA"
+    file: "/app/frontend/src/components/ChatsInterface.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Starting integration of E2EEncryption.js and E2EKeyManager.js components into ChatsInterface.js. Plan: Initialize encryption on component load, integrate encryption into message sending, integrate decryption into message receiving, handle key exchange for new conversations."
     implemented: true
     working: "NA"
     file: "/app/frontend/src/components/MapView.js"
