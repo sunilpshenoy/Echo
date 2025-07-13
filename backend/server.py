@@ -6541,15 +6541,6 @@ async def delete_custom_emoji(emoji_id: str, current_user = Depends(get_current_
     
     return {"message": "Custom emoji deleted successfully"}
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for preview environment
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
-    expose_headers=["*"],
-)
-
 # Start background tasks
 @app.on_event("startup")
 async def startup_event():
