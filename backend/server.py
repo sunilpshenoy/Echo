@@ -947,7 +947,7 @@ class GovernmentIDVerification(BaseModel):
 class LocationSearch(BaseModel):
     state: Optional[str] = None
     city: Optional[str] = None
-    pincode: Optional[str] = Field(None, regex=r"^\d{6}$")  # Indian pincode format
+    pincode: Optional[str] = Field(None, pattern=r"^\d{6}$")  # Indian pincode format
     latitude: Optional[float] = Field(None, ge=-90, le=90)
     longitude: Optional[float] = Field(None, ge=-180, le=180)
     radius_km: Optional[int] = Field(10, ge=1, le=100)
