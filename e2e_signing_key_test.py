@@ -252,17 +252,9 @@ class E2ESigningKeyTester:
             alice_user_id = self.users["alice_signing"]["user_id"]
             
             response = self.session.get(
-                f"{BACKEND_URL}/e2e/key-bundle/{alice_user_id}",
+                f"{BACKEND_URL}/e2e/keys/{alice_user_id}",  # Use correct endpoint
                 headers=bob_headers
             )
-            
-            # Check if endpoint exists (might be /e2e/keys instead)
-            if response.status_code == 404:
-                # Try alternative endpoint
-                response = self.session.get(
-                    f"{BACKEND_URL}/e2e/keys/{alice_user_id}",
-                    headers=bob_headers
-                )
             
             if response.status_code == 200:
                 data = response.json()
