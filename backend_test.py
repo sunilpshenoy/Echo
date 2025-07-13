@@ -51,8 +51,9 @@ class E2EEncryptionTester:
         }
     
     def register_test_user(self, username, email, password):
-        """Register a test user"""
+        """Register a test user or login if already exists"""
         try:
+            # Try to register first
             response = self.session.post(f"{BACKEND_URL}/register", json={
                 "username": username,
                 "email": email,
@@ -70,6 +71,25 @@ class E2EEncryptionTester:
                 }
                 self.users[username] = user_data
                 return True, user_data
+            elif response.status_code == 400 and "already registered" in response.text:
+                # User already exists, try to login
+                login_response = self.session.post(f"{BACKEND_URL}/login", json={
+                    "email": email,
+                    "password": password
+                })
+                
+                if login_response.status_code == 200:
+                    data = login_response.json()
+                    user_data = {
+                        "user_id": data["user"]["user_id"],
+                        "username": username,
+                        "email": email,
+                        "token": data["access_token"]
+                    }
+                    self.users[username] = user_data
+                    return True, user_data
+                else:
+                    return False, f"Login failed: {login_response.status_code} - {login_response.text}"
             else:
                 return False, f"Registration failed: {response.status_code} - {response.text}"
         except Exception as e:
