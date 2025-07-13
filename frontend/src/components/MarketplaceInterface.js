@@ -4,7 +4,7 @@ import axios from 'axios';
 
 const MarketplaceInterface = ({ user, token, api }) => {
   const { t } = useTranslation();
-  const [activeView, setActiveView] = useState('browse'); // browse, create, my-listings
+  const [activeView, setActiveView] = useState('browse'); // browse, create, my-listings, verification, analytics
   const [listings, setListings] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -12,6 +12,49 @@ const MarketplaceInterface = ({ user, token, api }) => {
   const [loading, setLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [myListings, setMyListings] = useState([]);
+
+  // Enhanced search filters
+  const [filters, setFilters] = useState({
+    state: '',
+    city: '',
+    pincode: '',
+    minPrice: '',
+    maxPrice: '',
+    verificationLevel: '',
+    onlyVerifiedSellers: false,
+    sortBy: 'created_at'
+  });
+
+  // Verification state
+  const [verificationStatus, setVerificationStatus] = useState({});
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [phoneVerification, setPhoneVerification] = useState({
+    phone: '',
+    otp: '',
+    step: 'phone' // phone, otp, complete
+  });
+  const [govIdVerification, setGovIdVerification] = useState({
+    idType: '',
+    idNumber: '',
+    fullName: '',
+    dateOfBirth: '',
+    address: ''
+  });
+
+  // Analytics state
+  const [analytics, setAnalytics] = useState({});
+  const [marketplaceStats, setMarketplaceStats] = useState({});
+
+  // Safety check-in state
+  const [showSafetyModal, setShowSafetyModal] = useState(false);
+  const [selectedListingForSafety, setSelectedListingForSafety] = useState(null);
+  const [safetyCheckIn, setSafetyCheckIn] = useState({
+    meetingLocation: '',
+    meetingTime: '',
+    contactPhone: '',
+    emergencyContactName: '',
+    emergencyContactPhone: ''
+  });
 
   // New listing form state
   const [newListing, setNewListing] = useState({
