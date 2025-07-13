@@ -1931,6 +1931,7 @@ async def upload_e2e_keys(request: Request, key_bundle: E2EKeyBundle, current_us
         key_bundle_data = {
             "user_id": key_bundle.user_id,
             "identity_key": key_bundle.identity_key,
+            "signing_key": key_bundle.signing_key,  # Include signing_key field
             "signed_pre_key": key_bundle.signed_pre_key,
             "signed_pre_key_signature": key_bundle.signed_pre_key_signature,
             "one_time_pre_keys": key_bundle.one_time_pre_keys,
