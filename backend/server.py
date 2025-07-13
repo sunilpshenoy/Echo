@@ -966,9 +966,9 @@ class SafetyCheckIn(BaseModel):
     listing_id: str
     meeting_location: str
     meeting_time: datetime
-    contact_phone: str = Field(..., regex=r"^\+91[6-9]\d{9}$")
+    contact_phone: str = Field(..., pattern=r"^\+91[6-9]\d{9}$")
     emergency_contact_name: Optional[str] = None
-    emergency_contact_phone: Optional[str] = Field(None, regex=r"^\+91[6-9]\d{9}$")
+    emergency_contact_phone: Optional[str] = Field(None, pattern=r"^\+91[6-9]\d{9}$")
     status: str = Field(default="scheduled", description="scheduled, met, completed, emergency")
 
 class DocumentCreate(BaseModel):
