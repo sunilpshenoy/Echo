@@ -1976,6 +1976,7 @@ async def get_e2e_keys(user_id: str, current_user = Depends(get_current_user)):
             return {
                 "user_id": user_id,
                 "identity_key": key_bundle["identity_key"],
+                "signing_key": key_bundle.get("signing_key"),  # Include signing_key field (may be None for backward compatibility)
                 "signed_pre_key": key_bundle["signed_pre_key"],
                 "signed_pre_key_signature": key_bundle["signed_pre_key_signature"],
                 "one_time_pre_keys": [used_key] if used_key else [],
@@ -1986,6 +1987,7 @@ async def get_e2e_keys(user_id: str, current_user = Depends(get_current_user)):
             return {
                 "user_id": user_id,
                 "identity_key": key_bundle["identity_key"],
+                "signing_key": key_bundle.get("signing_key"),  # Include signing_key field (may be None for backward compatibility)
                 "signed_pre_key": key_bundle["signed_pre_key"],
                 "signed_pre_key_signature": key_bundle["signed_pre_key_signature"],
                 "one_time_pre_keys": [],
