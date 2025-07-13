@@ -331,8 +331,8 @@ app.add_middleware(
     expose_headers=["*"],
 )
 
-# Add military-grade security middleware (temporarily disabled for debugging)
-# app.middleware("http")(security_middleware)
+# Add military-grade security middleware (re-enabled after CORS fix)
+app.middleware("http")(security_middleware)
 
 # Add rate limiting middleware
 app.state.limiter = limiter
