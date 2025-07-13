@@ -159,16 +159,17 @@ class E2EEncryption {
     try {
       // Import recipient's keys
       const recipientIdentityKey = await this.importPublicKey(recipientBundle.identityKey);
+      const recipientSigningKey = await this.importPublicKey(recipientBundle.signingKey, 'ECDSA');
       const recipientSignedPreKey = await this.importPublicKey(recipientBundle.signedPreKey);
       const recipientOneTimePreKey = recipientBundle.oneTimePreKeys.length > 0 
         ? await this.importPublicKey(recipientBundle.oneTimePreKeys[0])
         : null;
 
-      // Verify signed pre-key signature
+      // Verify signed pre-key signature using the signing key
       const isValidSignature = await this.verifySignature(
         recipientBundle.signedPreKey,
         recipientBundle.signedPreKeySignature,
-        recipientIdentityKey
+        recipientSigningKey
       );
 
       if (!isValidSignature) {
