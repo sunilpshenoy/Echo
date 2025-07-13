@@ -710,7 +710,7 @@ class E2EEncryptionTester:
     
     def run_all_tests(self):
         """Run all E2E encryption tests"""
-        print("🔐 Starting End-to-End Encryption Backend Testing")
+        print("🔐 Starting End-to-End Encryption Backend Testing (with signing_key support)")
         print("=" * 60)
         
         # Test sequence
@@ -718,8 +718,13 @@ class E2EEncryptionTester:
             print("❌ User registration failed - cannot continue with E2E tests")
             return
         
-        self.test_e2e_key_upload()
-        self.test_e2e_key_retrieval()
+        # NEW: Test signing_key functionality
+        self.test_e2e_key_upload()  # Updated to test with signing_key
+        self.test_e2e_key_upload_without_signing_key()  # NEW: Test backward compatibility
+        self.test_e2e_key_retrieval()  # Updated to verify signing_key in response
+        self.test_e2e_key_retrieval_backward_compatibility()  # NEW: Test backward compatibility
+        
+        # Existing tests
         self.test_e2e_conversation_initialization()
         self.test_e2e_pending_conversations()
         self.test_e2e_message_sending()
@@ -730,7 +735,7 @@ class E2EEncryptionTester:
         
         # Summary
         print("\n" + "=" * 60)
-        print("🔐 E2E ENCRYPTION TEST SUMMARY")
+        print("🔐 E2E ENCRYPTION TEST SUMMARY (with signing_key support)")
         print("=" * 60)
         
         passed = sum(1 for result in self.test_results if result["success"])
