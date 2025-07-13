@@ -538,7 +538,7 @@ const ChatsInterface = ({
     }, 2000);
   };
 
-  // Enhanced message sending with real-time updates
+  // Enhanced message sending with E2E encryption
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedChat) return;
     
@@ -552,7 +552,47 @@ const ChatsInterface = ({
         }));
         setIsTyping(false);
       }
+
+      // Check if this is a 1-on-1 chat and E2E encryption is available
+      const isDirectChat = selectedChat.chat_type === 'direct' || !selectedChat.is_group;
+      const recipientUserId = selectedChat.other_user?.user_id;
       
+      if (isDirectChat && recipientUserId && e2eEncryption && isE2EInitialized) {
+        // Initialize E2E conversation if not already done
+        const conversationReady = await initializeE2EConversation(recipientUserId);
+        
+        if (conversationReady) {
+          try {
+            // Encrypt the message
+            const encryptedData = await e2eEncryption.encryptMessage(recipientUserId, newMessage);
+            
+            // Send encrypted message to backend
+            await axios.post(`${api}/messages/encrypted`, {
+              chat_id: selectedChat.chat_id,
+              encrypted_content: encryptedData.ciphertext,
+              encryption_metadata: {
+                iv: encryptedData.iv,
+                ratchet_public_key: encryptedData.ratchetPublicKey,
+                message_number: encryptedData.messageNumber,
+                chain_length: encryptedData.chainLength
+              }
+            }, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            console.log('✅ Encrypted message sent successfully');
+            setNewMessage('');
+            return;
+            
+          } catch (encryptionError) {
+            console.error('❌ Message encryption failed:', encryptionError);
+            // Fall back to regular message sending
+            console.log('⚠️ Falling back to unencrypted message');
+          }
+        }
+      }
+      
+      // Fall back to regular (unencrypted) message sending
       await onSendMessage();
       
     } catch (error) {
