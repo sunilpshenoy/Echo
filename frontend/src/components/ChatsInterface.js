@@ -307,7 +307,7 @@ const ChatsInterface = ({
   // Fetch key bundle for a user
   const fetchKeyBundle = async (userId) => {
     try {
-      const response = await axios.get(`${api}/e2e/key-bundle/${userId}`, {
+      const response = await axios.get(`${api}/e2e/keys/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;
