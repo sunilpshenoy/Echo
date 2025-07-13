@@ -224,6 +224,13 @@ const ChatsInterface = ({
   const [showAddContact, setShowAddContact] = useState(false);
   const [showMyPin, setShowMyPin] = useState(false);
   const [contactPin, setContactPin] = useState('');
+  
+  // E2E Encryption State
+  const [e2eEncryption, setE2eEncryption] = useState(null);
+  const [keyManager, setKeyManager] = useState(null);
+  const [isE2EInitialized, setIsE2EInitialized] = useState(false);
+  const [keyBundles, setKeyBundles] = useState(new Map()); // Store key bundles for contacts
+  const [encryptionStatus, setEncryptionStatus] = useState(new Map()); // Track encryption status per chat
   // const [contactRequests, setContactRequests] = useState([]);
   // const [showQRScanner, setShowQRScanner] = useState(false);
   const [contactEmail, setContactEmail] = useState('');
