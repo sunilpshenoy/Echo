@@ -35,7 +35,7 @@ class E2EEncryptionTester:
             "details": details
         })
     
-    def generate_mock_keys(self):
+    def generate_mock_keys(self, include_signing_key=True):
         """Generate mock E2E encryption keys for testing"""
         # Generate mock base64-encoded keys (in real implementation, these would be actual cryptographic keys)
         identity_key = base64.b64encode(secrets.token_bytes(32)).decode()
@@ -43,12 +43,18 @@ class E2EEncryptionTester:
         signed_pre_key_signature = base64.b64encode(secrets.token_bytes(64)).decode()
         one_time_pre_keys = [base64.b64encode(secrets.token_bytes(32)).decode() for _ in range(5)]
         
-        return {
+        keys = {
             "identity_key": identity_key,
             "signed_pre_key": signed_pre_key,
             "signed_pre_key_signature": signed_pre_key_signature,
             "one_time_pre_keys": one_time_pre_keys
         }
+        
+        # Add signing_key field for new cryptographic algorithm compatibility
+        if include_signing_key:
+            keys["signing_key"] = base64.b64encode(secrets.token_bytes(32)).decode()
+        
+        return keys
     
     def register_test_user(self, username, email, password):
         """Register a test user or login if already exists"""
