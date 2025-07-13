@@ -1674,10 +1674,6 @@ const ChatsInterface = ({
   const renderMessage = (message) => {
     return <MessageComponent key={message.message_id} message={message} />;
   };
-        </div>
-      </div>
-    );
-  };
 
   // Mobile-first single view design
   if (viewMode === 'chat' && activeContact) {
