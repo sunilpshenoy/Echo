@@ -252,7 +252,36 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ.get('DB_NAME', 'test_database')]
 
-# Encryption utilities
+# E2E Encryption Models - Zero Knowledge Architecture
+class E2EKeyBundle(BaseModel):
+    user_id: str
+    identity_key: str  # Base64 encoded public key
+    signed_pre_key: str  # Base64 encoded public key
+    signed_pre_key_signature: str  # Base64 encoded signature
+    one_time_pre_keys: List[str]  # List of Base64 encoded public keys
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class E2EMessage(BaseModel):
+    message_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    conversation_id: str
+    sender_id: str
+    recipient_id: str
+    encrypted_content: str  # Client-encrypted message content
+    iv: str  # Initialization vector
+    ratchet_public_key: str  # For Signal Protocol double ratchet
+    message_number: int
+    chain_length: int
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    
+class E2EConversationInit(BaseModel):
+    sender_id: str
+    recipient_id: str
+    ephemeral_public_key: str
+    used_one_time_pre_key: Optional[int] = None
+    sender_identity_key: str
+
+# Legacy encryption (kept for backward compatibility)
 class MessageEncryption:
     @staticmethod
     def generate_key() -> str:
