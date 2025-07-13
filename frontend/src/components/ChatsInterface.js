@@ -231,10 +231,124 @@ const ChatsInterface = ({
   const [isE2EInitialized, setIsE2EInitialized] = useState(false);
   const [keyBundles, setKeyBundles] = useState(new Map()); // Store key bundles for contacts
   const [encryptionStatus, setEncryptionStatus] = useState(new Map()); // Track encryption status per chat
-  // const [contactRequests, setContactRequests] = useState([]);
-  // const [showQRScanner, setShowQRScanner] = useState(false);
-  const [contactEmail, setContactEmail] = useState('');
-  // const [contactPhone, setContactPhone] = useState('');
+  // Initialize E2E Encryption
+  useEffect(() => {
+    const initializeE2E = async () => {
+      try {
+        console.log('🔐 Initializing E2E encryption...');
+        
+        // Initialize encryption and key manager
+        const encryption = new E2EEncryption();
+        const manager = new E2EKeyManager();
+        
+        setE2eEncryption(encryption);
+        setKeyManager(manager);
+        
+        // Initialize key manager with user password (using token as password for now)
+        const existingKeys = await manager.initialize(token, user.user_id);
+        
+        if (existingKeys) {
+          console.log('✅ Existing E2E keys loaded');
+          setIsE2EInitialized(true);
+          
+          // Initialize encryption with existing keys
+          encryption.identityKeyPair = {
+            publicKey: await encryption.importPublicKey(existingKeys.identityKey),
+            // Note: We'll need to store the private key securely in a real implementation
+          };
+        } else {
+          console.log('🔑 Generating new E2E keys...');
+          
+          // Initialize new encryption keys
+          const keyBundle = await encryption.initialize();
+          
+          // Store keys securely
+          await manager.storeKeys(keyBundle);
+          
+          // Upload public key bundle to server
+          await uploadKeyBundle(keyBundle);
+          
+          setIsE2EInitialized(true);
+          console.log('✅ E2E encryption initialized with new keys');
+        }
+        
+      } catch (error) {
+        console.error('❌ E2E encryption initialization failed:', error);
+        // Fall back to non-encrypted mode
+        setIsE2EInitialized(false);
+      }
+    };
+    
+    if (user && token && !isE2EInitialized) {
+      initializeE2E();
+    }
+  }, [user, token, isE2EInitialized]);
+
+  // Upload key bundle to server
+  const uploadKeyBundle = async (keyBundle) => {
+    try {
+      await axios.post(`${api}/e2e/key-bundle`, {
+        identity_key: keyBundle.identityKey,
+        signed_pre_key: keyBundle.signedPreKey,
+        signed_pre_key_signature: keyBundle.signedPreKeySignature,
+        one_time_pre_keys: keyBundle.oneTimePreKeys
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log('✅ Key bundle uploaded to server');
+    } catch (error) {
+      console.error('❌ Failed to upload key bundle:', error);
+    }
+  };
+
+  // Fetch key bundle for a user
+  const fetchKeyBundle = async (userId) => {
+    try {
+      const response = await axios.get(`${api}/e2e/key-bundle/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Failed to fetch key bundle:', error);
+      return null;
+    }
+  };
+
+  // Initialize E2E conversation with a contact
+  const initializeE2EConversation = async (contactUserId) => {
+    if (!e2eEncryption || !isE2EInitialized) {
+      console.warn('⚠️ E2E encryption not initialized');
+      return false;
+    }
+
+    try {
+      // Check if conversation already exists
+      if (keyBundles.has(contactUserId)) {
+        return true;
+      }
+
+      // Fetch contact's key bundle
+      const keyBundle = await fetchKeyBundle(contactUserId);
+      if (!keyBundle) {
+        console.warn('⚠️ No key bundle found for contact');
+        return false;
+      }
+
+      // Initialize conversation
+      const initData = await e2eEncryption.initializeConversation(contactUserId, keyBundle);
+      
+      // Store key bundle and mark conversation as encrypted
+      setKeyBundles(prev => new Map(prev).set(contactUserId, keyBundle));
+      setEncryptionStatus(prev => new Map(prev).set(contactUserId, true));
+      
+      console.log(`✅ E2E conversation initialized with user ${contactUserId}`);
+      return true;
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize E2E conversation:', error);
+      return false;
+    }
+  };
   const [addContactMethod, setAddContactMethod] = useState('pin');
   const [viewMode, setViewMode] = useState('contacts');
   const [activeContact, setActiveContact] = useState(null);
