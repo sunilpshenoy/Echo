@@ -930,7 +930,7 @@ class MarketplaceMessage(BaseModel):
 
 # Enhanced User Verification Models
 class UserVerification(BaseModel):
-    phone_number: Optional[str] = Field(None, regex=r"^\+91[6-9]\d{9}$")  # Indian mobile format
+    phone_number: Optional[str] = Field(None, pattern=r"^\+91[6-9]\d{9}$")  # Indian mobile format
     email_verified: bool = Field(default=False)
     phone_verified: bool = Field(default=False)
     government_id_verified: bool = Field(default=False)
