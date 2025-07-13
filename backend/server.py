@@ -6858,6 +6858,410 @@ async def delete_custom_emoji(emoji_id: str, current_user = Depends(get_current_
     
     return {"message": "Custom emoji deleted successfully"}
 
+# =============================================================================
+# MARKETPLACE ENDPOINTS
+# =============================================================================
+
+@api_router.post("/marketplace/listings")
+@limiter.limit("20/minute")
+async def create_marketplace_listing(request: Request, listing: MarketplaceListing, current_user = Depends(get_current_user)):
+    """Create a new marketplace listing"""
+    try:
+        client_ip = get_remote_address(request)
+        
+        # Input validation and sanitization
+        if listing.price is not None and listing.price < 0:
+            raise HTTPException(status_code=400, detail="Price cannot be negative")
+        
+        if listing.category not in ["items", "services", "jobs", "housing", "vehicles"]:
+            raise HTTPException(status_code=400, detail="Invalid category")
+        
+        if listing.price_type not in ["fixed", "hourly", "negotiable", "free", "barter"]:
+            raise HTTPException(status_code=400, detail="Invalid price type")
+        
+        # Create listing
+        listing_data = {
+            "listing_id": str(uuid.uuid4()),
+            "user_id": current_user["user_id"],
+            "username": current_user["username"],
+            "title": listing.title,
+            "description": listing.description,
+            "category": listing.category,
+            "price": listing.price,
+            "price_type": listing.price_type,
+            "location": listing.location,
+            "images": listing.images or [],
+            "tags": listing.tags or [],
+            "availability": "available",
+            "contact_method": listing.contact_method,
+            "expires_at": listing.expires_at,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+            "views": 0,
+            "saves": 0,
+            "messages_count": 0
+        }
+        
+        result = await db.marketplace_listings.insert_one(listing_data)
+        
+        # Log successful listing creation
+        await security_manager.log_activity(
+            client_ip, 'marketplace_listing_created', 
+            f"User {current_user['user_id']} created listing {listing_data['listing_id']}"
+        )
+        
+        return {
+            "status": "success",
+            "listing_id": listing_data["listing_id"],
+            "message": "Listing created successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        await security_manager.log_suspicious_activity(
+            client_ip, 'marketplace_listing_creation_error', str(e)
+        )
+        raise HTTPException(status_code=500, detail=f"Failed to create listing: {str(e)}")
+
+@api_router.get("/marketplace/listings")
+async def get_marketplace_listings(
+    request: Request,
+    category: Optional[str] = None,
+    query: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    sort_by: str = "created_at",
+    sort_order: str = "desc",
+    page: int = 1,
+    limit: int = 20,
+    current_user = Depends(get_current_user)
+):
+    """Get marketplace listings with search and filtering"""
+    try:
+        # Build search filter
+        search_filter = {"availability": {"$in": ["available", "pending"]}}
+        
+        if category:
+            search_filter["category"] = category
+        
+        if min_price is not None:
+            search_filter["price"] = {"$gte": min_price}
+        
+        if max_price is not None:
+            if "price" in search_filter:
+                search_filter["price"]["$lte"] = max_price
+            else:
+                search_filter["price"] = {"$lte": max_price}
+        
+        if query:
+            search_filter["$or"] = [
+                {"title": {"$regex": query, "$options": "i"}},
+                {"description": {"$regex": query, "$options": "i"}},
+                {"tags": {"$in": [query]}}
+            ]
+        
+        # Sort options
+        sort_direction = 1 if sort_order == "asc" else -1
+        sort_options = [(sort_by, sort_direction)]
+        
+        # Calculate skip for pagination
+        skip = (page - 1) * limit
+        
+        # Get listings
+        cursor = db.marketplace_listings.find(search_filter)
+        total_count = await db.marketplace_listings.count_documents(search_filter)
+        
+        listings = await cursor.sort(sort_options).skip(skip).limit(limit).to_list(limit)
+        
+        # Serialize results
+        serialized_listings = []
+        for listing in listings:
+            listing_data = serialize_mongo_doc(listing)
+            # Remove sensitive user info (keep username but hide user_id)
+            if listing_data.get('user_id') != current_user['user_id']:
+                listing_data.pop('user_id', None)
+            serialized_listings.append(listing_data)
+        
+        return {
+            "listings": serialized_listings,
+            "total_count": total_count,
+            "page": page,
+            "limit": limit,
+            "has_more": (skip + limit) < total_count
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get listings: {str(e)}")
+
+@api_router.get("/marketplace/listings/{listing_id}")
+async def get_marketplace_listing(listing_id: str, current_user = Depends(get_current_user)):
+    """Get a specific marketplace listing"""
+    try:
+        listing = await db.marketplace_listings.find_one({"listing_id": listing_id})
+        
+        if not listing:
+            raise HTTPException(status_code=404, detail="Listing not found")
+        
+        # Increment view count (but not for the owner)
+        if listing["user_id"] != current_user["user_id"]:
+            await db.marketplace_listings.update_one(
+                {"listing_id": listing_id},
+                {"$inc": {"views": 1}}
+            )
+        
+        listing_data = serialize_mongo_doc(listing)
+        
+        # Include owner info for contact
+        owner = await db.users.find_one({"user_id": listing["user_id"]})
+        if owner:
+            listing_data["owner"] = {
+                "username": owner["username"],
+                "display_name": owner.get("display_name", owner["username"]),
+                "user_id": owner["user_id"]
+            }
+        
+        return listing_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get listing: {str(e)}")
+
+@api_router.put("/marketplace/listings/{listing_id}")
+@limiter.limit("10/minute")
+async def update_marketplace_listing(request: Request, listing_id: str, listing: MarketplaceListing, current_user = Depends(get_current_user)):
+    """Update a marketplace listing (owner only)"""
+    try:
+        client_ip = get_remote_address(request)
+        
+        # Check if listing exists and user is owner
+        existing_listing = await db.marketplace_listings.find_one({"listing_id": listing_id})
+        
+        if not existing_listing:
+            raise HTTPException(status_code=404, detail="Listing not found")
+        
+        if existing_listing["user_id"] != current_user["user_id"]:
+            await security_manager.log_suspicious_activity(
+                client_ip, 'unauthorized_listing_update', 
+                f"User {current_user['user_id']} tried to update listing {listing_id} owned by {existing_listing['user_id']}"
+            )
+            raise HTTPException(status_code=403, detail="You can only update your own listings")
+        
+        # Update listing
+        update_data = {
+            "title": listing.title,
+            "description": listing.description,
+            "category": listing.category,
+            "price": listing.price,
+            "price_type": listing.price_type,
+            "location": listing.location,
+            "images": listing.images or [],
+            "tags": listing.tags or [],
+            "contact_method": listing.contact_method,
+            "expires_at": listing.expires_at,
+            "updated_at": datetime.utcnow()
+        }
+        
+        await db.marketplace_listings.update_one(
+            {"listing_id": listing_id},
+            {"$set": update_data}
+        )
+        
+        return {"status": "success", "message": "Listing updated successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update listing: {str(e)}")
+
+@api_router.delete("/marketplace/listings/{listing_id}")
+@limiter.limit("10/minute")
+async def delete_marketplace_listing(request: Request, listing_id: str, current_user = Depends(get_current_user)):
+    """Delete a marketplace listing (owner only)"""
+    try:
+        client_ip = get_remote_address(request)
+        
+        # Check if listing exists and user is owner
+        listing = await db.marketplace_listings.find_one({"listing_id": listing_id})
+        
+        if not listing:
+            raise HTTPException(status_code=404, detail="Listing not found")
+        
+        if listing["user_id"] != current_user["user_id"]:
+            await security_manager.log_suspicious_activity(
+                client_ip, 'unauthorized_listing_deletion', 
+                f"User {current_user['user_id']} tried to delete listing {listing_id} owned by {listing['user_id']}"
+            )
+            raise HTTPException(status_code=403, detail="You can only delete your own listings")
+        
+        await db.marketplace_listings.delete_one({"listing_id": listing_id})
+        
+        return {"status": "success", "message": "Listing deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete listing: {str(e)}")
+
+@api_router.post("/marketplace/listings/{listing_id}/message")
+@limiter.limit("30/minute")
+async def send_marketplace_message(request: Request, listing_id: str, message_data: MarketplaceMessage, current_user = Depends(get_current_user)):
+    """Send a message about a marketplace listing (creates or continues chat)"""
+    try:
+        client_ip = get_remote_address(request)
+        
+        # Get the listing
+        listing = await db.marketplace_listings.find_one({"listing_id": listing_id})
+        
+        if not listing:
+            raise HTTPException(status_code=404, detail="Listing not found")
+        
+        # Can't message your own listing
+        if listing["user_id"] == current_user["user_id"]:
+            raise HTTPException(status_code=400, detail="Cannot message your own listing")
+        
+        # Get recipient user
+        recipient = await db.users.find_one({"user_id": message_data.recipient_id})
+        
+        if not recipient:
+            raise HTTPException(status_code=404, detail="Recipient not found")
+        
+        # Verify recipient is the listing owner
+        if message_data.recipient_id != listing["user_id"]:
+            raise HTTPException(status_code=400, detail="Can only message the listing owner")
+        
+        # Create or find existing chat between these users
+        chat_filter = {
+            "$or": [
+                {"participants": [current_user["user_id"], message_data.recipient_id]},
+                {"participants": [message_data.recipient_id, current_user["user_id"]]}
+            ]
+        }
+        
+        existing_chat = await db.chats.find_one(chat_filter)
+        
+        if existing_chat:
+            chat_id = existing_chat["chat_id"]
+        else:
+            # Create new chat
+            chat_id = str(uuid.uuid4())
+            chat_data = {
+                "chat_id": chat_id,
+                "participants": [current_user["user_id"], message_data.recipient_id],
+                "created_at": datetime.utcnow(),
+                "is_group": False,
+                "marketplace_listing_id": listing_id  # Link to marketplace listing
+            }
+            await db.chats.insert_one(chat_data)
+        
+        # Create message with marketplace context
+        message_content = message_data.message
+        if message_data.offer_price:
+            message_content += f"\n\n💰 Offer: ${message_data.offer_price}"
+        
+        message_id = str(uuid.uuid4())
+        message = {
+            "message_id": message_id,
+            "chat_id": chat_id,
+            "sender_id": current_user["user_id"],
+            "content": message_content,
+            "message_type": "marketplace_inquiry",
+            "marketplace_listing_id": listing_id,
+            "offer_price": message_data.offer_price,
+            "created_at": datetime.utcnow(),
+            "read": False
+        }
+        
+        await db.messages.insert_one(message)
+        
+        # Update listing message count
+        await db.marketplace_listings.update_one(
+            {"listing_id": listing_id},
+            {"$inc": {"messages_count": 1}}
+        )
+        
+        # Send WebSocket notification
+        if manager.is_user_online(message_data.recipient_id):
+            notification = {
+                "type": "marketplace_message",
+                "chat_id": chat_id,
+                "message_id": message_id,
+                "sender_id": current_user["user_id"],
+                "listing_title": listing["title"],
+                "content": message_content[:100] + "..." if len(message_content) > 100 else message_content
+            }
+            await manager.send_personal_message(json.dumps(notification), message_data.recipient_id)
+        
+        return {
+            "status": "success",
+            "chat_id": chat_id,
+            "message_id": message_id,
+            "message": "Message sent successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to send message: {str(e)}")
+
+@api_router.get("/marketplace/categories")
+async def get_marketplace_categories():
+    """Get available marketplace categories"""
+    categories = [
+        {"value": "items", "label": "Items & Products", "icon": "📦"},
+        {"value": "services", "label": "Services", "icon": "🛠"},
+        {"value": "jobs", "label": "Jobs & Gigs", "icon": "💼"},
+        {"value": "housing", "label": "Housing & Rentals", "icon": "🏠"},
+        {"value": "vehicles", "label": "Vehicles", "icon": "🚗"}
+    ]
+    
+    return {"categories": categories}
+
+@api_router.get("/marketplace/my-listings")
+async def get_my_marketplace_listings(current_user = Depends(get_current_user)):
+    """Get current user's marketplace listings"""
+    try:
+        listings = await db.marketplace_listings.find(
+            {"user_id": current_user["user_id"]}
+        ).sort("created_at", -1).to_list(100)
+        
+        return {"listings": [serialize_mongo_doc(listing) for listing in listings]}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get your listings: {str(e)}")
+
+@api_router.put("/marketplace/listings/{listing_id}/availability")
+@limiter.limit("10/minute")
+async def update_listing_availability(request: Request, listing_id: str, availability: dict, current_user = Depends(get_current_user)):
+    """Update listing availability (available, sold, pending)"""
+    try:
+        new_status = availability.get("status")
+        
+        if new_status not in ["available", "sold", "pending"]:
+            raise HTTPException(status_code=400, detail="Invalid availability status")
+        
+        # Check ownership
+        listing = await db.marketplace_listings.find_one({"listing_id": listing_id})
+        
+        if not listing:
+            raise HTTPException(status_code=404, detail="Listing not found")
+        
+        if listing["user_id"] != current_user["user_id"]:
+            raise HTTPException(status_code=403, detail="You can only update your own listings")
+        
+        await db.marketplace_listings.update_one(
+            {"listing_id": listing_id},
+            {"$set": {"availability": new_status, "updated_at": datetime.utcnow()}}
+        )
+        
+        return {"status": "success", "message": f"Listing marked as {new_status}"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update availability: {str(e)}")
+
 # Start background tasks
 @app.on_event("startup")
 async def startup_event():
