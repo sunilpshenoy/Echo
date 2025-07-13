@@ -892,6 +892,36 @@ class WorkspaceProfileCreate(BaseModel):
     work_email: Optional[str] = None
     work_phone: Optional[str] = None
 
+# Marketplace Models
+class MarketplaceListing(BaseModel):
+    title: str = Field(..., min_length=3, max_length=100)
+    description: str = Field(..., min_length=10, max_length=1000)
+    category: str = Field(..., description="items, services, jobs, housing, vehicles")
+    price: Optional[float] = Field(None, ge=0)
+    price_type: str = Field(..., description="fixed, hourly, negotiable, free, barter")
+    location: Optional[Dict[str, Any]] = None
+    images: Optional[List[str]] = []
+    tags: Optional[List[str]] = []
+    availability: str = Field(default="available", description="available, sold, pending")
+    contact_method: str = Field(default="chat", description="chat, email, phone")
+    expires_at: Optional[datetime] = None
+
+class MarketplaceSearch(BaseModel):
+    query: Optional[str] = None
+    category: Optional[str] = None
+    min_price: Optional[float] = None
+    max_price: Optional[float] = None
+    location: Optional[Dict[str, Any]] = None
+    radius: Optional[int] = 10  # km
+    sort_by: str = Field(default="created_at", description="created_at, price, distance, relevance")
+    sort_order: str = Field(default="desc", description="asc, desc")
+
+class MarketplaceMessage(BaseModel):
+    listing_id: str
+    recipient_id: str
+    message: str = Field(..., min_length=1, max_length=500)
+    offer_price: Optional[float] = None
+
 class DocumentCreate(BaseModel):
     title: str
     content: str
