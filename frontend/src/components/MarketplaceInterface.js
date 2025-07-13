@@ -71,10 +71,50 @@ const MarketplaceInterface = ({ user, token, api }) => {
   useEffect(() => {
     fetchCategories();
     fetchListings();
+    fetchVerificationStatus();
     if (activeView === 'my-listings') {
       fetchMyListings();
+    } else if (activeView === 'analytics') {
+      fetchAnalytics();
+      fetchMarketplaceStats();
     }
   }, [activeView]);
+
+  // Fetch verification status
+  const fetchVerificationStatus = async () => {
+    try {
+      const response = await axios.get(`${api}/verification/status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setVerificationStatus(response.data);
+    } catch (error) {
+      console.error('Failed to fetch verification status:', error);
+    }
+  };
+
+  // Fetch analytics
+  const fetchAnalytics = async () => {
+    try {
+      const response = await axios.get(`${api}/analytics/dashboard`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAnalytics(response.data);
+    } catch (error) {
+      console.error('Failed to fetch analytics:', error);
+    }
+  };
+
+  // Fetch marketplace stats
+  const fetchMarketplaceStats = async () => {
+    try {
+      const response = await axios.get(`${api}/analytics/marketplace-stats`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setMarketplaceStats(response.data);
+    } catch (error) {
+      console.error('Failed to fetch marketplace stats:', error);
+    }
+  };
 
   // Fetch marketplace categories
   const fetchCategories = async () => {
