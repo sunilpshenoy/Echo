@@ -374,18 +374,10 @@ class E2ESigningKeyTester:
             
             # Upload keys
             upload_response = self.session.post(
-                f"{BACKEND_URL}/e2e/key-bundle",
+                f"{BACKEND_URL}/e2e/keys",  # Use correct endpoint
                 json=key_bundle,
                 headers=self.get_auth_headers("bob_signing")
             )
-            
-            # Check if endpoint exists (might be /e2e/keys instead)
-            if upload_response.status_code == 404:
-                upload_response = self.session.post(
-                    f"{BACKEND_URL}/e2e/keys",
-                    json=key_bundle,
-                    headers=self.get_auth_headers("bob_signing")
-                )
             
             if upload_response.status_code != 200:
                 self.log_test("Database Storage - Upload", False, 
