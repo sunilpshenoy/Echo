@@ -1527,10 +1527,67 @@ const ChatsInterface = ({
     }
   };
 
+  // Message decryption functionality
+  const decryptMessage = async (message) => {
+    if (!message.is_encrypted || !e2eEncryption || !isE2EInitialized) {
+      return message.content;
+    }
+
+    try {
+      const senderUserId = message.sender_id;
+      
+      // Ensure E2E conversation is initialized
+      await initializeE2EConversation(senderUserId);
+      
+      // Decrypt the message
+      const decryptedContent = await e2eEncryption.decryptMessage(senderUserId, {
+        ciphertext: message.encrypted_content,
+        iv: message.encryption_metadata?.iv,
+        ratchetPublicKey: message.encryption_metadata?.ratchet_public_key,
+        messageNumber: message.encryption_metadata?.message_number,
+        chainLength: message.encryption_metadata?.chain_length
+      });
+      
+      return decryptedContent;
+      
+    } catch (error) {
+      console.error('❌ Message decryption failed:', error);
+      return '[🔒 Unable to decrypt message]';
+    }
+  };
+
+  // Enhanced message rendering with decryption support
   const renderMessage = (message) => {
     const isOwnMessage = message.sender_id === user.user_id;
     const reactions = messageReactions[message.message_id] || [];
+    const [decryptedContent, setDecryptedContent] = useState(null);
+    const [isDecrypting, setIsDecrypting] = useState(false);
     
+    // Handle message decryption
+    useEffect(() => {
+      const handleDecryption = async () => {
+        if (message.is_encrypted && !decryptedContent && !isDecrypting) {
+          setIsDecrypting(true);
+          try {
+            const content = await decryptMessage(message);
+            setDecryptedContent(content);
+          } catch (error) {
+            console.error('Decryption error:', error);
+            setDecryptedContent('[🔒 Decryption failed]');
+          } finally {
+            setIsDecrypting(false);
+          }
+        }
+      };
+
+      handleDecryption();
+    }, [message.is_encrypted, message.message_id, decryptedContent, isDecrypting]);
+
+    // Determine the content to display
+    const messageContent = message.is_encrypted 
+      ? (isDecrypting ? '🔓 Decrypting...' : decryptedContent || '[🔒 Encrypted]')
+      : message.content;
+
     return (
       <div 
         key={message.message_id} 
@@ -1542,6 +1599,16 @@ const ChatsInterface = ({
             ? 'bg-blue-500 text-white' 
             : 'bg-white text-gray-900 border'
         }`}>
+          {/* Encryption indicator */}
+          {message.is_encrypted && (
+            <div className={`flex items-center space-x-1 mb-1 text-xs ${
+              isOwnMessage ? 'text-blue-100' : 'text-green-600'
+            }`}>
+              <span>🔒</span>
+              <span>End-to-end encrypted</span>
+            </div>
+          )}
+
           {message.message_type === 'image' && message.file_data && (
             <img
               src={`data:image/jpeg;base64,${message.file_data}`}
@@ -1582,8 +1649,8 @@ const ChatsInterface = ({
             </div>
           )}
           
-          {message.content && message.message_type !== 'gif' && (
-            <p className="text-sm">{message.content}</p>
+          {messageContent && message.message_type !== 'gif' && (
+            <p className="text-sm">{messageContent}</p>
           )}
           
           <p className={`text-xs mt-1 ${isOwnMessage ? 'text-blue-100' : 'text-gray-500'}`}>
