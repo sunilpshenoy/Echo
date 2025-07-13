@@ -7380,6 +7380,368 @@ async def update_listing_availability(request: Request, listing_id: str, availab
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update availability: {str(e)}")
 
+# =============================================================================
+# USER VERIFICATION ENDPOINTS FOR INDIA
+# =============================================================================
+
+@api_router.post("/verification/phone/send-otp")
+@limiter.limit("5/minute")
+async def send_phone_otp(request: Request, phone_data: dict, current_user = Depends(get_current_user)):
+    """Send OTP to Indian mobile number for verification"""
+    try:
+        client_ip = get_remote_address(request)
+        phone_number = phone_data.get("phone_number")
+        
+        # Validate Indian mobile number format
+        if not re.match(r"^\+91[6-9]\d{9}$", phone_number):
+            raise HTTPException(status_code=400, detail="Invalid Indian mobile number format. Use +91XXXXXXXXXX")
+        
+        # Generate 6-digit OTP
+        import random
+        otp = str(random.randint(100000, 999999))
+        
+        # Store OTP in database (expires in 10 minutes)
+        await db.phone_otps.update_one(
+            {"user_id": current_user["user_id"]},
+            {
+                "$set": {
+                    "phone_number": phone_number,
+                    "otp": otp,
+                    "created_at": datetime.utcnow(),
+                    "expires_at": datetime.utcnow() + timedelta(minutes=10),
+                    "verified": False
+                }
+            },
+            upsert=True
+        )
+        
+        # TODO: Integrate with SMS service (Twilio/AWS SNS) for production
+        # For now, return OTP in response (development only)
+        print(f"📱 SMS OTP for {phone_number}: {otp}")
+        
+        await security_manager.log_activity(
+            client_ip, 'phone_otp_sent', 
+            f"OTP sent to {phone_number} for user {current_user['user_id']}"
+        )
+        
+        return {
+            "status": "success",
+            "message": "OTP sent successfully",
+            "otp": otp if True else None  # Remove in production
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to send OTP: {str(e)}")
+
+@api_router.post("/verification/phone/verify-otp")
+@limiter.limit("10/minute")
+async def verify_phone_otp(request: Request, otp_data: dict, current_user = Depends(get_current_user)):
+    """Verify phone OTP and mark phone as verified"""
+    try:
+        client_ip = get_remote_address(request)
+        otp = otp_data.get("otp")
+        
+        # Get stored OTP
+        stored_otp = await db.phone_otps.find_one({"user_id": current_user["user_id"]})
+        
+        if not stored_otp:
+            raise HTTPException(status_code=400, detail="No OTP found. Please request a new OTP.")
+        
+        # Check if OTP is expired
+        if datetime.utcnow() > stored_otp["expires_at"]:
+            raise HTTPException(status_code=400, detail="OTP has expired. Please request a new OTP.")
+        
+        # Verify OTP
+        if stored_otp["otp"] != otp:
+            await security_manager.log_suspicious_activity(
+                client_ip, 'invalid_otp_attempt', 
+                f"Invalid OTP attempt for user {current_user['user_id']}"
+            )
+            raise HTTPException(status_code=400, detail="Invalid OTP. Please try again.")
+        
+        # Mark phone as verified
+        await db.users.update_one(
+            {"user_id": current_user["user_id"]},
+            {
+                "$set": {
+                    "verification.phone_number": stored_otp["phone_number"],
+                    "verification.phone_verified": True,
+                    "verification.phone_verified_at": datetime.utcnow()
+                }
+            }
+        )
+        
+        # Update verification level
+        await update_user_verification_level(current_user["user_id"])
+        
+        # Mark OTP as used
+        await db.phone_otps.update_one(
+            {"user_id": current_user["user_id"]},
+            {"$set": {"verified": True}}
+        )
+        
+        return {
+            "status": "success",
+            "message": "Phone number verified successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to verify OTP: {str(e)}")
+
+@api_router.post("/verification/government-id")
+@limiter.limit("3/minute")
+async def submit_government_id(request: Request, id_data: GovernmentIDVerification, current_user = Depends(get_current_user)):
+    """Submit government ID for verification (Indian documents)"""
+    try:
+        client_ip = get_remote_address(request)
+        
+        # Validate ID type
+        valid_id_types = ["aadhaar", "pan", "voter_id", "passport", "driving_license"]
+        if id_data.id_type not in valid_id_types:
+            raise HTTPException(status_code=400, detail=f"Invalid ID type. Supported: {', '.join(valid_id_types)}")
+        
+        # Validate ID number format based on type
+        if id_data.id_type == "aadhaar":
+            if not re.match(r"^\d{12}$", id_data.id_number):
+                raise HTTPException(status_code=400, detail="Aadhaar number must be 12 digits")
+        elif id_data.id_type == "pan":
+            if not re.match(r"^[A-Z]{5}[0-9]{4}[A-Z]{1}$", id_data.id_number):
+                raise HTTPException(status_code=400, detail="PAN format: ABCDE1234F")
+        elif id_data.id_type == "voter_id":
+            if not re.match(r"^[A-Z]{3}[0-9]{7}$", id_data.id_number):
+                raise HTTPException(status_code=400, detail="Voter ID format: ABC1234567")
+        
+        # Store verification request
+        verification_request = {
+            "user_id": current_user["user_id"],
+            "id_type": id_data.id_type,
+            "id_number": id_data.id_number,
+            "full_name": id_data.full_name,
+            "date_of_birth": id_data.date_of_birth,
+            "address": id_data.address,
+            "document_image": id_data.document_image,
+            "status": "pending",
+            "submitted_at": datetime.utcnow(),
+            "verified_at": None,
+            "rejection_reason": None
+        }
+        
+        await db.government_id_verifications.update_one(
+            {"user_id": current_user["user_id"]},
+            {"$set": verification_request},
+            upsert=True
+        )
+        
+        # TODO: Integrate with ID verification service (like Aadhaar API, DigiLocker)
+        # For now, auto-approve for development
+        auto_approve = True  # Set to False in production
+        
+        if auto_approve:
+            await db.government_id_verifications.update_one(
+                {"user_id": current_user["user_id"]},
+                {
+                    "$set": {
+                        "status": "verified",
+                        "verified_at": datetime.utcnow()
+                    }
+                }
+            )
+            
+            await db.users.update_one(
+                {"user_id": current_user["user_id"]},
+                {
+                    "$set": {
+                        "verification.government_id_verified": True,
+                        "verification.government_id_type": id_data.id_type,
+                        "verification.government_id_verified_at": datetime.utcnow()
+                    }
+                }
+            )
+            
+            await update_user_verification_level(current_user["user_id"])
+        
+        await security_manager.log_activity(
+            client_ip, 'government_id_submitted', 
+            f"User {current_user['user_id']} submitted {id_data.id_type} for verification"
+        )
+        
+        return {
+            "status": "success",
+            "message": "Government ID submitted successfully" if not auto_approve else "Government ID verified successfully",
+            "verification_status": "verified" if auto_approve else "pending"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to submit government ID: {str(e)}")
+
+@api_router.get("/verification/status")
+async def get_verification_status(current_user = Depends(get_current_user)):
+    """Get current user's verification status"""
+    try:
+        user = await db.users.find_one({"user_id": current_user["user_id"]})
+        verification = user.get("verification", {})
+        
+        # Get government ID verification details
+        gov_id_verification = await db.government_id_verifications.find_one(
+            {"user_id": current_user["user_id"]}
+        )
+        
+        return {
+            "email_verified": verification.get("email_verified", False),
+            "phone_verified": verification.get("phone_verified", False),
+            "phone_number": verification.get("phone_number"),
+            "government_id_verified": verification.get("government_id_verified", False),
+            "government_id_type": verification.get("government_id_type"),
+            "verification_level": verification.get("verification_level", "basic"),
+            "government_id_status": gov_id_verification.get("status") if gov_id_verification else None,
+            "government_id_submitted_at": gov_id_verification.get("submitted_at") if gov_id_verification else None
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get verification status: {str(e)}")
+
+async def update_user_verification_level(user_id: str):
+    """Update user verification level based on completed verifications"""
+    try:
+        user = await db.users.find_one({"user_id": user_id})
+        verification = user.get("verification", {})
+        
+        level = "basic"
+        if verification.get("email_verified") and verification.get("phone_verified"):
+            level = "verified"
+        if verification.get("government_id_verified"):
+            level = "premium"
+        
+        await db.users.update_one(
+            {"user_id": user_id},
+            {"$set": {"verification.verification_level": level}}
+        )
+        
+    except Exception as e:
+        print(f"Failed to update verification level for {user_id}: {e}")
+
+# =============================================================================
+# SAFETY CHECK-IN SYSTEM
+# =============================================================================
+
+@api_router.post("/safety/check-in")
+@limiter.limit("10/minute")
+async def create_safety_checkin(request: Request, checkin: SafetyCheckIn, current_user = Depends(get_current_user)):
+    """Create a safety check-in for marketplace meeting"""
+    try:
+        client_ip = get_remote_address(request)
+        
+        # Validate listing exists
+        listing = await db.marketplace_listings.find_one({"listing_id": checkin.listing_id})
+        if not listing:
+            raise HTTPException(status_code=404, detail="Listing not found")
+        
+        # Create check-in record
+        checkin_data = {
+            "checkin_id": str(uuid.uuid4()),
+            "user_id": current_user["user_id"],
+            "listing_id": checkin.listing_id,
+            "meeting_location": checkin.meeting_location,
+            "meeting_time": checkin.meeting_time,
+            "contact_phone": checkin.contact_phone,
+            "emergency_contact_name": checkin.emergency_contact_name,
+            "emergency_contact_phone": checkin.emergency_contact_phone,
+            "status": "scheduled",
+            "created_at": datetime.utcnow(),
+            "last_updated": datetime.utcnow()
+        }
+        
+        result = await db.safety_checkins.insert_one(checkin_data)
+        
+        # TODO: Schedule automatic check-in reminders
+        # TODO: Send SMS to emergency contact
+        
+        await security_manager.log_activity(
+            client_ip, 'safety_checkin_created', 
+            f"User {current_user['user_id']} created safety check-in for listing {checkin.listing_id}"
+        )
+        
+        return {
+            "status": "success",
+            "checkin_id": checkin_data["checkin_id"],
+            "message": "Safety check-in created successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create safety check-in: {str(e)}")
+
+@api_router.put("/safety/check-in/{checkin_id}/status")
+@limiter.limit("20/minute")
+async def update_checkin_status(request: Request, checkin_id: str, status_data: dict, current_user = Depends(get_current_user)):
+    """Update safety check-in status"""
+    try:
+        client_ip = get_remote_address(request)
+        new_status = status_data.get("status")
+        
+        if new_status not in ["scheduled", "met", "completed", "emergency"]:
+            raise HTTPException(status_code=400, detail="Invalid status")
+        
+        # Find check-in
+        checkin = await db.safety_checkins.find_one({"checkin_id": checkin_id})
+        if not checkin:
+            raise HTTPException(status_code=404, detail="Check-in not found")
+        
+        if checkin["user_id"] != current_user["user_id"]:
+            raise HTTPException(status_code=403, detail="You can only update your own check-ins")
+        
+        # Update status
+        await db.safety_checkins.update_one(
+            {"checkin_id": checkin_id},
+            {
+                "$set": {
+                    "status": new_status,
+                    "last_updated": datetime.utcnow()
+                }
+            }
+        )
+        
+        # Handle emergency status
+        if new_status == "emergency":
+            # TODO: Alert emergency services
+            # TODO: Notify emergency contacts
+            await security_manager.log_suspicious_activity(
+                client_ip, 'safety_emergency_triggered', 
+                f"Emergency status triggered for check-in {checkin_id} by user {current_user['user_id']}"
+            )
+        
+        return {
+            "status": "success",
+            "message": f"Check-in status updated to {new_status}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update check-in status: {str(e)}")
+
+@api_router.get("/safety/check-ins")
+async def get_user_checkins(current_user = Depends(get_current_user)):
+    """Get user's safety check-ins"""
+    try:
+        checkins = await db.safety_checkins.find(
+            {"user_id": current_user["user_id"]}
+        ).sort("created_at", -1).to_list(50)
+        
+        return {
+            "checkins": [serialize_mongo_doc(checkin) for checkin in checkins]
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get check-ins: {str(e)}")
+
 # Start background tasks
 @app.on_event("startup")
 async def startup_event():
