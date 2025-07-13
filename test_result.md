@@ -1374,6 +1374,114 @@ backend:
         agent: "testing"
         comment: "Successfully verified the trust requirements checking. The system correctly checks if a user meets the requirements for the next trust level before allowing level up. Requirements include minimum number of connections, days active, interactions, and video calls depending on the level."
 
+  - task: "Marketplace Categories Endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested the GET /api/marketplace/categories endpoint. Returns proper categories (items, services, jobs, housing, vehicles) with appropriate icons. All expected categories are present and properly formatted."
+
+  - task: "Marketplace Listing Creation"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Comprehensive testing of POST /api/marketplace/listings endpoint completed successfully. All price types (fixed, hourly, negotiable, free, barter) work correctly. Input validation properly handles invalid categories, negative prices, and invalid price types. Rate limiting is configured at 20/minute. Minor: Some validation errors return 422 status codes which is correct behavior for validation errors."
+
+  - task: "Marketplace Listing Retrieval"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested GET /api/marketplace/listings with comprehensive filtering and search capabilities. All features working correctly: basic listing retrieval, category filtering, search by query string, price range filtering (min_price, max_price), pagination (page, limit), and sorting options. Response format includes proper pagination metadata."
+
+  - task: "Individual Marketplace Listing Operations"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "All individual listing operations working correctly: GET /api/marketplace/listings/{listing_id} retrieves specific listings with view count increment, PUT /api/marketplace/listings/{listing_id} allows owner-only updates with proper authorization checks, DELETE /api/marketplace/listings/{listing_id} allows owner-only deletion, PUT /api/marketplace/listings/{listing_id}/availability updates listing status (available, sold, pending)."
+
+  - task: "User Marketplace Listings"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested GET /api/marketplace/my-listings endpoint. Correctly returns only listings belonging to the current user with proper ownership validation. All user listings are properly filtered and returned in chronological order."
+
+  - task: "Marketplace Messaging System"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Comprehensive testing of POST /api/marketplace/listings/{listing_id}/message endpoint completed successfully. Creates or continues chats between users, prevents messaging own listings, supports offer prices in messages, integrates with existing chat system, and sends WebSocket notifications. Fixed chat integration issue by ensuring consistent use of 'members' field in chat documents."
+
+  - task: "Marketplace Security & Authorization"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Security and authorization controls working correctly. Proper authentication required for all endpoints (401/403 for unauthorized access), owner-only operations properly enforced for listing updates/deletions, rate limiting configured (20/minute for creation, 10/minute for updates/deletes, 30/minute for messaging), and suspicious activity logging implemented."
+
+  - task: "Marketplace Data Validation"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Comprehensive data validation working correctly. Title length validation (3-100 characters), description length validation (10-1000 characters), category validation (items, services, jobs, housing, vehicles), price validation (non-negative), price type validation (fixed, hourly, negotiable, free, barter). Proper HTTP status codes returned (400 for business logic errors, 422 for validation errors)."
+
+  - task: "Marketplace Integration with Existing System"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested integration with existing systems. User authentication system properly integrated, marketplace messages create chats accessible through regular chat endpoints (/api/chats/{chat_id}/messages), WebSocket notifications working for marketplace messages, and MongoDB storage working correctly with proper data serialization."
+
 frontend:
   - task: "E2E Encryption Integration"
     implemented: true
