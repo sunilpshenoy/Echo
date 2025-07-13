@@ -1906,7 +1906,244 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
             {"$set": {"is_online": False, "last_seen": datetime.utcnow()}}
         )
 
-# Core Chat Management Endpoints
+# E2E ENCRYPTION ENDPOINTS - Zero Knowledge Implementation
+
+@api_router.post("/e2e/keys")
+@limiter.limit("10/minute")
+async def upload_e2e_keys(request: Request, key_bundle: E2EKeyBundle, current_user = Depends(get_current_user)):
+    """Upload user's E2E encryption public keys (server never sees private keys)"""
+    try:
+        client_ip = get_remote_address(request)
+        
+        # Verify the user is uploading their own keys
+        if key_bundle.user_id != current_user["user_id"]:
+            await security_manager.log_suspicious_activity(
+                client_ip, 'unauthorized_key_upload', f"User {current_user['user_id']} tried to upload keys for {key_bundle.user_id}"
+            )
+            raise HTTPException(status_code=403, detail="Cannot upload keys for another user")
+        
+        # Store the key bundle (only public keys)
+        key_bundle_data = {
+            "user_id": key_bundle.user_id,
+            "identity_key": key_bundle.identity_key,
+            "signed_pre_key": key_bundle.signed_pre_key,
+            "signed_pre_key_signature": key_bundle.signed_pre_key_signature,
+            "one_time_pre_keys": key_bundle.one_time_pre_keys,
+            "created_at": key_bundle.created_at,
+            "updated_at": key_bundle.updated_at
+        }
+        
+        # Upsert key bundle
+        await db.e2e_keys.update_one(
+            {"user_id": current_user["user_id"]},
+            {"$set": key_bundle_data},
+            upsert=True
+        )
+        
+        return {"status": "success", "message": "E2E keys uploaded successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload E2E keys: {str(e)}")
+
+@api_router.get("/e2e/keys/{user_id}")
+async def get_e2e_keys(user_id: str, current_user = Depends(get_current_user)):
+    """Get another user's public keys for initiating E2E conversation"""
+    try:
+        # Fetch the user's public key bundle
+        key_bundle = await db.e2e_keys.find_one({"user_id": user_id})
+        
+        if not key_bundle:
+            raise HTTPException(status_code=404, detail="User's E2E keys not found")
+        
+        # Remove one-time pre-key if available (consume it)
+        if key_bundle.get("one_time_pre_keys"):
+            used_key = key_bundle["one_time_pre_keys"].pop(0)
+            
+            # Update the database to remove the used key
+            await db.e2e_keys.update_one(
+                {"user_id": user_id},
+                {"$set": {"one_time_pre_keys": key_bundle["one_time_pre_keys"]}}
+            )
+            
+            return {
+                "user_id": user_id,
+                "identity_key": key_bundle["identity_key"],
+                "signed_pre_key": key_bundle["signed_pre_key"],
+                "signed_pre_key_signature": key_bundle["signed_pre_key_signature"],
+                "one_time_pre_keys": [used_key] if used_key else [],
+                "has_more_prekeys": len(key_bundle["one_time_pre_keys"]) > 0
+            }
+        else:
+            # No one-time pre-keys available
+            return {
+                "user_id": user_id,
+                "identity_key": key_bundle["identity_key"],
+                "signed_pre_key": key_bundle["signed_pre_key"],
+                "signed_pre_key_signature": key_bundle["signed_pre_key_signature"],
+                "one_time_pre_keys": [],
+                "has_more_prekeys": False
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get E2E keys: {str(e)}")
+
+@api_router.post("/e2e/conversation/init")
+@limiter.limit("20/minute")
+async def init_e2e_conversation(request: Request, init_data: E2EConversationInit, current_user = Depends(get_current_user)):
+    """Initialize E2E conversation (store init data for recipient)"""
+    try:
+        client_ip = get_remote_address(request)
+        
+        # Verify the sender
+        if init_data.sender_id != current_user["user_id"]:
+            await security_manager.log_suspicious_activity(
+                client_ip, 'unauthorized_conversation_init', f"User {current_user['user_id']} tried to init conversation as {init_data.sender_id}"
+            )
+            raise HTTPException(status_code=403, detail="Cannot initiate conversation as another user")
+        
+        # Store conversation initialization data
+        conv_init = {
+            "conversation_id": f"{init_data.sender_id}_{init_data.recipient_id}",
+            "sender_id": init_data.sender_id,
+            "recipient_id": init_data.recipient_id,
+            "ephemeral_public_key": init_data.ephemeral_public_key,
+            "used_one_time_pre_key": init_data.used_one_time_pre_key,
+            "sender_identity_key": init_data.sender_identity_key,
+            "created_at": datetime.utcnow(),
+            "status": "pending"
+        }
+        
+        await db.e2e_conversations.insert_one(conv_init)
+        
+        return {"status": "success", "conversation_id": conv_init["conversation_id"]}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to initialize E2E conversation: {str(e)}")
+
+@api_router.get("/e2e/conversation/pending")
+async def get_pending_e2e_conversations(current_user = Depends(get_current_user)):
+    """Get pending E2E conversation initializations for current user"""
+    try:
+        pending_conversations = await db.e2e_conversations.find({
+            "recipient_id": current_user["user_id"],
+            "status": "pending"
+        }).to_list(100)
+        
+        # Mark as delivered
+        await db.e2e_conversations.update_many(
+            {"recipient_id": current_user["user_id"], "status": "pending"},
+            {"$set": {"status": "delivered"}}
+        )
+        
+        return {"conversations": [serialize_mongo_doc(conv) for conv in pending_conversations]}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get pending conversations: {str(e)}")
+
+@api_router.post("/e2e/message")
+@limiter.limit("100/minute")
+async def send_e2e_message(request: Request, message: E2EMessage, current_user = Depends(get_current_user)):
+    """Store encrypted E2E message (server cannot decrypt)"""
+    try:
+        client_ip = get_remote_address(request)
+        
+        # Verify sender
+        if message.sender_id != current_user["user_id"]:
+            await security_manager.log_suspicious_activity(
+                client_ip, 'unauthorized_message_send', f"User {current_user['user_id']} tried to send message as {message.sender_id}"
+            )
+            raise HTTPException(status_code=403, detail="Cannot send message as another user")
+        
+        # Store encrypted message (server never sees plaintext)
+        message_data = {
+            "message_id": message.message_id,
+            "conversation_id": message.conversation_id,
+            "sender_id": message.sender_id,
+            "recipient_id": message.recipient_id,
+            "encrypted_content": message.encrypted_content,  # Client-encrypted
+            "iv": message.iv,
+            "ratchet_public_key": message.ratchet_public_key,
+            "message_number": message.message_number,
+            "chain_length": message.chain_length,
+            "timestamp": message.timestamp,
+            "delivered": False,
+            "read": False
+        }
+        
+        # Store in messages collection
+        result = await db.e2e_messages.insert_one(message_data)
+        
+        # Notify recipient via WebSocket (if online)
+        if manager.is_user_online(message.recipient_id):
+            notification = {
+                "type": "e2e_message",
+                "message_id": message.message_id,
+                "sender_id": message.sender_id,
+                "timestamp": message.timestamp.isoformat()
+            }
+            await manager.send_personal_message(json.dumps(notification), message.recipient_id)
+        
+        return {"status": "success", "message_id": message.message_id}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to store E2E message: {str(e)}")
+
+@api_router.get("/e2e/messages/{conversation_id}")
+async def get_e2e_messages(conversation_id: str, current_user = Depends(get_current_user), limit: int = 50, offset: int = 0):
+    """Get encrypted E2E messages for a conversation"""
+    try:
+        # Verify user is part of this conversation
+        sender_id, recipient_id = conversation_id.split('_', 1)
+        if current_user["user_id"] not in [sender_id, recipient_id]:
+            raise HTTPException(status_code=403, detail="Access denied to this conversation")
+        
+        # Fetch encrypted messages
+        messages = await db.e2e_messages.find({
+            "conversation_id": conversation_id
+        }).sort("timestamp", -1).skip(offset).limit(limit).to_list(limit)
+        
+        # Mark messages as delivered for current user
+        await db.e2e_messages.update_many(
+            {
+                "conversation_id": conversation_id,
+                "recipient_id": current_user["user_id"],
+                "delivered": False
+            },
+            {"$set": {"delivered": True}}
+        )
+        
+        return {"messages": [serialize_mongo_doc(msg) for msg in reversed(messages)]}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get E2E messages: {str(e)}")
+
+@api_router.post("/e2e/keys/refresh")
+@limiter.limit("5/minute")
+async def refresh_one_time_prekeys(request: Request, new_keys: List[str], current_user = Depends(get_current_user)):
+    """Refresh one-time pre-keys when running low"""
+    try:
+        # Add new one-time pre-keys
+        await db.e2e_keys.update_one(
+            {"user_id": current_user["user_id"]},
+            {"$push": {"one_time_pre_keys": {"$each": new_keys}}}
+        )
+        
+        return {"status": "success", "message": f"Added {len(new_keys)} new one-time pre-keys"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to refresh pre-keys: {str(e)}")
+
+# Original message endpoints (for backward compatibility)
 @api_router.get("/chats")
 async def get_chats(current_user = Depends(get_current_user)):
     """Get all chats for the current user"""
