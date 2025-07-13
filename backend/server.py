@@ -256,6 +256,7 @@ db = client[os.environ.get('DB_NAME', 'test_database')]
 class E2EKeyBundle(BaseModel):
     user_id: str
     identity_key: str  # Base64 encoded public key
+    signing_key: Optional[str] = None  # Base64 encoded signing public key (for algorithm compatibility)
     signed_pre_key: str  # Base64 encoded public key
     signed_pre_key_signature: str  # Base64 encoded signature
     one_time_pre_keys: List[str]  # List of Base64 encoded public keys
