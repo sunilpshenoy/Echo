@@ -321,6 +321,16 @@ def serialize_mongo_doc(doc):
 # Create the main app without a prefix
 app = FastAPI()
 
+# Add CORS middleware FIRST (before security middleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for preview environment
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+)
+
 # Add military-grade security middleware
 app.middleware("http")(security_middleware)
 
