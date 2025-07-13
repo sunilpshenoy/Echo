@@ -425,6 +425,14 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
                 isLoading={isLoadingChats}
               />
             )}
+
+            {activeTab === 'marketplace' && (
+              <MarketplaceInterface 
+                user={user}
+                token={token}
+                api={api}
+              />
+            )}
             
             {activeTab === 'teams' && (
               <GroupsHub 
