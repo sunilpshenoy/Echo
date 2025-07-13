@@ -72,7 +72,7 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
           {/* Pulse Logo */}
           <div className="mb-6 flex flex-col items-center">
             <img 
-              src="/pulse-logo.png" 
+              src="/pulse-logo.svg" 
               alt="Pulse Logo" 
               className="h-20 mb-4 drop-shadow-lg"
             />
