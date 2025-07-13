@@ -7742,6 +7742,201 @@ async def get_user_checkins(current_user = Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get check-ins: {str(e)}")
 
+# =============================================================================
+# ANALYTICS DASHBOARD FOR MARKETPLACE
+# =============================================================================
+
+@api_router.get("/analytics/dashboard")
+async def get_analytics_dashboard(current_user = Depends(get_current_user)):
+    """Get user's marketplace analytics dashboard"""
+    try:
+        user_id = current_user["user_id"]
+        
+        # Get user's listings stats
+        total_listings = await db.marketplace_listings.count_documents({"user_id": user_id})
+        active_listings = await db.marketplace_listings.count_documents(
+            {"user_id": user_id, "availability": "available"}
+        )
+        sold_listings = await db.marketplace_listings.count_documents(
+            {"user_id": user_id, "availability": "sold"}
+        )
+        
+        # Get total views and messages for user's listings
+        user_listings = await db.marketplace_listings.find({"user_id": user_id}).to_list(None)
+        total_views = sum(listing.get("views", 0) for listing in user_listings)
+        total_messages = sum(listing.get("messages_count", 0) for listing in user_listings)
+        
+        # Get recent activity (last 30 days)
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        recent_listings = await db.marketplace_listings.count_documents({
+            "user_id": user_id,
+            "created_at": {"$gte": thirty_days_ago}
+        })
+        
+        # Get category breakdown
+        category_pipeline = [
+            {"$match": {"user_id": user_id}},
+            {"$group": {"_id": "$category", "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}}
+        ]
+        category_stats = await db.marketplace_listings.aggregate(category_pipeline).to_list(None)
+        
+        # Get performance metrics
+        avg_views_per_listing = total_views / max(total_listings, 1)
+        avg_messages_per_listing = total_messages / max(total_listings, 1)
+        
+        # Get user's verification status
+        user = await db.users.find_one({"user_id": user_id})
+        verification = user.get("verification", {})
+        
+        return {
+            "overview": {
+                "total_listings": total_listings,
+                "active_listings": active_listings,
+                "sold_listings": sold_listings,
+                "total_views": total_views,
+                "total_messages": total_messages,
+                "recent_listings_30d": recent_listings
+            },
+            "performance": {
+                "avg_views_per_listing": round(avg_views_per_listing, 1),
+                "avg_messages_per_listing": round(avg_messages_per_listing, 1),
+                "conversion_rate": round((sold_listings / max(total_listings, 1)) * 100, 1)
+            },
+            "category_breakdown": [
+                {"category": item["_id"], "count": item["count"]} 
+                for item in category_stats
+            ],
+            "verification_status": {
+                "level": verification.get("verification_level", "basic"),
+                "phone_verified": verification.get("phone_verified", False),
+                "government_id_verified": verification.get("government_id_verified", False)
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get analytics: {str(e)}")
+
+@api_router.get("/analytics/marketplace-stats")
+async def get_marketplace_stats(current_user = Depends(get_current_user)):
+    """Get overall marketplace statistics"""
+    try:
+        # Overall marketplace metrics
+        total_listings = await db.marketplace_listings.count_documents({})
+        active_listings = await db.marketplace_listings.count_documents(
+            {"availability": "available"}
+        )
+        
+        # Category distribution
+        category_pipeline = [
+            {"$match": {"availability": {"$in": ["available", "pending", "sold"]}}},
+            {"$group": {"_id": "$category", "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}}
+        ]
+        category_distribution = await db.marketplace_listings.aggregate(category_pipeline).to_list(None)
+        
+        # Price range analysis
+        price_pipeline = [
+            {"$match": {"price": {"$exists": True, "$ne": None}, "availability": "available"}},
+            {"$group": {
+                "_id": None,
+                "avg_price": {"$avg": "$price"},
+                "min_price": {"$min": "$price"},
+                "max_price": {"$max": "$price"}
+            }}
+        ]
+        price_stats = await db.marketplace_listings.aggregate(price_pipeline).to_list(None)
+        price_data = price_stats[0] if price_stats else {}
+        
+        # Recent activity (last 7 days)
+        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+        recent_listings = await db.marketplace_listings.count_documents({
+            "created_at": {"$gte": seven_days_ago}
+        })
+        
+        # Verification statistics
+        total_users = await db.users.count_documents({})
+        verified_users = await db.users.count_documents(
+            {"verification.verification_level": {"$in": ["verified", "premium"]}}
+        )
+        
+        return {
+            "marketplace_overview": {
+                "total_listings": total_listings,
+                "active_listings": active_listings,
+                "recent_listings_7d": recent_listings
+            },
+            "category_distribution": [
+                {"category": item["_id"], "count": item["count"]} 
+                for item in category_distribution
+            ],
+            "price_analysis": {
+                "average_price": round(price_data.get("avg_price", 0), 2),
+                "min_price": price_data.get("min_price", 0),
+                "max_price": price_data.get("max_price", 0)
+            },
+            "user_verification": {
+                "total_users": total_users,
+                "verified_users": verified_users,
+                "verification_rate": round((verified_users / max(total_users, 1)) * 100, 1)
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get marketplace stats: {str(e)}")
+
+@api_router.get("/analytics/listing/{listing_id}")
+async def get_listing_analytics(listing_id: str, current_user = Depends(get_current_user)):
+    """Get detailed analytics for a specific listing"""
+    try:
+        # Get listing
+        listing = await db.marketplace_listings.find_one({"listing_id": listing_id})
+        
+        if not listing:
+            raise HTTPException(status_code=404, detail="Listing not found")
+        
+        # Verify ownership
+        if listing["user_id"] != current_user["user_id"]:
+            raise HTTPException(status_code=403, detail="You can only view analytics for your own listings")
+        
+        # Get message count for this listing
+        message_count = await db.messages.count_documents(
+            {"marketplace_listing_id": listing_id}
+        )
+        
+        # Calculate listing age
+        listing_age = (datetime.utcnow() - listing["created_at"]).days
+        
+        # Get daily view breakdown (last 30 days) - simplified for MVP
+        # In production, this would require view tracking by date
+        
+        return {
+            "listing_info": {
+                "title": listing["title"],
+                "category": listing["category"],
+                "price": listing.get("price"),
+                "created_at": listing["created_at"].isoformat(),
+                "availability": listing["availability"],
+                "listing_age_days": listing_age
+            },
+            "performance": {
+                "total_views": listing.get("views", 0),
+                "total_messages": message_count,
+                "views_per_day": round(listing.get("views", 0) / max(listing_age, 1), 1),
+                "messages_per_day": round(message_count / max(listing_age, 1), 1)
+            },
+            "engagement": {
+                "view_to_message_ratio": round(
+                    (message_count / max(listing.get("views", 1), 1)) * 100, 1
+                )
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get listing analytics: {str(e)}")
+
 # Start background tasks
 @app.on_event("startup")
 async def startup_event():
