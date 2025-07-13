@@ -84,7 +84,7 @@ class E2EEncryption {
   /**
    * Export public key to base64 format
    */
-  async exportPublicKey(publicKey) {
+  async exportPublicKey(publicKey, algorithm = 'ECDH') {
     const exported = await window.crypto.subtle.exportKey('spki', publicKey);
     return this.arrayBufferToBase64(exported);
   }
