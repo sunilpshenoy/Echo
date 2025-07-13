@@ -6979,20 +6979,27 @@ async def get_marketplace_listings(
     query: Optional[str] = None,
     min_price: Optional[float] = None,
     max_price: Optional[float] = None,
+    state: Optional[str] = None,
+    city: Optional[str] = None,
+    pincode: Optional[str] = None,
+    verification_level: Optional[str] = None,
+    only_verified_sellers: bool = False,
     sort_by: str = "created_at",
     sort_order: str = "desc",
     page: int = 1,
     limit: int = 20,
     current_user = Depends(get_current_user)
 ):
-    """Get marketplace listings with search and filtering"""
+    """Enhanced marketplace listings with location-based search and verification filtering"""
     try:
-        # Build search filter
+        # Build enhanced search filter
         search_filter = {"availability": {"$in": ["available", "pending"]}}
         
+        # Category filter
         if category:
             search_filter["category"] = category
         
+        # Price range filter
         if min_price is not None:
             search_filter["price"] = {"$gte": min_price}
         
@@ -7002,6 +7009,17 @@ async def get_marketplace_listings(
             else:
                 search_filter["price"] = {"$lte": max_price}
         
+        # Location-based filters for India
+        if state:
+            search_filter["location.state"] = {"$regex": state, "$options": "i"}
+        
+        if city:
+            search_filter["location.city"] = {"$regex": city, "$options": "i"}
+        
+        if pincode:
+            search_filter["location.pincode"] = pincode
+        
+        # Text search
         if query:
             search_filter["$or"] = [
                 {"title": {"$regex": query, "$options": "i"}},
@@ -7009,26 +7027,71 @@ async def get_marketplace_listings(
                 {"tags": {"$in": [query]}}
             ]
         
-        # Sort options
-        sort_direction = 1 if sort_order == "asc" else -1
-        sort_options = [(sort_by, sort_direction)]
+        # Verification filters
+        if only_verified_sellers:
+            # Get verified users
+            verified_users = await db.users.find(
+                {"verification.government_id_verified": True}
+            ).to_list(None)
+            verified_user_ids = [user["user_id"] for user in verified_users]
+            search_filter["user_id"] = {"$in": verified_user_ids}
+        
+        if verification_level:
+            verified_users = await db.users.find(
+                {"verification.verification_level": verification_level}
+            ).to_list(None)
+            verified_user_ids = [user["user_id"] for user in verified_users]
+            search_filter["user_id"] = {"$in": verified_user_ids}
+        
+        # Enhanced sort options
+        sort_options = []
+        if sort_by == "price_low":
+            sort_options = [("price", 1)]
+        elif sort_by == "price_high":
+            sort_options = [("price", -1)]
+        elif sort_by == "date_new":
+            sort_options = [("created_at", -1)]
+        elif sort_by == "date_old":
+            sort_options = [("created_at", 1)]
+        elif sort_by == "relevance":
+            # For relevance, we'll use created_at for now (can be enhanced with scoring later)
+            sort_options = [("created_at", -1)]
+        else:
+            sort_direction = 1 if sort_order == "asc" else -1
+            sort_options = [(sort_by, sort_direction)]
         
         # Calculate skip for pagination
         skip = (page - 1) * limit
         
-        # Get listings
+        # Get listings with enhanced search
         cursor = db.marketplace_listings.find(search_filter)
         total_count = await db.marketplace_listings.count_documents(search_filter)
         
         listings = await cursor.sort(sort_options).skip(skip).limit(limit).to_list(limit)
         
-        # Serialize results
+        # Serialize results with enhanced data
         serialized_listings = []
         for listing in listings:
             listing_data = serialize_mongo_doc(listing)
-            # Remove sensitive user info (keep username but hide user_id)
+            
+            # Get seller verification info
+            seller = await db.users.find_one({"user_id": listing["user_id"]})
+            if seller:
+                verification = seller.get("verification", {})
+                listing_data["seller"] = {
+                    "username": seller["username"],
+                    "display_name": seller.get("display_name", seller["username"]),
+                    "user_id": seller["user_id"],
+                    "verification_level": verification.get("verification_level", "basic"),
+                    "email_verified": verification.get("email_verified", False),
+                    "phone_verified": verification.get("phone_verified", False),
+                    "government_id_verified": verification.get("government_id_verified", False)
+                }
+            
+            # Remove sensitive user info for non-owners
             if listing_data.get('user_id') != current_user['user_id']:
                 listing_data.pop('user_id', None)
+            
             serialized_listings.append(listing_data)
         
         return {
@@ -7036,11 +7099,17 @@ async def get_marketplace_listings(
             "total_count": total_count,
             "page": page,
             "limit": limit,
-            "has_more": (skip + limit) < total_count
+            "has_more": (skip + limit) < total_count,
+            "filters_applied": {
+                "category": category,
+                "location": {"state": state, "city": city, "pincode": pincode},
+                "price_range": {"min": min_price, "max": max_price},
+                "verification": {"level": verification_level, "only_verified": only_verified_sellers}
+            }
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get listings: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get enhanced listings: {str(e)}")
 
 @api_router.get("/marketplace/listings/{listing_id}")
 async def get_marketplace_listing(listing_id: str, current_user = Depends(get_current_user)):
