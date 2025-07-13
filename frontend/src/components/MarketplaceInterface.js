@@ -169,9 +169,98 @@ const MarketplaceInterface = ({ user, token, api }) => {
     }
   };
 
-  // Handle search
-  const handleSearch = () => {
+  // Handle enhanced search
+  const handleEnhancedSearch = () => {
     fetchListings();
+  };
+
+  // Phone verification functions
+  const sendPhoneOTP = async () => {
+    try {
+      const response = await axios.post(`${api}/verification/phone/send-otp`, {
+        phone_number: phoneVerification.phone
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.status === 'success') {
+        setPhoneVerification({...phoneVerification, step: 'otp'});
+        alert('OTP sent successfully! Check your phone.');
+      }
+    } catch (error) {
+      console.error('Failed to send OTP:', error);
+      alert('Failed to send OTP. Please try again.');
+    }
+  };
+
+  const verifyPhoneOTP = async () => {
+    try {
+      const response = await axios.post(`${api}/verification/phone/verify-otp`, {
+        otp: phoneVerification.otp
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.status === 'success') {
+        setPhoneVerification({...phoneVerification, step: 'complete'});
+        fetchVerificationStatus();
+        alert('Phone verified successfully!');
+      }
+    } catch (error) {
+      console.error('Failed to verify OTP:', error);
+      alert('Invalid OTP. Please try again.');
+    }
+  };
+
+  // Government ID verification
+  const submitGovernmentID = async () => {
+    try {
+      const response = await axios.post(`${api}/verification/government-id`, govIdVerification, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.status === 'success') {
+        fetchVerificationStatus();
+        alert(response.data.message);
+        setShowVerificationModal(false);
+      }
+    } catch (error) {
+      console.error('Failed to submit government ID:', error);
+      alert('Failed to submit government ID. Please check your details.');
+    }
+  };
+
+  // Safety check-in functions
+  const createSafetyCheckIn = async () => {
+    try {
+      const checkInData = {
+        listing_id: selectedListingForSafety.listing_id,
+        meeting_location: safetyCheckIn.meetingLocation,
+        meeting_time: new Date(safetyCheckIn.meetingTime).toISOString(),
+        contact_phone: safetyCheckIn.contactPhone,
+        emergency_contact_name: safetyCheckIn.emergencyContactName,
+        emergency_contact_phone: safetyCheckIn.emergencyContactPhone
+      };
+
+      const response = await axios.post(`${api}/safety/check-in`, checkInData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.status === 'success') {
+        alert('Safety check-in created successfully!');
+        setShowSafetyModal(false);
+        setSafetyCheckIn({
+          meetingLocation: '',
+          meetingTime: '',
+          contactPhone: '',
+          emergencyContactName: '',
+          emergencyContactPhone: ''
+        });
+      }
+    } catch (error) {
+      console.error('Failed to create safety check-in:', error);
+      alert('Failed to create safety check-in. Please try again.');
+    }
   };
 
   // Create new listing
