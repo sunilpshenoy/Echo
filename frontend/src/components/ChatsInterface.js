@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
-import QRCode from 'react-qr-code';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import CallInterface from './CallInterface';
 import EmojiPicker from './EmojiPicker';
 import MessageReactions from './MessageReactions';
 import GifPicker from './GifPicker';
+import CallInterface from './CallInterface';
+import E2EEncryption from '../crypto/E2EEncryption';
+import E2EKeyManager from '../crypto/E2EKeyManager';
 
 const ConnectionManager = ({ user, token, api, onConnectionUpdate }) => {
   const [showPinModal, setShowPinModal] = useState(false);
