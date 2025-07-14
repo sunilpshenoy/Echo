@@ -13,16 +13,34 @@ const ReelsMarketplace = ({ user, token, api }) => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [categories, setCategories] = useState([]);
   
   // Interaction states
   const [showBiddingModal, setShowBiddingModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedReel, setSelectedReel] = useState(null);
   const [bidAmount, setBidAmount] = useState('');
   const [bidMessage, setBidMessage] = useState('');
   
+  // Video creation states
+  const [newReel, setNewReel] = useState({
+    title: '',
+    description: '',
+    category: '',
+    basePrice: '',
+    priceType: 'per_hour',
+    tags: '',
+    location: { city: '', state: '' }
+  });
+  const [recordedVideo, setRecordedVideo] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [videoPreview, setVideoPreview] = useState(null);
+  
   // Video player refs
   const videoRefs = useRef([]);
+  const mediaRecorderRef = useRef(null);
+  const streamRef = useRef(null);
   
   // Mock data for demonstration
   const mockReels = [
