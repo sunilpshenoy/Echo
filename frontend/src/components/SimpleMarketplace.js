@@ -401,6 +401,46 @@ const SimpleMarketplace = ({ user, token, api }) => {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <input
+                  type="text"
+                  value={newListing.location}
+                  onChange={(e) => setNewListing({...newListing, location: e.target.value})}
+                  placeholder="e.g., Mumbai, Maharashtra"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Social Media Links */}
+              <div className="border-t pt-4">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">📱 Showcase Your Work (Optional)</h4>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">YouTube Video URL</label>
+                  <input
+                    type="url"
+                    value={newListing.youtube_url}
+                    onChange={(e) => setNewListing({...newListing, youtube_url: e.target.value})}
+                    placeholder="https://youtube.com/watch?v=..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">📺 Show a demo of your service</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Instagram Profile URL</label>
+                  <input
+                    type="url"
+                    value={newListing.instagram_url}
+                    onChange={(e) => setNewListing({...newListing, instagram_url: e.target.value})}
+                    placeholder="https://instagram.com/your_username"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">📷 Link to your portfolio/gallery</p>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹) *</label>
