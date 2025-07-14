@@ -8087,17 +8087,25 @@ async def get_reels_feed(
         # Process reels data
         processed_reels = []
         for reel in reels:
-            seller_info = reel["seller_info"][0] if reel["seller_info"] else {}
+            # Safely handle seller info
+            seller_info = reel.get("seller_info", [])
+            seller_info = seller_info[0] if seller_info and len(seller_info) > 0 else {}
             verification = seller_info.get("verification", {})
             
             reel_data = serialize_mongo_doc(reel)
+            
+            # Safely get reel attributes
+            reel_username = reel.get("username", "unknown")
+            reel_display_name = reel.get("display_name", reel_username)
+            reel_location = reel.get("location", {})
+            
             reel_data["seller"] = {
-                "user_id": reel["user_id"],
-                "name": reel.get("display_name", reel["username"]),
-                "username": f"@{reel['username']}",
+                "user_id": reel.get("user_id", ""),
+                "name": reel_display_name,
+                "username": f"@{reel_username}",
                 "verification_level": verification.get("verification_level", "basic"),
                 "rating": seller_info.get("rating", 4.0),
-                "location": reel.get("location", {}).get("city", "Unknown"),
+                "location": reel_location.get("city", "Unknown") if isinstance(reel_location, dict) else "Unknown",
                 "email_verified": verification.get("email_verified", False),
                 "phone_verified": verification.get("phone_verified", False),
                 "government_id_verified": verification.get("government_id_verified", False)
