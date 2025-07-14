@@ -2659,14 +2659,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Enhanced Marketplace Search & Location Filtering (Indian Market)"
-    - "User Verification System for India"
-    - "Safety Check-in System"
-    - "Analytics Dashboard"
-    - "Indian Data Validation System"
-  stuck_tasks: []
+    - "Reels-Based Marketplace Backend"
+  stuck_tasks:
+    - "Reels-Based Marketplace Backend"
   test_all: false
-  test_priority: "high_first"
+  test_priority: "stuck_first"
 
 agent_communication:
   - agent: "testing"
