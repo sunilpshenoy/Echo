@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Comprehensive Backend Testing Script for End-to-End Encryption
-Tests all E2E encryption endpoints and functionality
+Comprehensive Backend Testing Script for Core Functionality
+Tests authentication, chat, marketplace, E2E encryption, and file upload functionality
 """
 
 import requests
@@ -11,6 +11,7 @@ import base64
 import secrets
 from datetime import datetime, timedelta
 import uuid
+import os
 
 # Configuration
 BACKEND_URL = "https://4a2de1ec-1e51-4d06-8aa7-e3f3b8ab115c.preview.emergentagent.com/api"
