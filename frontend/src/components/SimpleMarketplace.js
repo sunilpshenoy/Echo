@@ -16,7 +16,10 @@ const SimpleMarketplace = ({ user, token, api }) => {
     description: '',
     category: 'food',
     price: '',
-    price_type: 'fixed'
+    price_type: 'fixed',
+    youtube_url: '',
+    instagram_url: '',
+    location: ''
   });
 
   // Simple categories
