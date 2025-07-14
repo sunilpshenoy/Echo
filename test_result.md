@@ -349,7 +349,7 @@ agent_communication:
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Build an authentic connections app centered around a 5-layer progressive trust system (Anonymous → Chat → Voice → Video → Meetup) with AI-powered compatibility matching and authenticity ratings. The app focuses on genuine relationships through gradual trust building, moving away from superficial interactions to meaningful connections. USER REPORTED CRITICAL FRONTEND ISSUES: Buttons not working, QR code not generated, cannot create new groups, Discover tab getting stuck, upgrade to premium button not working."
+user_problem_statement: "Clean the code, fix all issues and complete testing. Ensure no compilation errors and the app should load in a jiffy. USER REPORTED CRITICAL FRONTEND ISSUES: Buttons not working, QR code not generated, cannot create new groups, Discover tab getting stuck, upgrade to premium button not working. CURRENT STATUS: Authentication issue resolved (bcrypt downgrade), but React runtime errors found with objects being rendered as children."
 
 backend:
   - task: "Map View API"
