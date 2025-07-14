@@ -138,6 +138,17 @@ const SimpleMarketplace = ({ user, token, api }) => {
       return;
     }
 
+    // Validate social media URLs if provided
+    if (newListing.youtube_url && !isValidYouTubeUrl(newListing.youtube_url)) {
+      alert('Please enter a valid YouTube URL');
+      return;
+    }
+
+    if (newListing.instagram_url && !isValidInstagramUrl(newListing.instagram_url)) {
+      alert('Please enter a valid Instagram URL');
+      return;
+    }
+
     try {
       setLoading(true);
       
@@ -148,6 +159,9 @@ const SimpleMarketplace = ({ user, token, api }) => {
         category: newListing.category,
         price: parseFloat(newListing.price),
         price_type: newListing.price_type,
+        youtube_url: newListing.youtube_url,
+        instagram_url: newListing.instagram_url,
+        location: newListing.location,
         tags: []
       }, {
         headers: { Authorization: `Bearer ${token}` },
@@ -156,7 +170,10 @@ const SimpleMarketplace = ({ user, token, api }) => {
 
       alert('Listing created successfully!');
       setShowCreateModal(false);
-      setNewListing({ title: '', description: '', category: 'food', price: '', price_type: 'fixed' });
+      setNewListing({ 
+        title: '', description: '', category: 'food', price: '', 
+        price_type: 'fixed', youtube_url: '', instagram_url: '', location: ''
+      });
       loadListings();
     } catch (error) {
       console.error('Create listing error:', error);
@@ -167,7 +184,7 @@ const SimpleMarketplace = ({ user, token, api }) => {
         ...newListing,
         price: parseFloat(newListing.price),
         seller: user.username || 'You',
-        location: 'Your Location',
+        location: newListing.location || 'Your Location',
         rating: 4.5,
         verified: false
       };
@@ -175,7 +192,10 @@ const SimpleMarketplace = ({ user, token, api }) => {
       setListings(prev => [mockListing, ...prev]);
       alert('Listing created (demo mode)!');
       setShowCreateModal(false);
-      setNewListing({ title: '', description: '', category: 'food', price: '', price_type: 'fixed' });
+      setNewListing({ 
+        title: '', description: '', category: 'food', price: '', 
+        price_type: 'fixed', youtube_url: '', instagram_url: '', location: ''
+      });
     }
     setLoading(false);
   };
