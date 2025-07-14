@@ -10,7 +10,7 @@ import LanguageSelector from './LanguageSelector';
 import ThemeCustomizer from './ThemeCustomizer';
 import GroupsHub from './GroupsHub';
 import ChannelsInterface from './ChannelsInterface';
-import ReelsMarketplace from './ReelsMarketplace';
+import SimpleMarketplace from './SimpleMarketplace';
 
 const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const { t } = useTranslation();
