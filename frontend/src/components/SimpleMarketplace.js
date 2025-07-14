@@ -333,7 +333,8 @@ const SimpleMarketplace = ({ user, token, api }) => {
 
                 <div className="flex justify-between items-center">
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600">By {listing.seller}</span>
+                    <span className="text-sm text-gray-600">By {typeof listing.seller === 'string' ? listing.seller : 
+                         (listing.seller?.username || listing.seller?.display_name || 'Unknown seller')}</span>
                     <span className="text-sm text-yellow-600">⭐ {listing.rating}</span>
                   </div>
                   
