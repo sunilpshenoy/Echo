@@ -95,6 +95,27 @@ const SimpleMarketplace = ({ user, token, api }) => {
     loadListings();
   }, [selectedCategory]);
 
+  // Helper functions for social media links
+  const isValidYouTubeUrl = (url) => {
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
+    return youtubeRegex.test(url);
+  };
+
+  const isValidInstagramUrl = (url) => {
+    const instagramRegex = /^(https?:\/\/)?(www\.)?instagram\.com\/.+/;
+    return instagramRegex.test(url);
+  };
+
+  const getYouTubeThumbnail = (url) => {
+    const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+    return videoId ? `https://img.youtube.com/vi/${videoId[1]}/mqdefault.jpg` : null;
+  };
+
+  const extractInstagramUsername = (url) => {
+    const match = url.match(/instagram\.com\/([^\/\?]+)/);
+    return match ? `@${match[1]}` : 'Instagram';
+  };
+
   const loadListings = async () => {
     setLoading(true);
     try {
