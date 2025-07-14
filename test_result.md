@@ -2662,11 +2662,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Reels-Based Marketplace Backend"
+    []
   stuck_tasks:
-    - "Reels-Based Marketplace Backend"
+    []
   test_all: false
-  test_priority: "stuck_first"
+  test_priority: "high_first"
 
 agent_communication:
   - agent: "testing"
