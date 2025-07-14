@@ -326,7 +326,8 @@ const SimpleMarketplace = ({ user, token, api }) => {
                     </span>
                   </div>
                   <div className="text-sm text-gray-500">
-                    📍 {listing.location}
+                    📍 {typeof listing.location === 'string' ? listing.location : 
+                         (listing.location?.city || listing.location?.state || 'Location not specified')}
                   </div>
                 </div>
 
