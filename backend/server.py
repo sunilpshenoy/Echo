@@ -928,7 +928,36 @@ class MarketplaceMessage(BaseModel):
     message: str = Field(..., min_length=1, max_length=500)
     offer_price: Optional[float] = None
 
-# Enhanced User Verification Models
+# Reels-Based Marketplace Models
+class ServiceReel(BaseModel):
+    title: str = Field(..., min_length=3, max_length=100)
+    description: str = Field(..., min_length=10, max_length=500)
+    category: str = Field(..., description="food, design, tech, home, beauty, education, fitness")
+    base_price: float = Field(..., ge=0)
+    price_type: str = Field(..., description="per_hour, per_project, per_day, per_meal, negotiable")
+    video_url: str = Field(..., description="Video file URL or base64")
+    thumbnail_url: Optional[str] = None
+    duration: int = Field(..., ge=15, le=180, description="Video duration in seconds")
+    location: Optional[Dict[str, Any]] = None
+    tags: List[str] = Field(default=[], max_items=10)
+    availability: str = Field(default="available", description="available, busy, unavailable")
+
+class ReelBid(BaseModel):
+    reel_id: str
+    bid_amount: float = Field(..., ge=0)
+    message: str = Field(..., min_length=10, max_length=500)
+    project_details: Optional[str] = Field(None, max_length=1000)
+    preferred_date: Optional[datetime] = None
+    urgency: str = Field(default="normal", description="low, normal, high, urgent")
+
+class ReelReview(BaseModel):
+    reel_id: str
+    rating: int = Field(..., ge=1, le=5)
+    review_text: str = Field(..., min_length=10, max_length=500)
+    service_quality: int = Field(..., ge=1, le=5)
+    communication: int = Field(..., ge=1, le=5)
+    value_for_money: int = Field(..., ge=1, le=5)
+    would_recommend: bool = Field(default=True)
 class UserVerification(BaseModel):
     phone_number: Optional[str] = Field(None, pattern=r"^\+91[6-9]\d{9}$")  # Indian mobile format
     email_verified: bool = Field(default=False)
