@@ -344,22 +344,45 @@ const ReelsMarketplace = ({ user, token, api }) => {
 
   const handleSubmitBid = async () => {
     try {
+      if (!bidAmount || parseFloat(bidAmount) <= 0) {
+        alert('Please enter a valid bid amount.');
+        return;
+      }
+
+      if (!bidMessage.trim()) {
+        alert('Please add a message for the seller.');
+        return;
+      }
+
       const bidData = {
         reel_id: selectedReel.reel_id,
-        seller_id: selectedReel.seller.user_id,
         bid_amount: parseFloat(bidAmount),
         message: bidMessage,
-        service_details: selectedReel.service
+        project_details: `Interested in: ${selectedReel.service?.title || selectedReel.title}`,
+        urgency: 'normal'
       };
 
-      // API call to submit bid
-      console.log('Submitting bid:', bidData);
-      alert('Bid submitted successfully! Seller will be notified.');
-      setShowBiddingModal(false);
-      setBidAmount('');
-      setBidMessage('');
+      const response = await axios.post(`${api}/reels/${selectedReel.reel_id}/bid`, bidData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.status === 'success') {
+        alert('Bid submitted successfully! Seller will be notified.');
+        setShowBiddingModal(false);
+        setBidAmount('');
+        setBidMessage('');
+        
+        // Update reel stats locally
+        setReels(reels.map(reel => {
+          if (reel.reel_id === selectedReel.reel_id) {
+            return { ...reel, stats: { ...reel.stats, bids: reel.stats.bids + 1 } };
+          }
+          return reel;
+        }));
+      }
     } catch (error) {
       console.error('Failed to submit bid:', error);
+      alert('Failed to submit bid. Please try again.');
     }
   };
 
