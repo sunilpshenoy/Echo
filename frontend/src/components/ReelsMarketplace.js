@@ -606,7 +606,10 @@ const ReelsMarketplace = ({ user, token, api }) => {
 
           {/* Bottom Navigation */}
           <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 flex justify-around items-center py-3">
-            <button className="text-white text-center">
+            <button 
+              onClick={() => setActiveView('feed')}
+              className={`text-center ${activeView === 'feed' ? 'text-white' : 'text-gray-400'}`}
+            >
               <div className="text-2xl">🏠</div>
               <span className="text-xs">Home</span>
             </button>
@@ -614,7 +617,10 @@ const ReelsMarketplace = ({ user, token, api }) => {
               <div className="text-2xl">🔍</div>
               <span className="text-xs">Discover</span>
             </button>
-            <button className="text-white text-center bg-red-500 rounded-full p-3">
+            <button 
+              onClick={() => setShowCreateModal(true)}
+              className="text-white text-center bg-red-500 rounded-full p-3"
+            >
               <div className="text-xl">➕</div>
             </button>
             <button className="text-white text-center">
