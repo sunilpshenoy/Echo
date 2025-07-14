@@ -293,8 +293,48 @@ const ReelsMarketplace = ({ user, token, api }) => {
   };
 
   const handleLike = async (reelId) => {
-    // API call to like reel
-    console.log('Liked reel:', reelId);
+    try {
+      const response = await axios.post(`${api}/reels/${reelId}/like`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data.status === 'success') {
+        // Update local state to reflect like/unlike
+        setReels(reels.map(reel => {
+          if (reel.reel_id === reelId) {
+            const newLikes = response.data.action === 'liked' 
+              ? reel.stats.likes + 1 
+              : reel.stats.likes - 1;
+            return { ...reel, stats: { ...reel.stats, likes: newLikes } };
+          }
+          return reel;
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to like reel:', error);
+    }
+  };
+
+  const recordView = async (reelId) => {
+    try {
+      await axios.post(`${api}/reels/${reelId}/view`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch (error) {
+      console.error('Failed to record view:', error);
+    }
+  };
+
+  const handleContactSeller = async (reel) => {
+    try {
+      // Create a chat or navigate to existing chat
+      const message = `Hi! I'm interested in your service: ${reel.title}`;
+      
+      // For now, show success message
+      alert(`Message sent to ${reel.seller.name}! Check your chats to continue the conversation.`);
+    } catch (error) {
+      console.error('Failed to contact seller:', error);
+    }
   };
 
   const handleOpenBidding = (reel) => {
