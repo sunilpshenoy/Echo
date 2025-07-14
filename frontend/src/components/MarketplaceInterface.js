@@ -396,9 +396,8 @@ const MarketplaceInterface = ({ user, token, api }) => {
       {/* Location information */}
       {listing.location && (
         <div className="text-xs text-gray-500 mb-2">
-          📍 {listing.location.city && `${listing.location.city}, `}
-          {listing.location.state && `${listing.location.state} `}
-          {listing.location.pincode && `- ${listing.location.pincode}`}
+          📍 {typeof listing.location === 'string' ? listing.location : 
+             `${listing.location?.city || ''}${listing.location?.city && listing.location?.state ? ', ' : ''}${listing.location?.state || ''}${listing.location?.pincode ? ` - ${listing.location.pincode}` : ''}`}
         </div>
       )}
 
