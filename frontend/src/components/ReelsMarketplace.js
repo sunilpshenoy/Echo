@@ -111,9 +111,173 @@ const ReelsMarketplace = ({ user, token, api }) => {
     }
   ];
 
+  // Fetch data on component mount
   useEffect(() => {
-    setReels(mockReels);
+    fetchReelsFeed();
+    fetchCategories();
   }, []);
+
+  // Fetch categories
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get(`${api}/reels/categories`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCategories(response.data.categories);
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    }
+  };
+
+  // Fetch reels feed
+  const fetchReelsFeed = async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (selectedCategory) params.append('category', selectedCategory);
+      if (locationFilter) params.append('location', locationFilter);
+
+      const response = await axios.get(`${api}/reels/feed?${params}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.reels && response.data.reels.length > 0) {
+        setReels(response.data.reels);
+      } else {
+        // Use mock data if no reels available
+        setReels(mockReels);
+      }
+    } catch (error) {
+      console.error('Failed to fetch reels:', error);
+      // Fall back to mock data
+      setReels(mockReels);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Video recording functions
+  const startVideoRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: 720, height: 1280 },
+        audio: true
+      });
+      
+      streamRef.current = stream;
+      setVideoPreview(stream);
+      
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=vp9'
+      });
+      
+      const chunks = [];
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        setRecordedVideo(blob);
+        
+        // Create video URL for preview
+        const videoUrl = URL.createObjectURL(blob);
+        setVideoPreview(videoUrl);
+        
+        // Stop camera stream
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+        }
+      };
+      
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+      setIsRecording(true);
+      
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+      alert('Camera access denied. Please allow camera access to record videos.');
+    }
+  };
+
+  const stopVideoRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('video/')) {
+      setRecordedVideo(file);
+      const videoUrl = URL.createObjectURL(file);
+      setVideoPreview(videoUrl);
+    } else {
+      alert('Please select a valid video file.');
+    }
+  };
+
+  const createServiceReel = async () => {
+    try {
+      if (!recordedVideo) {
+        alert('Please record or upload a video first.');
+        return;
+      }
+
+      if (!newReel.title || !newReel.description || !newReel.category || !newReel.basePrice) {
+        alert('Please fill in all required fields.');
+        return;
+      }
+
+      // Convert video to base64
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const videoBase64 = reader.result.split(',')[1]; // Remove data:video/webm;base64, prefix
+        
+        const reelData = {
+          title: newReel.title,
+          description: newReel.description,
+          category: newReel.category,
+          base_price: parseFloat(newReel.basePrice),
+          price_type: newReel.priceType,
+          video_url: videoBase64,
+          duration: 60, // Default duration, could be calculated
+          location: newReel.location,
+          tags: newReel.tags ? newReel.tags.split(',').map(tag => tag.trim()) : [],
+          availability: 'available'
+        };
+
+        try {
+          const response = await axios.post(`${api}/reels/create`, reelData, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          if (response.data.status === 'success') {
+            alert('Service reel created successfully!');
+            setShowCreateModal(false);
+            setNewReel({
+              title: '', description: '', category: '', basePrice: '',
+              priceType: 'per_hour', tags: '', location: { city: '', state: '' }
+            });
+            setRecordedVideo(null);
+            setVideoPreview(null);
+            fetchReelsFeed(); // Refresh feed
+          }
+        } catch (error) {
+          console.error('Failed to create reel:', error);
+          alert('Failed to create reel. Please try again.');
+        }
+      };
+      
+      reader.readAsDataURL(recordedVideo);
+    } catch (error) {
+      console.error('Failed to create reel:', error);
+      alert('Failed to create reel. Please try again.');
+    }
+  };
 
   const handleVideoPlay = (index) => {
     // Pause all videos except the current one
