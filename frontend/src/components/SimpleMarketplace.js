@@ -288,6 +288,34 @@ const SimpleMarketplace = ({ user, token, api }) => {
 
                 <p className="text-gray-600 text-sm mb-3">{listing.description}</p>
 
+                {/* Social Media Links */}
+                {(listing.youtube_url || listing.instagram_url) && (
+                  <div className="flex space-x-2 mb-3">
+                    {listing.youtube_url && (
+                      <a
+                        href={listing.youtube_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center space-x-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs hover:bg-red-200 transition-colors"
+                      >
+                        <span>📺</span>
+                        <span>Watch Demo</span>
+                      </a>
+                    )}
+                    {listing.instagram_url && (
+                      <a
+                        href={listing.instagram_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center space-x-1 bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-xs hover:bg-pink-200 transition-colors"
+                      >
+                        <span>📷</span>
+                        <span>Portfolio</span>
+                      </a>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex justify-between items-center mb-3">
                   <div>
                     <span className="text-lg font-bold text-green-600">
