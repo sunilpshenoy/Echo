@@ -31,43 +31,63 @@ const SimpleMarketplace = ({ user, token, api }) => {
     { value: 'education', label: 'Education', icon: '📚' }
   ];
 
-  // Mock listings for reliability
+  // Enhanced mock listings with social links
   const mockListings = [
     {
       id: '1',
       title: 'Home Cooking Service',
-      description: 'Authentic North Indian meals delivered fresh daily',
+      description: 'Authentic North Indian meals delivered fresh daily. Watch my cooking videos!',
       category: 'food',
       price: 500,
       price_type: 'per_meal',
       seller: 'Ravi Kumar',
       location: 'Mumbai, Maharashtra',
       rating: 4.8,
-      verified: true
+      verified: true,
+      youtube_url: 'https://youtube.com/watch?v=example1',
+      instagram_url: 'https://instagram.com/ravi_chef_mumbai'
     },
     {
       id: '2',
       title: 'Logo Design Service',
-      description: 'Professional logos for your business',
+      description: 'Professional logos for your business. Check out my portfolio on Instagram!',
       category: 'design',
       price: 2000,
       price_type: 'per_project',
       seller: 'Sarah Design',
       location: 'Delhi',
       rating: 4.9,
-      verified: true
+      verified: true,
+      youtube_url: '',
+      instagram_url: 'https://instagram.com/sarah_designs_delhi'
     },
     {
       id: '3',
       title: 'Math Tutoring',
-      description: 'Expert math tutoring for grades 6-12',
+      description: 'Expert math tutoring for grades 6-12. See my teaching style on YouTube!',
       category: 'education',
       price: 800,
       price_type: 'per_hour',
       seller: 'Dr. Sharma',
       location: 'Bangalore',
       rating: 4.7,
-      verified: true
+      verified: true,
+      youtube_url: 'https://youtube.com/watch?v=math_tutorial',
+      instagram_url: ''
+    },
+    {
+      id: '4',
+      title: 'Plumbing Services',
+      description: 'Quick home repairs and maintenance. See my work videos for quality assurance!',
+      category: 'home',
+      price: 600,
+      price_type: 'per_hour',
+      seller: 'Rajesh Plumber',
+      location: 'Chennai',
+      rating: 4.6,
+      verified: true,
+      youtube_url: 'https://youtube.com/watch?v=plumbing_work',
+      instagram_url: 'https://instagram.com/rajesh_plumber_chennai'
     }
   ];
 
