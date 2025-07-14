@@ -7966,6 +7966,368 @@ async def get_listing_analytics(listing_id: str, current_user = Depends(get_curr
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get listing analytics: {str(e)}")
 
+# =============================================================================
+# REELS-BASED MARKETPLACE ENDPOINTS
+# =============================================================================
+
+@api_router.post("/reels/create")
+@limiter.limit("10/minute")
+async def create_service_reel(request: Request, reel: ServiceReel, current_user = Depends(get_current_user)):
+    """Create a new service reel for marketplace"""
+    try:
+        client_ip = get_remote_address(request)
+        
+        # Validate category
+        valid_categories = ["food", "design", "tech", "home", "beauty", "education", "fitness"]
+        if reel.category not in valid_categories:
+            raise HTTPException(status_code=400, detail=f"Invalid category. Supported: {', '.join(valid_categories)}")
+        
+        # Create reel data
+        reel_data = {
+            "reel_id": str(uuid.uuid4()),
+            "user_id": current_user["user_id"],
+            "username": current_user["username"],
+            "display_name": current_user.get("display_name", current_user["username"]),
+            "title": reel.title,
+            "description": reel.description,
+            "category": reel.category,
+            "base_price": reel.base_price,
+            "price_type": reel.price_type,
+            "video_url": reel.video_url,
+            "thumbnail_url": reel.thumbnail_url,
+            "duration": reel.duration,
+            "location": reel.location,
+            "tags": reel.tags,
+            "availability": "available",
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+            "stats": {
+                "views": 0,
+                "likes": 0,
+                "comments": 0,
+                "shares": 0,
+                "bids": 0,
+                "hires": 0
+            },
+            "is_active": True
+        }
+        
+        result = await db.service_reels.insert_one(reel_data)
+        
+        await security_manager.log_activity(
+            client_ip, 'service_reel_created',
+            f"User {current_user['user_id']} created service reel {reel_data['reel_id']}"
+        )
+        
+        return {
+            "status": "success",
+            "reel_id": reel_data["reel_id"],
+            "message": "Service reel created successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create service reel: {str(e)}")
+
+@api_router.get("/reels/feed")
+async def get_reels_feed(
+    request: Request,
+    category: Optional[str] = None,
+    location: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    page: int = 1,
+    limit: int = 20,
+    current_user = Depends(get_current_user)
+):
+    """Get reels feed for marketplace discovery"""
+    try:
+        # Build filter
+        feed_filter = {"is_active": True, "availability": {"$in": ["available", "busy"]}}
+        
+        if category:
+            feed_filter["category"] = category
+        
+        if min_price is not None:
+            feed_filter["base_price"] = {"$gte": min_price}
+        
+        if max_price is not None:
+            if "base_price" in feed_filter:
+                feed_filter["base_price"]["$lte"] = max_price
+            else:
+                feed_filter["base_price"] = {"$lte": max_price}
+        
+        if location:
+            feed_filter["$or"] = [
+                {"location.city": {"$regex": location, "$options": "i"}},
+                {"location.state": {"$regex": location, "$options": "i"}}
+            ]
+        
+        # Calculate skip for pagination
+        skip = (page - 1) * limit
+        
+        # Get reels with user verification info
+        pipeline = [
+            {"$match": feed_filter},
+            {"$lookup": {
+                "from": "users",
+                "localField": "user_id", 
+                "foreignField": "user_id",
+                "as": "seller_info"
+            }},
+            {"$sort": {"created_at": -1}},
+            {"$skip": skip},
+            {"$limit": limit}
+        ]
+        
+        reels = await db.service_reels.aggregate(pipeline).to_list(limit)
+        total_count = await db.service_reels.count_documents(feed_filter)
+        
+        # Process reels data
+        processed_reels = []
+        for reel in reels:
+            seller_info = reel["seller_info"][0] if reel["seller_info"] else {}
+            verification = seller_info.get("verification", {})
+            
+            reel_data = serialize_mongo_doc(reel)
+            reel_data["seller"] = {
+                "user_id": reel["user_id"],
+                "name": reel.get("display_name", reel["username"]),
+                "username": f"@{reel['username']}",
+                "verification_level": verification.get("verification_level", "basic"),
+                "rating": seller_info.get("rating", 4.0),
+                "location": reel.get("location", {}).get("city", "Unknown"),
+                "email_verified": verification.get("email_verified", False),
+                "phone_verified": verification.get("phone_verified", False),
+                "government_id_verified": verification.get("government_id_verified", False)
+            }
+            
+            # Remove sensitive seller info
+            reel_data.pop("user_id", None)
+            reel_data.pop("seller_info", None)
+            
+            processed_reels.append(reel_data)
+        
+        return {
+            "reels": processed_reels,
+            "total_count": total_count,
+            "page": page,
+            "limit": limit,
+            "has_more": (skip + limit) < total_count
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get reels feed: {str(e)}")
+
+@api_router.post("/reels/{reel_id}/like")
+@limiter.limit("60/minute")
+async def like_reel(request: Request, reel_id: str, current_user = Depends(get_current_user)):
+    """Like or unlike a service reel"""
+    try:
+        client_ip = get_remote_address(request)
+        
+        # Check if already liked
+        existing_like = await db.reel_likes.find_one({
+            "reel_id": reel_id,
+            "user_id": current_user["user_id"]
+        })
+        
+        if existing_like:
+            # Unlike
+            await db.reel_likes.delete_one({
+                "reel_id": reel_id,
+                "user_id": current_user["user_id"]
+            })
+            
+            await db.service_reels.update_one(
+                {"reel_id": reel_id},
+                {"$inc": {"stats.likes": -1}}
+            )
+            
+            return {"status": "success", "action": "unliked"}
+        else:
+            # Like
+            await db.reel_likes.insert_one({
+                "reel_id": reel_id,
+                "user_id": current_user["user_id"],
+                "created_at": datetime.utcnow()
+            })
+            
+            await db.service_reels.update_one(
+                {"reel_id": reel_id},
+                {"$inc": {"stats.likes": 1}}
+            )
+            
+            return {"status": "success", "action": "liked"}
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to like reel: {str(e)}")
+
+@api_router.post("/reels/{reel_id}/view")
+@limiter.limit("100/minute")
+async def record_reel_view(request: Request, reel_id: str, current_user = Depends(get_current_user)):
+    """Record a view for a service reel"""
+    try:
+        # Update view count (could add view tracking per user to prevent spam)
+        await db.service_reels.update_one(
+            {"reel_id": reel_id},
+            {"$inc": {"stats.views": 1}}
+        )
+        
+        return {"status": "success"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to record view: {str(e)}")
+
+@api_router.post("/reels/{reel_id}/bid")
+@limiter.limit("20/minute")
+async def submit_reel_bid(request: Request, reel_id: str, bid: ReelBid, current_user = Depends(get_current_user)):
+    """Submit a bid for a service reel"""
+    try:
+        client_ip = get_remote_address(request)
+        
+        # Get reel info
+        reel = await db.service_reels.find_one({"reel_id": reel_id})
+        if not reel:
+            raise HTTPException(status_code=404, detail="Service reel not found")
+        
+        # Can't bid on your own reel
+        if reel["user_id"] == current_user["user_id"]:
+            raise HTTPException(status_code=400, detail="Cannot bid on your own service")
+        
+        # Create bid
+        bid_data = {
+            "bid_id": str(uuid.uuid4()),
+            "reel_id": reel_id,
+            "seller_id": reel["user_id"],
+            "buyer_id": current_user["user_id"],
+            "buyer_name": current_user.get("display_name", current_user["username"]),
+            "bid_amount": bid.bid_amount,
+            "message": bid.message,
+            "project_details": bid.project_details,
+            "preferred_date": bid.preferred_date,
+            "urgency": bid.urgency,
+            "status": "pending",
+            "created_at": datetime.utcnow(),
+            "service_info": {
+                "title": reel["title"],
+                "category": reel["category"],
+                "base_price": reel["base_price"]
+            }
+        }
+        
+        result = await db.reel_bids.insert_one(bid_data)
+        
+        # Update reel stats
+        await db.service_reels.update_one(
+            {"reel_id": reel_id},
+            {"$inc": {"stats.bids": 1}}
+        )
+        
+        # Create chat between buyer and seller
+        chat_id = str(uuid.uuid4())
+        chat_data = {
+            "chat_id": chat_id,
+            "members": [current_user["user_id"], reel["user_id"]],
+            "created_at": datetime.utcnow(),
+            "is_group": False,
+            "reel_id": reel_id,
+            "bid_id": bid_data["bid_id"]
+        }
+        await db.chats.insert_one(chat_data)
+        
+        # Send notification message
+        message_id = str(uuid.uuid4())
+        notification_message = {
+            "message_id": message_id,
+            "chat_id": chat_id,
+            "sender_id": current_user["user_id"],
+            "content": f"💰 New bid for '{reel['title']}': ₹{bid.bid_amount}\n\n{bid.message}",
+            "message_type": "reel_bid",
+            "reel_id": reel_id,
+            "bid_id": bid_data["bid_id"],
+            "created_at": datetime.utcnow(),
+            "read": False
+        }
+        
+        await db.messages.insert_one(notification_message)
+        
+        # WebSocket notification
+        if manager.is_user_online(reel["user_id"]):
+            notification = {
+                "type": "reel_bid",
+                "chat_id": chat_id,
+                "bid_id": bid_data["bid_id"],
+                "buyer_name": current_user.get("display_name", current_user["username"]),
+                "service_title": reel["title"],
+                "bid_amount": bid.bid_amount
+            }
+            await manager.send_personal_message(json.dumps(notification), reel["user_id"])
+        
+        return {
+            "status": "success",
+            "bid_id": bid_data["bid_id"],
+            "chat_id": chat_id,
+            "message": "Bid submitted successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to submit bid: {str(e)}")
+
+@api_router.get("/reels/{reel_id}/reviews")
+async def get_reel_reviews(reel_id: str, page: int = 1, limit: int = 10):
+    """Get reviews for a service reel"""
+    try:
+        skip = (page - 1) * limit
+        
+        reviews = await db.reel_reviews.find(
+            {"reel_id": reel_id}
+        ).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+        
+        total_count = await db.reel_reviews.count_documents({"reel_id": reel_id})
+        
+        return {
+            "reviews": [serialize_mongo_doc(review) for review in reviews],
+            "total_count": total_count,
+            "page": page,
+            "limit": limit,
+            "has_more": (skip + limit) < total_count
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get reviews: {str(e)}")
+
+@api_router.get("/reels/my-reels")
+async def get_my_service_reels(current_user = Depends(get_current_user)):
+    """Get current user's service reels"""
+    try:
+        reels = await db.service_reels.find(
+            {"user_id": current_user["user_id"]}
+        ).sort("created_at", -1).to_list(100)
+        
+        return {"reels": [serialize_mongo_doc(reel) for reel in reels]}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get your reels: {str(e)}")
+
+@api_router.get("/reels/categories")
+async def get_reel_categories():
+    """Get available reel categories"""
+    categories = [
+        {"value": "food", "label": "Food & Catering", "icon": "🍳"},
+        {"value": "design", "label": "Design & Creative", "icon": "🎨"},
+        {"value": "tech", "label": "Tech Services", "icon": "💻"},
+        {"value": "home", "label": "Home Services", "icon": "🏠"},
+        {"value": "beauty", "label": "Beauty & Wellness", "icon": "💄"},
+        {"value": "education", "label": "Education & Tutoring", "icon": "📚"},
+        {"value": "fitness", "label": "Fitness & Health", "icon": "💪"}
+    ]
+    
+    return {"categories": categories}
+
 # Start background tasks
 @app.on_event("startup")
 async def startup_event():
