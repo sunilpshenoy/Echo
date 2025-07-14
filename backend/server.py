@@ -905,7 +905,9 @@ class MarketplaceListing(BaseModel):
     category: str = Field(..., description="items, services, jobs, housing, vehicles")
     price: Optional[float] = Field(None, ge=0)
     price_type: str = Field(..., description="fixed, hourly, negotiable, free, barter")
-    location: Optional[Dict[str, Any]] = None
+    location: Optional[str] = Field(None, max_length=200)
+    youtube_url: Optional[str] = Field(None, max_length=500)
+    instagram_url: Optional[str] = Field(None, max_length=500)
     images: Optional[List[str]] = []
     tags: Optional[List[str]] = []
     availability: str = Field(default="available", description="available, sold, pending")
