@@ -427,7 +427,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
             )}
 
             {activeTab === 'marketplace' && (
-              <ReelsMarketplace 
+              <SimpleMarketplace 
                 user={user}
                 token={token}
                 api={api}
