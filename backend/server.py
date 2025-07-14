@@ -6970,6 +6970,8 @@ async def create_marketplace_listing(request: Request, listing: MarketplaceListi
             "price": listing.price,
             "price_type": listing.price_type,
             "location": listing.location,
+            "youtube_url": listing.youtube_url,
+            "instagram_url": listing.instagram_url,
             "images": listing.images or [],
             "tags": listing.tags or [],
             "availability": "available",
