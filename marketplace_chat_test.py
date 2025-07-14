@@ -6,7 +6,7 @@ Quick test for marketplace messaging and chat integration
 import requests
 import json
 
-BACKEND_URL = "https://54de679f-4a30-4005-9269-55166597fc47.preview.emergentagent.com/api"
+BACKEND_URL = "https://4a2de1ec-1e51-4d06-8aa7-e3f3b8ab115c.preview.emergentagent.com/api"
 
 def test_marketplace_chat_integration():
     session = requests.Session()
