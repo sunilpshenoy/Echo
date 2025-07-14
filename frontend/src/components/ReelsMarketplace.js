@@ -750,6 +750,233 @@ const ReelsMarketplace = ({ user, token, api }) => {
           </div>
         </div>
       )}
+      {/* Create Service Reel Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold">Create Service Reel</h3>
+              <button 
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-500 hover:text-gray-700 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Video Recording/Upload Section */}
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                {!videoPreview ? (
+                  <div>
+                    <div className="text-gray-500 mb-4">
+                      <div className="text-4xl mb-2">🎥</div>
+                      <p className="text-sm">Record or upload your service video</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <button
+                        onClick={startVideoRecording}
+                        disabled={isRecording}
+                        className={`w-full py-2 px-4 rounded-lg ${
+                          isRecording 
+                            ? 'bg-red-500 text-white' 
+                            : 'bg-blue-500 hover:bg-blue-600 text-white'
+                        }`}
+                      >
+                        {isRecording ? '🔴 Recording...' : '📹 Start Recording'}
+                      </button>
+                      
+                      {isRecording && (
+                        <button
+                          onClick={stopVideoRecording}
+                          className="w-full py-2 px-4 rounded-lg bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          ⏹️ Stop Recording
+                        </button>
+                      )}
+                      
+                      <div className="text-sm text-gray-500">or</div>
+                      
+                      <label className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg cursor-pointer block">
+                        📁 Upload Video File
+                        <input
+                          type="file"
+                          accept="video/*"
+                          onChange={handleFileUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <video
+                      src={videoPreview}
+                      controls
+                      className="w-full h-48 object-cover rounded-lg mb-2"
+                      autoPlay={false}
+                    />
+                    <button
+                      onClick={() => {
+                        setVideoPreview(null);
+                        setRecordedVideo(null);
+                      }}
+                      className="text-sm text-red-600 hover:text-red-800"
+                    >
+                      🗑️ Remove Video
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Service Details Form */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Service Title *
+                </label>
+                <input
+                  type="text"
+                  value={newReel.title}
+                  onChange={(e) => setNewReel({...newReel, title: e.target.value})}
+                  placeholder="e.g., Professional Home Cooking Service"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  maxLength={100}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Category *
+                </label>
+                <select
+                  value={newReel.category}
+                  onChange={(e) => setNewReel({...newReel, category: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select a category</option>
+                  {categories.map(category => (
+                    <option key={category.value} value={category.value}>
+                      {category.icon} {category.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description *
+                </label>
+                <textarea
+                  value={newReel.description}
+                  onChange={(e) => setNewReel({...newReel, description: e.target.value})}
+                  placeholder="Describe your service, experience, and what makes you unique..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  maxLength={500}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Base Price (₹) *
+                  </label>
+                  <input
+                    type="number"
+                    value={newReel.basePrice}
+                    onChange={(e) => setNewReel({...newReel, basePrice: e.target.value})}
+                    placeholder="500"
+                    min="0"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Price Type
+                  </label>
+                  <select
+                    value={newReel.priceType}
+                    onChange={(e) => setNewReel({...newReel, priceType: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="per_hour">Per Hour</option>
+                    <option value="per_project">Per Project</option>
+                    <option value="per_day">Per Day</option>
+                    <option value="per_meal">Per Meal</option>
+                    <option value="negotiable">Negotiable</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    value={newReel.location.city}
+                    onChange={(e) => setNewReel({
+                      ...newReel, 
+                      location: {...newReel.location, city: e.target.value}
+                    })}
+                    placeholder="Mumbai"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    State
+                  </label>
+                  <input
+                    type="text"
+                    value={newReel.location.state}
+                    onChange={(e) => setNewReel({
+                      ...newReel, 
+                      location: {...newReel.location, state: e.target.value}
+                    })}
+                    placeholder="Maharashtra"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tags (comma separated)
+                </label>
+                <input
+                  type="text"
+                  value={newReel.tags}
+                  onChange={(e) => setNewReel({...newReel, tags: e.target.value})}
+                  placeholder="cooking, home delivery, authentic, mumbai"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-3 pt-4">
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={createServiceReel}
+                  disabled={!recordedVideo || !newReel.title || !newReel.category}
+                  className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  Create Reel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
