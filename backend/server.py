@@ -7429,9 +7429,9 @@ async def send_phone_otp(request: Request, phone_data: dict, current_user = Depe
         if not re.match(r"^\+91[6-9]\d{9}$", phone_number):
             raise HTTPException(status_code=400, detail="Invalid Indian mobile number format. Use +91XXXXXXXXXX")
         
-        # Generate 6-digit OTP
-        import random
-        otp = str(random.randint(100000, 999999))
+        # Generate 6-digit OTP using cryptographically secure random
+        import secrets
+        otp = str(secrets.randbelow(900000) + 100000)  # Ensures 6-digit number
         
         # Store OTP in database (expires in 10 minutes)
         await db.phone_otps.update_one(
