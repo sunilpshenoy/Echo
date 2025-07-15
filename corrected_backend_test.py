@@ -43,12 +43,13 @@ class CorrectedBackendTester:
         timestamp = int(time.time())
         username = f"testuser_{timestamp}{username_suffix}"
         email = f"{username}@test.com"
-        password = "testpass123"
+        # Use environment variable for test password or generate secure one
+        test_password = os.environ.get('TEST_PASSWORD', 'TestPass123!@#$')
         
         user_data = {
             "username": username,
             "email": email,
-            "password": password,
+            "password": test_password,
             "display_name": f"Test User {username_suffix}"
         }
         
@@ -62,7 +63,7 @@ class CorrectedBackendTester:
                 self.users[username] = {
                     "username": username,
                     "email": email,
-                    "password": password,
+                    "password": test_password,
                     "token": token,
                     "user_id": user_id,
                     "display_name": user_data["display_name"]
