@@ -77,6 +77,17 @@ const CallInterface = ({
     }
   };
 
+  // Set up video streams when they change
+  useEffect(() => {
+    if (localStream && localVideoRef.current) {
+      localVideoRef.current.srcObject = localStream;
+    }
+    
+    if (remoteStream && remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [localStream, remoteStream]);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col">
       {/* Call Header */}
@@ -91,9 +102,20 @@ const CallInterface = ({
             <h3 className="font-semibold text-white">
               {call?.other_user?.display_name || 'Contact'}
             </h3>
-            <p className="text-sm text-gray-300">
-              {callType === 'video' ? 'Video Call' : 'Voice Call'} • {call?.status || 'connecting...'}
-            </p>
+            <div className="flex items-center space-x-2 text-sm text-gray-300">
+              <span>
+                {callType === 'video' ? 'Video Call' : 'Voice Call'}
+              </span>
+              <span>•</span>
+              <span>{formatDuration(callDuration)}</span>
+              {/* Call Quality Indicator */}
+              <div className="flex items-center space-x-1">
+                <span className={`w-2 h-2 rounded-full ${getQualityColor(callQuality.signal)}`} style={{backgroundColor: 'currentColor'}}></span>
+                <span className={`text-xs ${getQualityColor(callQuality.signal)}`}>
+                  {callQuality.signal}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
         <button
