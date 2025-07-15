@@ -410,8 +410,11 @@ const ReelsMarketplace = ({ user, token, api }) => {
               {reel.service.category}
             </span>
           </div>
-          <button className="bg-black bg-opacity-50 text-white p-2 rounded-full">
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <button 
+            className="bg-black bg-opacity-50 text-white p-2 rounded-full"
+            aria-label="More options for this reel"
+          >
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
               <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
             </svg>
           </button>
