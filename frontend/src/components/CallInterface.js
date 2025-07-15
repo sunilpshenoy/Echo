@@ -163,19 +163,36 @@ const CallInterface = ({
             <h2 className="text-xl font-semibold text-white mb-2">
               {call?.other_user?.display_name || 'Contact'}
             </h2>
-            <p className="text-gray-300">
-              {call?.duration ? `${Math.floor(call.duration / 60)}:${(call.duration % 60).toString().padStart(2, '0')}` : 'Connecting...'}
+            <p className="text-gray-300 mb-4">
+              {formatDuration(callDuration)}
             </p>
             
-            {/* Audio Visualizer */}
-            <div className="flex items-center justify-center space-x-1 mt-4">
-              <div className="w-1 h-4 bg-blue-500 animate-pulse"></div>
-              <div className="w-1 h-6 bg-blue-500 animate-pulse" style={{animationDelay: '0.1s'}}></div>
-              <div className="w-1 h-8 bg-blue-500 animate-pulse" style={{animationDelay: '0.2s'}}></div>
-              <div className="w-1 h-10 bg-blue-500 animate-pulse" style={{animationDelay: '0.3s'}}></div>
-              <div className="w-1 h-8 bg-blue-500 animate-pulse" style={{animationDelay: '0.4s'}}></div>
-              <div className="w-1 h-6 bg-blue-500 animate-pulse" style={{animationDelay: '0.5s'}}></div>
-              <div className="w-1 h-4 bg-blue-500 animate-pulse" style={{animationDelay: '0.6s'}}></div>
+            {/* Enhanced Audio Visualizer */}
+            <div className="flex items-center justify-center space-x-1 mb-4">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+                <div
+                  key={i}
+                  className={`w-1 bg-blue-500 rounded-full animate-pulse ${
+                    i <= 3 ? 'h-4' : i <= 6 ? 'h-6' : i <= 8 ? 'h-8' : 'h-10'
+                  }`}
+                  style={{
+                    animationDelay: `${i * 0.1}s`,
+                    animationDuration: '1s'
+                  }}
+                />
+              ))}
+            </div>
+            
+            {/* Call Quality Stats */}
+            <div className="text-xs text-gray-400 space-y-1">
+              <div className="flex justify-center space-x-4">
+                <span>Network: <span className={getQualityColor(callQuality.network)}>{callQuality.network}</span></span>
+                <span>RTT: {callStats.roundTripTime}ms</span>
+              </div>
+              <div className="flex justify-center space-x-4">
+                <span>Packets lost: {callStats.packetsLost}</span>
+                <span>Data: {Math.round(callStats.bytesReceived / 1024)}KB</span>
+              </div>
             </div>
           </div>
         )}
