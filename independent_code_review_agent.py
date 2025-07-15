@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Independent Code Review Agent for Pulse Application
-Monitors code quality, security, market feasibility, and monetization opportunities
+JARVIS - AI Assistant for Pulse Application
+Advanced Independent Code Review Agent with UI/Design Analysis
+Just A Rather Very Intelligent System
 """
 
 import ast
