@@ -625,25 +625,36 @@ const ReelsMarketplace = ({ user, token, api }) => {
             <button 
               onClick={() => setActiveView('feed')}
               className={`text-center ${activeView === 'feed' ? 'text-white' : 'text-gray-400'}`}
+              aria-label="Go to home feed"
             >
               <div className="text-2xl">🏠</div>
               <span className="text-xs">Home</span>
             </button>
-            <button className="text-white text-center">
+            <button 
+              className="text-white text-center"
+              aria-label="Discover new reels"
+            >
               <div className="text-2xl">🔍</div>
               <span className="text-xs">Discover</span>
             </button>
             <button 
               onClick={() => setShowCreateModal(true)}
               className="text-white text-center bg-red-500 rounded-full p-3"
+              aria-label="Create new reel"
             >
               <div className="text-xl">➕</div>
             </button>
-            <button className="text-white text-center">
+            <button 
+              className="text-white text-center"
+              aria-label="Go to chats"
+            >
               <div className="text-2xl">💬</div>
               <span className="text-xs">Chats</span>
             </button>
-            <button className="text-white text-center">
+            <button 
+              className="text-white text-center"
+              aria-label="Go to profile"
+            >
               <div className="text-2xl">👤</div>
               <span className="text-xs">Profile</span>
             </button>
