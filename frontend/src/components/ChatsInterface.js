@@ -1513,6 +1513,93 @@ const ChatsInterface = ({
     }
   };
 
+  // Enhanced UX Features Functions
+  const handleTypingIndicator = (data) => {
+    const { user_id, chat_id, is_typing } = data;
+    
+    // Only show typing indicator for current chat
+    if (chat_id === selectedChat?.chat_id && user_id !== user.user_id) {
+      setTypingUsers(prev => {
+        const newSet = new Set(prev);
+        if (is_typing) {
+          newSet.add(user_id);
+        } else {
+          newSet.delete(user_id);
+        }
+        return newSet;
+      });
+      
+      // Auto-clear typing indicator after 5 seconds
+      if (is_typing) {
+        setTimeout(() => {
+          setTypingUsers(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(user_id);
+            return newSet;
+          });
+        }, 5000);
+      }
+    }
+  };
+
+  const handleMessageStatus = (data) => {
+    const { message_id, status } = data;
+    setMessageStatuses(prev => {
+      const newStatuses = new Map(prev);
+      newStatuses.set(message_id, status);
+      return newStatuses;
+    });
+  };
+
+  const handleVoiceMessageRecord = (audioData) => {
+    // Handle voice message recording
+    setShowVoiceRecorder(false);
+    setIsVoiceRecording(false);
+    
+    // Send voice message (implement based on your file upload system)
+    // This would integrate with your existing file upload functionality
+    console.log('Voice message recorded:', audioData);
+  };
+
+  const handleMediaCapture = (mediaData) => {
+    // Handle photo/video capture
+    setShowMediaCapture(false);
+    
+    // Send media (implement based on your file upload system)
+    console.log('Media captured:', mediaData);
+  };
+
+  const handleCallBack = (contact, callType) => {
+    if (callType === 'voice') {
+      handleVoiceCall(contact);
+    } else {
+      handleVideoCall(contact);
+    }
+  };
+
+  // Enhanced typing indicator
+  const handleTypingStart = () => {
+    if (socket && selectedChat && !isTyping) {
+      socket.send(JSON.stringify({
+        type: 'typing',
+        chat_id: selectedChat.chat_id,
+        is_typing: true
+      }));
+      setIsTyping(true);
+    }
+  };
+
+  const handleTypingStop = () => {
+    if (socket && selectedChat && isTyping) {
+      socket.send(JSON.stringify({
+        type: 'typing',
+        chat_id: selectedChat.chat_id,
+        is_typing: false
+      }));
+      setIsTyping(false);
+    }
+  };
+
   // Message search functionality
   const handleMessageSearch = async () => {
     if (!searchQuery.trim() || !selectedChat) return;
