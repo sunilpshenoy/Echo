@@ -2533,8 +2533,94 @@ const ChatsInterface = ({
           </div>
         </div>
       )}
+
+      {/* Enhanced Features Modals */}
+      {/* Call History Modal */}
+      {showCallHistory && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden">
+            <CallHistory
+              user={user}
+              token={token}
+              api={api}
+              onCallBack={handleCallBack}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Media Capture Modal */}
+      {showMediaCapture && (
+        <MediaCapture
+          onMediaCapture={handleMediaCapture}
+          onClose={() => setShowMediaCapture(false)}
+        />
+      )}
+
+      {/* Media Gallery Modal */}
+      {showMediaGallery && (
+        <MediaGallery
+          user={user}
+          token={token}
+          api={api}
+          contactId={selectedChat?.chat_id}
+          onClose={() => setShowMediaGallery(false)}
+        />
+      )}
+
+      {/* Call Interface Modal */}
+      {isCallActive && (
+        <CallInterface
+          call={currentCall}
+          callType={callType}
+          localStream={localStream}
+          remoteStream={remoteStream}
+          onEndCall={handleCallEnded}
+          onToggleMute={toggleMute}
+          onToggleVideo={toggleVideo}
+          onToggleScreenShare={toggleScreenShare}
+          isMuted={isMuted}
+          isVideoOff={isVideoOff}
+          isScreenSharing={isScreenSharing}
+          api={api}
+          token={token}
+        />
+      )}
+
+      {/* Incoming Call Modal */}
+      {incomingCall && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <span className="text-white text-2xl font-bold">
+                  {incomingCall.other_user?.display_name?.[0]?.toUpperCase() || 'C'}
+                </span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {incomingCall.other_user?.display_name || 'Unknown Contact'}
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Incoming {incomingCall.call_type} call...
+              </p>
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => declineCall(incomingCall)}
+                  className="flex-1 bg-red-500 text-white py-3 rounded-lg font-medium"
+                >
+                  Decline
+                </button>
+                <button
+                  onClick={() => acceptCall(incomingCall)}
+                  className="flex-1 bg-green-500 text-white py-3 rounded-lg font-medium"
+                >
+                  Accept
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
-
-export default ChatsInterface;
