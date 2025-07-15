@@ -2293,6 +2293,7 @@ const ChatsInterface = ({
               onClick={() => setShowAddContact(true)}
               className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600"
               title="Add Contact"
+              aria-label="Add a new contact"
             >
               ➕
             </button>
