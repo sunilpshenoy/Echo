@@ -489,6 +489,7 @@ const ReelsMarketplace = ({ user, token, api }) => {
               setShowReviewModal(true);
             }}
             className="flex flex-col items-center space-y-1 text-white"
+            aria-label={`View reviews for ${reel.seller.name}. ${reel.reviews.length} reviews available`}
           >
             <div className="bg-black bg-opacity-30 p-3 rounded-full">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
