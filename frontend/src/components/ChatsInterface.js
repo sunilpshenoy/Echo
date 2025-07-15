@@ -1866,6 +1866,20 @@ const ChatsInterface = ({
               >
                 📎
               </button>
+              <button 
+                onClick={() => setShowMediaGallery(true)}
+                className="p-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-gray-100"
+                title="Media Gallery"
+              >
+                🗂️
+              </button>
+              <button 
+                onClick={() => setShowCallHistory(true)}
+                className="p-2 rounded-lg text-gray-500 hover:text-green-600 hover:bg-gray-100"
+                title="Call History"
+              >
+                📞📋
+              </button>
             </div>
           </div>
           
