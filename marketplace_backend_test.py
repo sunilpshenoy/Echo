@@ -35,14 +35,16 @@ class MarketplaceTester:
             "details": details
         })
     
-    def create_test_user(self, username, email, password="testpass123"):
-        """Create a test user and return auth token"""
+    def create_test_user(self, username, email, test_password=None):
+        """Create a test user with secure password handling"""
+        if test_password is None:
+            test_password = os.environ.get('TEST_PASSWORD', 'TestPass123!@#$')
         try:
             # Register user
             register_data = {
                 "username": username,
                 "email": email,
-                "password": password,
+                "password": test_password,
                 "display_name": username.title()
             }
             
@@ -61,7 +63,7 @@ class MarketplaceTester:
                 return user_info
             else:
                 # Try to login if user already exists
-                login_data = {"email": email, "password": password}
+                login_data = {"email": email, "password": test_password}
                 response = self.session.post(f"{BACKEND_URL}/login", json=login_data)
                 
                 if response.status_code == 200:
