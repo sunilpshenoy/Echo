@@ -628,6 +628,15 @@ const ChatsInterface = ({
   // GIF functionality state
   const [showGifPicker, setShowGifPicker] = useState(false);
 
+  // Enhanced Chat Features State
+  const [showCallHistory, setShowCallHistory] = useState(false);
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
+  const [isVoiceRecording, setIsVoiceRecording] = useState(false);
+  const [showMediaCapture, setShowMediaCapture] = useState(false);
+  const [showMediaGallery, setShowMediaGallery] = useState(false);
+  const [typingUsers, setTypingUsers] = useState(new Set());
+  const [messageStatuses, setMessageStatuses] = useState(new Map()); // Track message delivery status
+
   // Enhanced file validation with better feedback
   const validateFile = (file) => {
     const maxSize = 25 * 1024 * 1024; // Increased to 25MB
