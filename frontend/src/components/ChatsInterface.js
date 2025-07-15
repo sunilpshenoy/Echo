@@ -1798,6 +1798,7 @@ const ChatsInterface = ({
               <button
                 onClick={handleBackToContacts}
                 className="text-blue-500 hover:text-blue-700"
+                aria-label="Go back to contacts list"
               >
                 ←
               </button>
