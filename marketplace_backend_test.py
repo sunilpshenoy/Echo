@@ -7,6 +7,7 @@ Tests all marketplace endpoints and functionality as specified in the review req
 import requests
 import json
 import time
+import os
 from datetime import datetime, timedelta
 import uuid
 
