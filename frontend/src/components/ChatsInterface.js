@@ -488,6 +488,17 @@ const ChatsInterface = ({
           handleCallEnded();
         }
         break;
+
+      // Enhanced UX Features
+      case 'typing_indicator':
+        console.log('Typing indicator:', message.data);
+        handleTypingIndicator(message.data);
+        break;
+
+      case 'message_status':
+        console.log('Message status:', message.data);
+        handleMessageStatus(message.data);
+        break;
         
       case 'webrtc_offer':
         handleWebRTCOffer(message.data);
