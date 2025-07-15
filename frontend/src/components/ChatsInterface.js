@@ -645,7 +645,6 @@ const ChatsInterface = ({
   const [isVoiceRecording, setIsVoiceRecording] = useState(false);
   const [showMediaCapture, setShowMediaCapture] = useState(false);
   const [showMediaGallery, setShowMediaGallery] = useState(false);
-  const [typingUsers, setTypingUsers] = useState(new Set());
   const [messageStatuses, setMessageStatuses] = useState(new Map()); // Track message delivery status
 
   // Enhanced file validation with better feedback
