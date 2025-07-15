@@ -88,60 +88,60 @@ class CodeReviewAgent:
         self.monetization_suggestions: List[MonetizationSuggestion] = []
         self.logger = logging.getLogger(__name__)
         
-        # Security patterns database
+        # Security patterns database (refined to avoid false positives)
         self.security_patterns = {
             'sql_injection': [
-                r'execute\s*\(.*\+.*\)',
-                r'cursor\.execute\s*\(.*%.*\)',
-                r'\.format\s*\(.*\).*execute',
-                r'f["\'].*{.*}.*["\'].*execute'
+                r'execute\s*\(\s*["\'].*\+.*["\'].*\)',
+                r'cursor\.execute\s*\(\s*["\'].*%.*["\'].*\)',
+                r'\.format\s*\(.*\).*execute\s*\(',
+                r'f["\'].*\{.*\}.*["\'].*execute\s*\('
             ],
             'xss_vulnerability': [
-                r'innerHTML\s*=',
-                r'document\.write\s*\(',
-                r'dangerouslySetInnerHTML',
-                r'eval\s*\('
+                r'innerHTML\s*=\s*[^;]*\+',
+                r'document\.write\s*\(\s*[^)]*\+',
+                r'dangerouslySetInnerHTML.*[^{].*\+',
+                r'eval\s*\(\s*[^)]*\+.*\)'
             ],
             'path_traversal': [
-                r'open\s*\(.*\.\./.*\)',
-                r'os\.path\.join\s*\(.*\.\./.*\)',
-                r'pathlib.*\.\./.*',
-                r'file_path.*\.\.'
+                r'open\s*\(\s*[^)]*\.\./[^)]*\)',
+                r'os\.path\.join\s*\(\s*[^)]*\.\./[^)]*\)',
+                r'pathlib.*\.\./.*[^)]',
+                r'file_path.*\.\.[^a-zA-Z]'
             ],
             'command_injection': [
-                r'os\.system\s*\(.*\+.*\)',
-                r'subprocess\.call\s*\(.*\+.*\)',
-                r'subprocess\.run\s*\(.*\+.*\)',
-                r'subprocess\.Popen\s*\(.*\+.*\)'
+                r'os\.system\s*\(\s*[^)]*\+[^)]*\)',
+                r'subprocess\.call\s*\(\s*[^)]*\+[^)]*\)',
+                r'subprocess\.run\s*\(\s*[^)]*\+[^)]*\)',
+                r'subprocess\.Popen\s*\(\s*[^)]*\+[^)]*\)'
             ],
             'hardcoded_secrets': [
-                r'password\s*=\s*["\'][^"\']{8,}["\']',
-                r'api_key\s*=\s*["\'][^"\']{10,}["\']',
-                r'secret_key\s*=\s*["\'][^"\']{10,}["\']',
-                r'token\s*=\s*["\'][^"\']{20,}["\']'
+                r'(?<!TEST_)(?<!test_)password\s*=\s*["\'][^"\']{8,}["\']',
+                r'(?<!TEST_)(?<!test_)api_key\s*=\s*["\'][^"\']{10,}["\']',
+                r'(?<!TEST_)(?<!test_)secret_key\s*=\s*["\'][^"\']{10,}["\']',
+                r'(?<!TEST_)(?<!test_)token\s*=\s*["\'][^"\']{20,}["\']'
             ],
             'insecure_random': [
-                r'random\.random\(\)',
-                r'random\.randint\(',
-                r'random\.choice\('
+                r'(?<!secrets\.)random\.random\(\)',
+                r'(?<!secrets\.)random\.randint\(',
+                r'(?<!secrets\.)random\.choice\('
             ],
             'weak_crypto': [
                 r'hashlib\.md5\(',
                 r'hashlib\.sha1\(',
-                r'DES\(',
-                r'RC4\('
+                r'Crypto\.Cipher\.DES\(',
+                r'Crypto\.Cipher\.RC4\('
             ],
             'unsafe_deserialization': [
-                r'pickle\.loads\(',
-                r'pickle\.load\(',
-                r'yaml\.load\(',
-                r'eval\('
+                r'pickle\.loads\s*\(',
+                r'pickle\.load\s*\(',
+                r'yaml\.load\s*\(',
+                r'(?<!ast\.)eval\s*\('
             ],
             'improper_authentication': [
-                r'==.*password',
-                r'password.*==',
-                r'if.*password.*:',
-                r'auth.*==.*True'
+                r'==\s*["\'].*password',
+                r'password\s*==\s*["\']',
+                r'if\s+password\s*==',
+                r'auth\s*==\s*True'
             ]
         }
         
