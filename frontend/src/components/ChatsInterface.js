@@ -1518,24 +1518,20 @@ const ChatsInterface = ({
     
     // Only show typing indicator for current chat
     if (chat_id === selectedChat?.chat_id && user_id !== user.user_id) {
-      setTypingUsers(prev => {
-        const newSet = new Set(prev);
-        if (is_typing) {
-          newSet.add(user_id);
-        } else {
-          newSet.delete(user_id);
-        }
-        return newSet;
-      });
+      setTypingUsers(prev => ({
+        ...prev,
+        [chat_id]: is_typing 
+          ? [...(prev[chat_id] || []), user_id].filter((id, index, arr) => arr.indexOf(id) === index)
+          : (prev[chat_id] || []).filter(id => id !== user_id)
+      }));
       
       // Auto-clear typing indicator after 5 seconds
       if (is_typing) {
         setTimeout(() => {
-          setTypingUsers(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(user_id);
-            return newSet;
-          });
+          setTypingUsers(prev => ({
+            ...prev,
+            [chat_id]: (prev[chat_id] || []).filter(id => id !== user_id)
+          }));
         }, 5000);
       }
     }
