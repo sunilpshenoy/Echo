@@ -239,11 +239,10 @@ class ChatsEnhancementsBackendTester:
         
         alice_headers = self.get_auth_headers("alice_chat")
         
-        # Test file upload
+        # Test file upload using multipart/form-data (as expected by FastAPI UploadFile)
         try:
             # Create a test file
             test_file_content = b"This is a test file for file sharing functionality."
-            test_file_data = base64.b64encode(test_file_content).decode()
             
             # Test different file types
             file_tests = [
@@ -254,16 +253,14 @@ class ChatsEnhancementsBackendTester:
             
             for file_test in file_tests:
                 try:
-                    upload_data = {
-                        "file_name": file_test["name"],
-                        "file_type": file_test["type"],
-                        "file_data": test_file_data,
-                        "file_size": len(test_file_content)
+                    # Use files parameter for multipart upload
+                    files = {
+                        'file': (file_test["name"], test_file_content, file_test["type"])
                     }
                     
                     response = self.session.post(
                         f"{BACKEND_URL}/upload",
-                        json=upload_data,
+                        files=files,
                         headers=alice_headers
                     )
                     
@@ -278,7 +275,7 @@ class ChatsEnhancementsBackendTester:
                                 "content": f"Sharing file: {file_test['name']}",
                                 "message_type": "file",
                                 "file_name": file_test["name"],
-                                "file_data": test_file_data,
+                                "file_data": base64.b64encode(test_file_content).decode(),
                                 "file_size": len(test_file_content)
                             }
                             
