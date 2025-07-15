@@ -399,7 +399,7 @@ async def options_handler(path: str):
 # Security
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
-SECRET_KEY = "your-secret-key-change-in-production"
+SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production-' + str(int(time.time())))
 
 # Enhanced Connection manager with advanced features
 class ConnectionManager:
