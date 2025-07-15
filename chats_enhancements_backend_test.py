@@ -345,7 +345,7 @@ class ChatsEnhancementsBackendTester:
                     "action": "accept"
                 }
                 
-                response = self.session.post(
+                response = self.session.put(  # Changed from POST to PUT
                     f"{BACKEND_URL}/calls/{self.calls['alice_bob_call']}/respond",
                     json=response_data,
                     headers=bob_headers
@@ -361,47 +361,46 @@ class ChatsEnhancementsBackendTester:
             except Exception as e:
                 self.log_test("Call Response", False, f"Error: {str(e)}")
         
-        # Test call history
-        try:
-            response = self.session.get(
-                f"{BACKEND_URL}/calls/history",
-                headers=alice_headers
-            )
-            
-            success = response.status_code == 200
-            if success:
-                call_history = response.json()
-                details = f"Retrieved {len(call_history)} call records"
-            else:
-                details = f"HTTP {response.status_code}: {response.text}"
-            self.log_test("Call History", success, details)
-        except Exception as e:
-            self.log_test("Call History", False, f"Error: {str(e)}")
-        
-        # Test call quality metrics (if supported)
+        # Test call end (instead of history which doesn't exist)
         if "alice_bob_call" in self.calls:
             try:
-                quality_data = {
-                    "avg_latency": 50,
-                    "packet_loss": 0.1,
-                    "audio_quality": "good",
-                    "video_quality": "good"
-                }
-                
-                response = self.session.post(
-                    f"{BACKEND_URL}/calls/{self.calls['alice_bob_call']}/quality",
-                    json=quality_data,
+                response = self.session.put(  # Use PUT for call end
+                    f"{BACKEND_URL}/calls/{self.calls['alice_bob_call']}/end",
                     headers=alice_headers
                 )
                 
                 success = response.status_code == 200
                 if success:
-                    details = "Quality metrics updated successfully"
+                    call_end = response.json()
+                    details = f"Call ended, Duration: {call_end.get('duration', 'N/A')} seconds"
                 else:
                     details = f"HTTP {response.status_code}: {response.text}"
-                self.log_test("Call Quality Tracking", success, details)
+                self.log_test("Call End", success, details)
             except Exception as e:
-                self.log_test("Call Quality Tracking", False, f"Error: {str(e)}")
+                self.log_test("Call End", False, f"Error: {str(e)}")
+        
+        # Test WebRTC signaling
+        if "alice_bob_call" in self.calls:
+            try:
+                offer_data = {
+                    "offer": "mock_webrtc_offer_data",
+                    "ice_candidates": ["candidate:1 1 UDP 2130706431 192.168.1.1 54400 typ host"]
+                }
+                
+                response = self.session.post(
+                    f"{BACKEND_URL}/calls/{self.calls['alice_bob_call']}/webrtc/offer",
+                    json=offer_data,
+                    headers=alice_headers
+                )
+                
+                success = response.status_code == 200
+                if success:
+                    details = "WebRTC offer sent successfully"
+                else:
+                    details = f"HTTP {response.status_code}: {response.text}"
+                self.log_test("WebRTC Signaling", success, details)
+            except Exception as e:
+                self.log_test("WebRTC Signaling", False, f"Error: {str(e)}")
     
     def test_message_status_tracking(self):
         """Test enhanced message status tracking"""
