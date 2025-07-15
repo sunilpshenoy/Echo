@@ -26,16 +26,56 @@ const CallInterface = ({
     roundTripTime: 0
   });
 
-  // Set up video streams when they change
+  // Call duration timer
   useEffect(() => {
-    if (localStream && localVideoRef.current) {
-      localVideoRef.current.srcObject = localStream;
+    if (call?.status === 'active') {
+      const interval = setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
+      
+      return () => clearInterval(interval);
     }
-    
-    if (remoteStream && remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = remoteStream;
+  }, [call?.status]);
+
+  // Call quality monitoring
+  useEffect(() => {
+    if (call?.status === 'active') {
+      const interval = setInterval(() => {
+        // Simulate call quality monitoring
+        const signal = Math.random() > 0.7 ? 'excellent' : Math.random() > 0.4 ? 'good' : 'poor';
+        const network = Math.random() > 0.8 ? 'stable' : Math.random() > 0.5 ? 'unstable' : 'poor';
+        setCallQuality({ signal, network });
+        
+        // Simulate call stats
+        setCallStats(prev => ({
+          ...prev,
+          bytesReceived: prev.bytesReceived + Math.floor(Math.random() * 1000),
+          bytesSent: prev.bytesSent + Math.floor(Math.random() * 1000),
+          packetsLost: prev.packetsLost + Math.floor(Math.random() * 3),
+          roundTripTime: Math.floor(Math.random() * 100)
+        }));
+      }, 2000);
+      
+      return () => clearInterval(interval);
     }
-  }, [localStream, remoteStream]);
+  }, [call?.status]);
+
+  // Format call duration
+  const formatDuration = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Get quality indicator color
+  const getQualityColor = (quality) => {
+    switch (quality) {
+      case 'excellent': return 'text-green-400';
+      case 'good': return 'text-yellow-400';
+      case 'poor': return 'text-red-400';
+      default: return 'text-gray-400';
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col">
