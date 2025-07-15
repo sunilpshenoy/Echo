@@ -2122,8 +2122,25 @@ const ChatsInterface = ({
           )}
         </div>
 
-        {/* Message Input with Emoji & GIF Support */}
+        {/* Message Input with Enhanced Features */}
         <div className="bg-white border-t border-gray-200 p-4 relative">
+          {/* Typing Indicator */}
+          {typingUsers.size > 0 && (
+            <div className="mb-2 px-2 py-1 bg-gray-100 rounded-lg text-sm text-gray-600">
+              <span className="inline-flex items-center">
+                <span className="mr-2">💬</span>
+                {Array.from(typingUsers).map((userId, index) => (
+                  <span key={userId}>
+                    {selectedChat?.other_user?.display_name || 'Someone'}
+                    {index < typingUsers.size - 1 && ', '}
+                  </span>
+                ))}
+                {typingUsers.size === 1 ? ' is typing' : ' are typing'}
+                <span className="ml-2 animate-pulse">...</span>
+              </span>
+            </div>
+          )}
+
           <div className="flex items-center space-x-3">
             {/* File Upload Button */}
             <button
@@ -2133,6 +2150,23 @@ const ChatsInterface = ({
             >
               📎
             </button>
+
+            {/* Camera/Media Capture Button */}
+            <button
+              onClick={() => setShowMediaCapture(true)}
+              className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100"
+              title={t('media.camera')}
+            >
+              📷
+            </button>
+
+            {/* Voice Message Button */}
+            <VoiceMessage
+              isRecording={isVoiceRecording}
+              onStartRecording={() => setIsVoiceRecording(true)}
+              onStopRecording={() => setIsVoiceRecording(false)}
+              onSendVoiceMessage={handleVoiceMessageRecord}
+            />
 
             {/* GIF Picker Button */}
             <button
@@ -2164,8 +2198,9 @@ const ChatsInterface = ({
               value={newMessage}
               onChange={(e) => {
                 setNewMessage(e.target.value);
-                handleTyping();
+                handleTypingStart();
               }}
+              onBlur={handleTypingStop}
               onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
               placeholder={t('chat.typeMessage')}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
