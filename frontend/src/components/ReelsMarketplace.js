@@ -500,7 +500,10 @@ const ReelsMarketplace = ({ user, token, api }) => {
           </button>
 
           {/* Share Button */}
-          <button className="flex flex-col items-center space-y-1 text-white">
+          <button 
+            className="flex flex-col items-center space-y-1 text-white"
+            aria-label={`Share ${reel.service.title} by ${reel.seller.name}`}
+          >
             <div className="bg-black bg-opacity-30 p-3 rounded-full">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"/>
