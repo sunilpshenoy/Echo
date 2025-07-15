@@ -232,9 +232,8 @@ class AccessibilityBackendTester:
         
         # Test call initiation
         call_data = {
-            "chat_id": "test_chat_id",
-            "call_type": "voice",
-            "participants": [self.user_id, "test_recipient_id"]
+            "other_user_id": "test_recipient_id",
+            "call_type": "voice"
         }
         
         call_id = None
