@@ -121,8 +121,8 @@ class AccessibilityBackendTester:
         
         # Test chat creation
         chat_data = {
-            "chat_type": "direct",
-            "members": [self.user_id, "test_recipient_id"]
+            "other_user_id": "test_recipient_id",
+            "chat_type": "direct"
         }
         
         chat_id = None
