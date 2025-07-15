@@ -168,6 +168,7 @@ const ConnectionManager = ({ user, token, api, onConnectionUpdate }) => {
               <button
                 onClick={() => setShowSearchModal(false)}
                 className="text-gray-500 hover:text-gray-700 text-xl"
+                aria-label="Close add contact modal"
               >
                 ✕
               </button>
