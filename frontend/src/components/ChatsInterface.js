@@ -2285,6 +2285,7 @@ const ChatsInterface = ({
               onClick={() => setShowMyPin(true)}
               className="bg-green-500 text-white p-2 rounded-lg hover:bg-green-600"
               title="Share My PIN"
+              aria-label="Share my PIN to connect with people"
             >
               📤
             </button>
