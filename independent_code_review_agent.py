@@ -340,12 +340,23 @@ class CodeReviewAgent:
     
     def _analyze_security(self, content: str, file_path: str):
         """Analyze code for security vulnerabilities"""
+        # Skip security analysis on the agent's own pattern definitions
+        if 'independent_code_review_agent.py' in file_path:
+            return
+            
+        # Skip test files for certain patterns (as they may contain test data)
+        is_test_file = any(test_pattern in file_path for test_pattern in ['test.py', '_test.py', 'test_'])
+        
         lines = content.split('\n')
         
         for line_num, line in enumerate(lines, 1):
             for vuln_type, patterns in self.security_patterns.items():
                 for pattern in patterns:
                     if re.search(pattern, line, re.IGNORECASE):
+                        # Skip certain patterns in test files
+                        if is_test_file and vuln_type in ['unsafe_deserialization', 'xss_vulnerability']:
+                            continue
+                            
                         severity = self._get_security_severity(vuln_type)
                         business_impact = self._get_business_impact(vuln_type)
                         
