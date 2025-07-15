@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const CallInterface = ({ 
   call,
@@ -17,6 +17,14 @@ const CallInterface = ({
 }) => {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
+  const [callDuration, setCallDuration] = useState(0);
+  const [callQuality, setCallQuality] = useState({ signal: 'excellent', network: 'stable' });
+  const [callStats, setCallStats] = useState({ 
+    bytesReceived: 0, 
+    bytesSent: 0, 
+    packetsLost: 0,
+    roundTripTime: 0
+  });
 
   // Set up video streams when they change
   useEffect(() => {
