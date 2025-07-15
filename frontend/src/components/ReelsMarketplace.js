@@ -459,6 +459,7 @@ const ReelsMarketplace = ({ user, token, api }) => {
           <button 
             onClick={() => handleOpenBidding(reel)}
             className="flex flex-col items-center space-y-1 text-white"
+            aria-label={`Place a bid on ${reel.service.title} by ${reel.seller.name}. Base price: ₹${reel.service.basePrice}`}
           >
             <div className="bg-green-500 p-3 rounded-full">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
