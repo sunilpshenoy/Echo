@@ -96,6 +96,7 @@ const ConnectionManager = ({ user, token, api, onConnectionUpdate }) => {
             getQRCode();
           }}
           className="flex-1 bg-green-500 text-white p-2 rounded-lg hover:bg-green-600 text-sm"
+          aria-label="Share your PIN to connect with people"
         >
           📤 Share PIN
         </button>
@@ -103,6 +104,7 @@ const ConnectionManager = ({ user, token, api, onConnectionUpdate }) => {
         <button 
           onClick={() => setShowSearchModal(true)}
           className="flex-1 bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 text-sm"
+          aria-label="Find people by entering their PIN"
         >
           🔍 Find People
         </button>
