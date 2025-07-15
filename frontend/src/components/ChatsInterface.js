@@ -2134,17 +2134,17 @@ const ChatsInterface = ({
         {/* Message Input with Enhanced Features */}
         <div className="bg-white border-t border-gray-200 p-4 relative">
           {/* Typing Indicator */}
-          {typingUsers.size > 0 && (
+          {typingUsers[selectedChat?.chat_id]?.length > 0 && (
             <div className="mb-2 px-2 py-1 bg-gray-100 rounded-lg text-sm text-gray-600">
               <span className="inline-flex items-center">
                 <span className="mr-2">💬</span>
-                {Array.from(typingUsers).map((userId, index) => (
+                {typingUsers[selectedChat?.chat_id]?.map((userId, index) => (
                   <span key={userId}>
                     {selectedChat?.other_user?.display_name || 'Someone'}
-                    {index < typingUsers.size - 1 && ', '}
+                    {index < typingUsers[selectedChat?.chat_id]?.length - 1 && ', '}
                   </span>
                 ))}
-                {typingUsers.size === 1 ? ' is typing' : ' are typing'}
+                {typingUsers[selectedChat?.chat_id]?.length === 1 ? ' is typing' : ' are typing'}
                 <span className="ml-2 animate-pulse">...</span>
               </span>
             </div>
