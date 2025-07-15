@@ -568,6 +568,7 @@ const ReelsMarketplace = ({ user, token, api }) => {
               <button 
                 onClick={() => setShowFilters(!showFilters)}
                 className="bg-black bg-opacity-50 text-white px-3 py-2 rounded-full text-sm flex items-center space-x-1"
+                aria-label="Toggle filters for reels feed"
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"/>
