@@ -2754,7 +2754,10 @@ metadata:
 
 test_plan:
   current_focus:
-    []
+    - "UI/Design Accessibility Improvements - Phase 1"
+    - "ARIA Labels for ReelsMarketplace.js buttons"
+    - "Alt text for ChatsInterface.js images"
+    - "ARIA Labels for ChatsInterface.js buttons"
   stuck_tasks:
     []
   test_all: false
