@@ -5,6 +5,10 @@ import EmojiPicker from './EmojiPicker';
 import MessageReactions from './MessageReactions';
 import GifPicker from './GifPicker';
 import CallInterface from './CallInterface';
+import CallHistory from './CallHistory';
+import VoiceMessage from './VoiceMessage';
+import MediaCapture from './MediaCapture';
+import MediaGallery from './MediaGallery';
 import E2EEncryption from '../crypto/E2EEncryption';
 import E2EKeyManager from '../crypto/E2EKeyManager';
 
