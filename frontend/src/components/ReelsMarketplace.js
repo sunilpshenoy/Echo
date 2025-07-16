@@ -625,11 +625,49 @@ const ReelsMarketplace = ({ user, token, api }) => {
 
           {/* Reels Scroll Container */}
           <div className="h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide">
-            {reels.map((reel, index) => (
-              <div key={reel.reel_id} className="snap-start">
-                <ReelComponent reel={reel} index={index} />
+            {loading ? (
+              <div className="h-full flex items-center justify-center bg-black">
+                <div className="text-center text-white">
+                  <div className="animate-spin w-12 h-12 border-4 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
+                  <p className="text-lg font-medium">Loading amazing reels...</p>
+                  <p className="text-sm opacity-75 mt-2">Finding the best services for you</p>
+                </div>
               </div>
-            ))}
+            ) : error ? (
+              <div className="h-full flex items-center justify-center bg-black">
+                <div className="text-center text-white max-w-sm mx-auto p-6">
+                  <div className="text-6xl mb-4">😞</div>
+                  <h3 className="text-xl font-bold mb-2">Oops! Something went wrong</h3>
+                  <p className="text-gray-300 mb-6">{error}</p>
+                  <button
+                    onClick={retryFetch}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                  >
+                    {retryCount > 0 ? `Retry (${retryCount})` : 'Try Again'}
+                  </button>
+                </div>
+              </div>
+            ) : reels.length === 0 ? (
+              <div className="h-full flex items-center justify-center bg-black">
+                <div className="text-center text-white max-w-sm mx-auto p-6">
+                  <div className="text-6xl mb-4">🎬</div>
+                  <h3 className="text-xl font-bold mb-2">No reels found</h3>
+                  <p className="text-gray-300 mb-6">Try adjusting your filters or check back later for new content</p>
+                  <button
+                    onClick={retryFetch}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                  >
+                    Refresh
+                  </button>
+                </div>
+              </div>
+            ) : (
+              reels.map((reel, index) => (
+                <div key={reel.reel_id} className="snap-start">
+                  <ReelComponent reel={reel} index={index} />
+                </div>
+              ))
+            )}
           </div>
 
           {/* Bottom Navigation */}
