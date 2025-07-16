@@ -110,6 +110,157 @@ class SecurityManager:
                     return False
         
         return True
+
+# Advanced caching system
+class CacheManager:
+    def __init__(self):
+        self.local_cache = {}
+        self.cache_stats = {'hits': 0, 'misses': 0, 'sets': 0}
+    
+    async def get(self, key: str) -> Optional[Any]:
+        """Get cached value with fallback to local cache"""
+        try:
+            if REDIS_AVAILABLE:
+                cached = redis_client.get(f"pulse:{key}")
+                if cached:
+                    self.cache_stats['hits'] += 1
+                    return json.loads(cached)
+            
+            # Fallback to local cache
+            if key in self.local_cache:
+                item = self.local_cache[key]
+                if item['expires'] > time.time():
+                    self.cache_stats['hits'] += 1
+                    return item['value']
+                else:
+                    del self.local_cache[key]
+            
+            self.cache_stats['misses'] += 1
+            return None
+            
+        except Exception as e:
+            print(f"Cache get error: {e}")
+            self.cache_stats['misses'] += 1
+            return None
+    
+    async def set(self, key: str, value: Any, ttl: int = None) -> bool:
+        """Set cached value with TTL"""
+        try:
+            ttl = ttl or CACHE_CONFIG['DEFAULT_TTL']
+            
+            if REDIS_AVAILABLE:
+                redis_client.setex(f"pulse:{key}", ttl, json.dumps(value))
+            else:
+                # Fallback to local cache
+                self.local_cache[key] = {
+                    'value': value,
+                    'expires': time.time() + ttl
+                }
+            
+            self.cache_stats['sets'] += 1
+            return True
+            
+        except Exception as e:
+            print(f"Cache set error: {e}")
+            return False
+    
+    async def delete(self, key: str) -> bool:
+        """Delete cached value"""
+        try:
+            if REDIS_AVAILABLE:
+                redis_client.delete(f"pulse:{key}")
+            
+            if key in self.local_cache:
+                del self.local_cache[key]
+            
+            return True
+            
+        except Exception as e:
+            print(f"Cache delete error: {e}")
+            return False
+    
+    async def clear_pattern(self, pattern: str) -> bool:
+        """Clear cache entries matching pattern"""
+        try:
+            if REDIS_AVAILABLE:
+                keys = redis_client.keys(f"pulse:{pattern}*")
+                if keys:
+                    redis_client.delete(*keys)
+            
+            # Clear local cache
+            keys_to_delete = [k for k in self.local_cache.keys() if k.startswith(pattern)]
+            for key in keys_to_delete:
+                del self.local_cache[key]
+            
+            return True
+            
+        except Exception as e:
+            print(f"Cache clear error: {e}")
+            return False
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Get cache statistics"""
+        total_requests = self.cache_stats['hits'] + self.cache_stats['misses']
+        hit_rate = (self.cache_stats['hits'] / total_requests * 100) if total_requests > 0 else 0
+        
+        return {
+            'hits': self.cache_stats['hits'],
+            'misses': self.cache_stats['misses'],
+            'sets': self.cache_stats['sets'],
+            'hit_rate': round(hit_rate, 2),
+            'total_requests': total_requests
+        }
+
+# Performance monitoring
+class PerformanceMonitor:
+    def __init__(self):
+        self.request_times = {}
+        self.slow_queries = []
+        self.error_counts = {}
+    
+    async def start_request(self, request_id: str, endpoint: str):
+        """Start timing a request"""
+        self.request_times[request_id] = {
+            'start': time.time(),
+            'endpoint': endpoint
+        }
+    
+    async def end_request(self, request_id: str, status_code: int = 200):
+        """End timing a request and log if slow"""
+        if request_id in self.request_times:
+            start_time = self.request_times[request_id]['start']
+            duration = time.time() - start_time
+            endpoint = self.request_times[request_id]['endpoint']
+            
+            # Log slow requests (> 1 second)
+            if duration > 1.0:
+                self.slow_queries.append({
+                    'endpoint': endpoint,
+                    'duration': duration,
+                    'timestamp': datetime.utcnow().isoformat(),
+                    'status_code': status_code
+                })
+                
+                # Keep only last 100 slow queries
+                if len(self.slow_queries) > 100:
+                    self.slow_queries = self.slow_queries[-100:]
+            
+            # Count errors
+            if status_code >= 400:
+                self.error_counts[endpoint] = self.error_counts.get(endpoint, 0) + 1
+            
+            del self.request_times[request_id]
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Get performance statistics"""
+        return {
+            'active_requests': len(self.request_times),
+            'slow_queries': len(self.slow_queries),
+            'recent_slow_queries': self.slow_queries[-10:],
+            'error_counts': self.error_counts
+        }
+        
+        return True
     
     async def log_failed_attempt(self, ip: str):
         """Log failed authentication attempt"""
