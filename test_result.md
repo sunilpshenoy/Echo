@@ -2830,13 +2830,14 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Marketplace Create Listing Modal - Stuck State Fix"
     - "UI/Design Phase 1 & 2 COMPLETED"
     - "ARIA Labels added to all interactive elements"
     - "Enhanced error states and loading indicators"
     - "Responsive design improvements implemented"
     - "Design consistency standardized"
   stuck_tasks:
-    []
+    - "Marketplace Create Listing Modal - Stuck State Fix"
   test_all: false
   test_priority: "high_first"
 
