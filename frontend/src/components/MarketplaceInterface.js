@@ -327,9 +327,24 @@ import axios from 'axios';
       }
     } catch (error) {
       console.error('Failed to create listing:', error);
-      alert('Failed to create listing. Please try again.');
       
-      // Still close modal on error to prevent stuck state
+      // Handle different types of errors
+      if (error.response?.status === 422 || error.response?.status === 400) {
+        const errorDetails = error.response?.data?.detail;
+        if (Array.isArray(errorDetails)) {
+          // Pydantic validation errors
+          const errorMessages = errorDetails.map(err => `${err.loc.join('.')}: ${err.msg}`).join(', ');
+          alert(`Validation error: ${errorMessages}`);
+        } else {
+          alert(errorDetails || 'Invalid data. Please check your input.');
+        }
+      } else if (error.response?.status === 401) {
+        alert('Please log in again to create listings.');
+      } else {
+        alert('Failed to create listing. Please try again.');
+      }
+      
+      // Always close modal on error to prevent stuck state
       closeCreateModal();
     } finally {
       setLoading(false);
