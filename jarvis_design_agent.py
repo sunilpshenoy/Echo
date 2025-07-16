@@ -1445,3 +1445,1070 @@ class CompetitiveAnalyzer:
 
 
 # Continue with Phase 3...
+
+class DesignCodeGenerator:
+    """Generate implementation code from design analysis"""
+    
+    def __init__(self, db: DesignDatabase):
+        self.db = db
+        self.css_templates = self._load_css_templates()
+        self.react_templates = self._load_react_templates()
+    
+    def generate_css_implementation(self, review: DesignReview) -> str:
+        """Generate CSS implementation based on review"""
+        css_parts = []
+        
+        # Generate CSS variables
+        css_parts.append(self._generate_css_variables(review))
+        
+        # Generate base styles
+        css_parts.append(self._generate_base_styles(review))
+        
+        # Generate component styles
+        css_parts.append(self._generate_component_styles(review))
+        
+        # Generate responsive styles
+        css_parts.append(self._generate_responsive_styles(review))
+        
+        # Generate utility classes
+        css_parts.append(self._generate_utility_classes(review))
+        
+        return '\n\n'.join(css_parts)
+    
+    def _generate_css_variables(self, review: DesignReview) -> str:
+        """Generate CSS custom properties"""
+        css = "/* Generated CSS Variables */\n:root {\n"
+        
+        # Color variables
+        if review.color_scheme:
+            for i, color in enumerate(review.color_scheme.primary_colors):
+                css += f"  --color-primary-{i+1}: {color};\n"
+            for i, color in enumerate(review.color_scheme.secondary_colors):
+                css += f"  --color-secondary-{i+1}: {color};\n"
+            for i, color in enumerate(review.color_scheme.accent_colors):
+                css += f"  --color-accent-{i+1}: {color};\n"
+        
+        # Typography variables
+        if review.typography:
+            for i, font in enumerate(review.typography.font_families):
+                css += f"  --font-family-{i+1}: {font};\n"
+            for i, size in enumerate(review.typography.font_sizes):
+                css += f"  --font-size-{i+1}: {size};\n"
+        
+        # Spacing variables
+        css += """  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  
+  --border-radius-sm: 0.25rem;
+  --border-radius-md: 0.5rem;
+  --border-radius-lg: 1rem;
+  
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+"""
+        
+        css += "}\n"
+        return css
+    
+    def _generate_base_styles(self, review: DesignReview) -> str:
+        """Generate base styles"""
+        css = "/* Base Styles */\n"
+        
+        # Reset and base
+        css += """* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family-1, 'Inter', 'Segoe UI', sans-serif);
+  font-size: var(--font-size-1, 1rem);
+  line-height: 1.6;
+  color: var(--color-primary-1, #333);
+  background-color: var(--color-secondary-1, #fff);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--color-accent-1, #007bff);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--color-accent-2, #0056b3);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: inherit;
+  transition: all 0.2s ease;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+  border: 1px solid var(--color-secondary-2, #ddd);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  transition: border-color 0.2s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--color-accent-1, #007bff);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+"""
+        
+        return css
+    
+    def _generate_component_styles(self, review: DesignReview) -> str:
+        """Generate component styles"""
+        css = "/* Component Styles */\n"
+        
+        # Container
+        css += """.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+/* Grid System */
+.grid {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
+.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+/* Flexbox Utilities */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-center {
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-between {
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Button Components */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.btn-primary {
+  background-color: var(--color-accent-1, #007bff);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-accent-2, #0056b3);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+  background-color: var(--color-secondary-1, #f8f9fa);
+  color: var(--color-primary-1, #333);
+  border: 1px solid var(--color-secondary-2, #ddd);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-secondary-2, #e9ecef);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Card Components */
+.card {
+  background: white;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.card-header {
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-secondary-2, #eee);
+}
+
+.card-body {
+  padding: var(--spacing-md);
+}
+
+.card-footer {
+  padding: var(--spacing-md);
+  border-top: 1px solid var(--color-secondary-2, #eee);
+  background-color: var(--color-secondary-1, #f8f9fa);
+}
+
+/* Form Components */
+.form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.form-label {
+  display: block;
+  margin-bottom: var(--spacing-sm);
+  font-weight: 500;
+  color: var(--color-primary-1, #333);
+}
+
+.form-control {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-secondary-2, #ddd);
+  border-radius: var(--border-radius-md);
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--color-accent-1, #007bff);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Navigation */
+.nav {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-md) 0;
+}
+
+.nav-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary-1, #333);
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: var(--spacing-lg);
+  margin-left: auto;
+}
+
+.nav-link {
+  color: var(--color-primary-1, #333);
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+  color: var(--color-accent-1, #007bff);
+}
+
+.nav-link.active {
+  color: var(--color-accent-1, #007bff);
+}
+"""
+        
+        return css
+    
+    def _generate_responsive_styles(self, review: DesignReview) -> str:
+        """Generate responsive styles"""
+        css = "/* Responsive Styles */\n"
+        
+        css += """/* Mobile First Approach */
+@media (max-width: 640px) {
+  .container {
+    padding: 0 var(--spacing-sm);
+  }
+  
+  .grid-cols-2,
+  .grid-cols-3,
+  .grid-cols-4 {
+    grid-template-columns: 1fr;
+  }
+  
+  .nav {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+  
+  .nav-links {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-left: 0;
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Tablet */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .grid-cols-3,
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop */
+@media (min-width: 1025px) {
+  .container {
+    max-width: 1200px;
+  }
+  
+  .grid-cols-auto {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+}
+
+/* Large Desktop */
+@media (min-width: 1440px) {
+  .container {
+    max-width: 1400px;
+  }
+}
+"""
+        
+        return css
+    
+    def _generate_utility_classes(self, review: DesignReview) -> str:
+        """Generate utility classes"""
+        css = "/* Utility Classes */\n"
+        
+        css += """/* Spacing */
+.m-0 { margin: 0; }
+.m-1 { margin: var(--spacing-xs); }
+.m-2 { margin: var(--spacing-sm); }
+.m-3 { margin: var(--spacing-md); }
+.m-4 { margin: var(--spacing-lg); }
+.m-5 { margin: var(--spacing-xl); }
+
+.p-0 { padding: 0; }
+.p-1 { padding: var(--spacing-xs); }
+.p-2 { padding: var(--spacing-sm); }
+.p-3 { padding: var(--spacing-md); }
+.p-4 { padding: var(--spacing-lg); }
+.p-5 { padding: var(--spacing-xl); }
+
+/* Typography */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.text-sm { font-size: 0.875rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.125rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 1.875rem; }
+
+.font-light { font-weight: 300; }
+.font-normal { font-weight: 400; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+
+/* Display */
+.block { display: block; }
+.inline { display: inline; }
+.inline-block { display: inline-block; }
+.flex { display: flex; }
+.grid { display: grid; }
+.hidden { display: none; }
+
+/* Positioning */
+.relative { position: relative; }
+.absolute { position: absolute; }
+.fixed { position: fixed; }
+.sticky { position: sticky; }
+
+/* Width & Height */
+.w-full { width: 100%; }
+.w-auto { width: auto; }
+.h-full { height: 100%; }
+.h-auto { height: auto; }
+
+/* Border Radius */
+.rounded-sm { border-radius: var(--border-radius-sm); }
+.rounded-md { border-radius: var(--border-radius-md); }
+.rounded-lg { border-radius: var(--border-radius-lg); }
+.rounded-full { border-radius: 9999px; }
+
+/* Shadow */
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow-md { box-shadow: var(--shadow-md); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+
+/* Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.focus-visible {
+  outline: 2px solid var(--color-accent-1, #007bff);
+  outline-offset: 2px;
+}
+
+/* Transitions */
+.transition-all {
+  transition: all 0.2s ease;
+}
+
+.transition-colors {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.transition-transform {
+  transition: transform 0.2s ease;
+}
+
+/* Hover Effects */
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-opacity:hover {
+  opacity: 0.8;
+}
+"""
+        
+        return css
+    
+    def generate_react_component(self, review: DesignReview, component_name: str = "ImprovedApp") -> str:
+        """Generate React component based on review"""
+        component_code = f"""import React, {{ useState, useEffect }} from 'react';
+import './styles.css';
+
+const {component_name} = () => {{
+  const [activeTab, setActiveTab] = useState('home');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  return (
+    <div className="app">
+      {{/* Navigation */}}
+      <nav className="nav container">
+        <div className="nav-brand">
+          {review.app_name}
+        </div>
+        
+        <button 
+          className="btn btn-secondary md:hidden"
+          onClick={{() => setIsMenuOpen(!isMenuOpen)}}
+          aria-label="Toggle menu"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        
+        <ul className={{`nav-links ${{isMenuOpen ? 'block' : 'hidden md:flex'}}`}}>
+          <li>
+            <button 
+              className={{`nav-link ${{activeTab === 'home' ? 'active' : ''}}`}}
+              onClick={{() => setActiveTab('home')}}
+              aria-current={{activeTab === 'home' ? 'page' : undefined}}
+            >
+              Home
+            </button>
+          </li>
+          <li>
+            <button 
+              className={{`nav-link ${{activeTab === 'features' ? 'active' : ''}}`}}
+              onClick={{() => setActiveTab('features')}}
+              aria-current={{activeTab === 'features' ? 'page' : undefined}}
+            >
+              Features
+            </button>
+          </li>
+          <li>
+            <button 
+              className={{`nav-link ${{activeTab === 'about' ? 'active' : ''}}`}}
+              onClick={{() => setActiveTab('about')}}
+              aria-current={{activeTab === 'about' ? 'page' : undefined}}
+            >
+              About
+            </button>
+          </li>
+          <li>
+            <button 
+              className={{`nav-link ${{activeTab === 'contact' ? 'active' : ''}}`}}
+              onClick={{() => setActiveTab('contact')}}
+              aria-current={{activeTab === 'contact' ? 'page' : undefined}}
+            >
+              Contact
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      {{/* Main Content */}}
+      <main className="main">
+        {{activeTab === 'home' && (
+          <section className="hero container">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold mb-4">
+                  Welcome to {review.app_name}
+                </h1>
+                <p className="text-lg mb-6 text-gray-600">
+                  Experience the improved design with modern patterns and best practices.
+                  Built with accessibility, performance, and user experience in mind.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <button className="btn btn-primary">
+                    Get Started
+                  </button>
+                  <button className="btn btn-secondary">
+                    Learn More
+                  </button>
+                </div>
+              </div>
+              <div className="hero-image">
+                <div className="card p-8 text-center">
+                  <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                      <path d="M12 2L2 7v10c0 5.55 3.84 10 9 10s9-4.45 9-10V7L12 2z"/>
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Secure & Reliable</h3>
+                  <p className="text-gray-600">Built with security and reliability as top priorities</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}}
+
+        {{activeTab === 'features' && (
+          <section className="features container">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4">Features</h2>
+              <p className="text-lg text-gray-600">
+                Discover what makes {review.app_name} special
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="card card-body text-center hover-lift">
+                <div className="w-16 h-16 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 2L2 7v10c0 5.55 3.84 10 9 10s9-4.45 9-10V7L12 2z"/>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Modern Design</h3>
+                <p className="text-gray-600">
+                  Clean, contemporary design following current best practices and design systems.
+                </p>
+              </div>
+              
+              <div className="card card-body text-center hover-lift">
+                <div className="w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16M4 20h.01"/>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Responsive Layout</h3>
+                <p className="text-gray-600">
+                  Optimized for all devices and screen sizes with mobile-first approach.
+                </p>
+              </div>
+              
+              <div className="card card-body text-center hover-lift">
+                <div className="w-16 h-16 bg-purple-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Enhanced UX</h3>
+                <p className="text-gray-600">
+                  Improved user experience with intuitive navigation and accessibility features.
+                </p>
+              </div>
+            </div>
+          </section>
+        )}}
+
+        {{activeTab === 'about' && (
+          <section className="about container">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <h2 className="text-3xl font-bold mb-6">About {review.app_name}</h2>
+                <p className="text-lg mb-6 text-gray-600">
+                  {review.app_name} represents the culmination of modern web design principles,
+                  combining aesthetic appeal with functional excellence.
+                </p>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 6L9 17l-5-5"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-1">Design Score: {review.overall_score.toFixed(2)}/1.0</h3>
+                      <p className="text-gray-600">Excellent design quality with modern patterns</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 6L9 17l-5-5"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-1">Accessibility Score: {review.accessibility_score.toFixed(2)}/1.0</h3>
+                      <p className="text-gray-600">Fully accessible with WCAG 2.1 compliance</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 6L9 17l-5-5"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-1">Performance Score: {review.performance_score.toFixed(2)}/1.0</h3>
+                      <p className="text-gray-600">Optimized for speed and efficiency</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="card card-body">
+                  <h4 className="font-semibold mb-2">Typography</h4>
+                  <p className="text-sm text-gray-600">Modern font system with excellent readability</p>
+                </div>
+                <div className="card card-body">
+                  <h4 className="font-semibold mb-2">Color Scheme</h4>
+                  <p className="text-sm text-gray-600">Carefully curated color palette</p>
+                </div>
+                <div className="card card-body">
+                  <h4 className="font-semibold mb-2">Layout</h4>
+                  <p className="text-sm text-gray-600">Responsive grid system</p>
+                </div>
+                <div className="card card-body">
+                  <h4 className="font-semibold mb-2">Components</h4>
+                  <p className="text-sm text-gray-600">Reusable UI components</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}}
+
+        {{activeTab === 'contact' && (
+          <section className="contact container">
+            <div className="max-w-2xl mx-auto">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold mb-4">Get in Touch</h2>
+                <p className="text-lg text-gray-600">
+                  Have questions or feedback? We'd love to hear from you.
+                </p>
+              </div>
+              
+              <div className="card card-body">
+                <form className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="form-group">
+                      <label htmlFor="name" className="form-label">Name</label>
+                      <input
+                        type="text"
+                        id="name"
+                        className="form-control"
+                        placeholder="Your name"
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="email" className="form-label">Email</label>
+                      <input
+                        type="email"
+                        id="email"
+                        className="form-control"
+                        placeholder="your@email.com"
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="subject" className="form-label">Subject</label>
+                    <input
+                      type="text"
+                      id="subject"
+                      className="form-control"
+                      placeholder="What's this about?"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="message" className="form-label">Message</label>
+                    <textarea
+                      id="message"
+                      rows="6"
+                      className="form-control"
+                      placeholder="Tell us more..."
+                      required
+                    ></textarea>
+                  </div>
+                  
+                  <button type="submit" className="btn btn-primary w-full">
+                    Send Message
+                  </button>
+                </form>
+              </div>
+            </div>
+          </section>
+        )}}
+      </main>
+
+      {{/* Footer */}}
+      <footer className="footer bg-gray-50 py-8 mt-12">
+        <div className="container text-center">
+          <p className="text-gray-600">
+            &copy; 2025 {review.app_name}. Built with modern design principles and best practices.
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+}};
+
+export default {component_name};
+"""
+        
+        return component_code
+    
+    def generate_implementation_guide(self, review: DesignReview) -> str:
+        """Generate comprehensive implementation guide"""
+        guide = f"""# Implementation Guide for {review.app_name}
+
+## 📊 Design Analysis Summary
+
+**Overall Score:** {review.overall_score:.2f}/1.0
+**Accessibility Score:** {review.accessibility_score:.2f}/1.0
+**Performance Score:** {review.performance_score:.2f}/1.0
+
+## 🎯 Priority Implementation Steps
+
+"""
+        
+        for i, item in enumerate(review.implementation_priority, 1):
+            guide += f"{i}. {item}\n"
+        
+        guide += f"""
+
+## 🎨 Design Review Details
+
+### Color Scheme Analysis
+- **Primary Colors:** {', '.join(review.color_scheme.primary_colors) if review.color_scheme else 'Not analyzed'}
+- **Secondary Colors:** {', '.join(review.color_scheme.secondary_colors) if review.color_scheme else 'Not analyzed'}
+- **Accent Colors:** {', '.join(review.color_scheme.accent_colors) if review.color_scheme else 'Not analyzed'}
+- **Accessibility Score:** {review.color_scheme.accessibility_score:.2f}/1.0 if review.color_scheme else 'Not analyzed'
+- **Harmony Score:** {review.color_scheme.harmony_score:.2f}/1.0 if review.color_scheme else 'Not analyzed'
+
+### Typography Analysis
+- **Font Families:** {', '.join(review.typography.font_families) if review.typography else 'Not analyzed'}
+- **Font Sizes:** {', '.join(review.typography.font_sizes) if review.typography else 'Not analyzed'}
+- **Hierarchy Score:** {review.typography.hierarchy_score:.2f}/1.0 if review.typography else 'Not analyzed'
+- **Readability Score:** {review.typography.readability_score:.2f}/1.0 if review.typography else 'Not analyzed'
+
+### Layout Patterns
+"""
+        
+        if review.layout_patterns:
+            for pattern in review.layout_patterns:
+                guide += f"- **{pattern.pattern_type.title()}:** {pattern.grid_system} (Complexity: {pattern.complexity_score:.2f}/1.0)\n"
+        else:
+            guide += "- No layout patterns analyzed\n"
+        
+        guide += """
+
+## 🚀 Technical Implementation
+
+### 1. Project Setup
+```bash
+# Create new React project
+npx create-react-app improved-app
+cd improved-app
+
+# Install additional dependencies
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+```
+
+### 2. CSS Implementation
+1. Replace `src/index.css` with the generated CSS
+2. Import the CSS in your main component
+3. Configure CSS custom properties for theming
+
+### 3. React Components
+1. Replace `src/App.js` with the generated React component
+2. Update imports and dependencies
+3. Test component functionality
+
+### 4. Accessibility Implementation
+- All interactive elements have proper ARIA labels
+- Form inputs are properly labeled
+- Navigation has appropriate roles and states
+- Color contrast meets WCAG 2.1 AA standards
+
+### 5. Performance Optimization
+- CSS is organized with utility classes
+- Components use semantic HTML
+- Images are optimized and have alt text
+- Code splitting is implemented where needed
+
+## 🧪 Testing Checklist
+
+### Accessibility Testing
+- [ ] Screen reader compatibility
+- [ ] Keyboard navigation works
+- [ ] Color contrast ratios meet standards
+- [ ] Focus indicators are visible
+- [ ] ARIA labels are descriptive
+
+### Responsive Testing
+- [ ] Mobile devices (320px - 768px)
+- [ ] Tablet devices (768px - 1024px)
+- [ ] Desktop devices (1024px+)
+- [ ] Large screens (1440px+)
+
+### Performance Testing
+- [ ] Page load time < 3 seconds
+- [ ] CSS is minified and compressed
+- [ ] Images are optimized
+- [ ] No layout shift (CLS < 0.1)
+
+### Browser Compatibility
+- [ ] Chrome (latest)
+- [ ] Firefox (latest)
+- [ ] Safari (latest)
+- [ ] Edge (latest)
+
+## 🔧 Advanced Customization
+
+### Custom CSS Variables
+You can customize the design by modifying CSS variables:
+
+```css
+:root {
+  --color-primary-1: #your-primary-color;
+  --color-secondary-1: #your-secondary-color;
+  --color-accent-1: #your-accent-color;
+  --font-family-1: 'Your Font', sans-serif;
+}
+```
+
+### Component Variants
+Create variations of components by extending the base classes:
+
+```css
+.btn-custom {
+  background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+}
+
+.card-featured {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border: 2px solid #667eea;
+}
+```
+
+### State Management
+For complex applications, consider adding:
+- Redux Toolkit for state management
+- React Router for navigation
+- React Query for data fetching
+- Framer Motion for animations
+
+## 📈 Monitoring & Analytics
+
+### Performance Monitoring
+- Use Lighthouse for performance audits
+- Monitor Core Web Vitals
+- Track user interactions
+- Analyze loading times
+
+### User Experience Tracking
+- Heat maps for user behavior
+- A/B testing for design changes
+- Conversion rate optimization
+- User feedback collection
+
+## 🔄 Continuous Improvement
+
+### Regular Reviews
+- Monthly design reviews
+- Performance audits
+- Accessibility testing
+- User feedback incorporation
+
+### Updates & Maintenance
+- Keep dependencies updated
+- Monitor for design trends
+- Refactor based on usage patterns
+- Optimize based on analytics
+
+## 🎯 Next Steps
+
+1. **Implement the generated code** in your project
+2. **Test thoroughly** across devices and browsers
+3. **Gather user feedback** on the new design
+4. **Monitor performance** and user engagement
+5. **Iterate based on data** and feedback
+
+## 📞 Support
+
+For questions or issues with implementation:
+- Review the generated code comments
+- Check browser developer tools
+- Validate HTML and CSS
+- Test with accessibility tools
+
+---
+
+*This guide was generated by JARVIS AI Design Agent based on comprehensive design analysis and industry best practices.*
+"""
+        
+        return guide
+    
+    def _load_css_templates(self) -> Dict[str, str]:
+        """Load CSS templates for different components"""
+        return {
+            'button': """
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+}
+""",
+            'card': """
+.card {
+  background: white;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+""",
+            'form': """
+.form-control {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-secondary-2);
+  border-radius: var(--border-radius-md);
+  transition: border-color 0.2s ease;
+}
+"""
+        }
+    
+    def _load_react_templates(self) -> Dict[str, str]:
+        """Load React component templates"""
+        return {
+            'button': """
+const Button = ({ children, variant = 'primary', ...props }) => {
+  return (
+    <button className={`btn btn-${variant}`} {...props}>
+      {children}
+    </button>
+  );
+};
+""",
+            'card': """
+const Card = ({ children, className = '', ...props }) => {
+  return (
+    <div className={`card ${className}`} {...props}>
+      {children}
+    </div>
+  );
+};
+""",
+            'form': """
+const FormControl = ({ label, id, ...props }) => {
+  return (
+    <div className="form-group">
+      <label htmlFor={id} className="form-label">
+        {label}
+      </label>
+      <input id={id} className="form-control" {...props} />
+    </div>
+  );
+};
+"""
+        }
+
+
+# Enhanced Jarvis Integration continues...
