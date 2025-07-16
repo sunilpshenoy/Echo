@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 import uuid
 
 # Configuration
-BACKEND_URL = "https://0ae32c31-0069-48ba-9ab2-3b5d1a729a6b.preview.emergentagent.com/api"
+BACKEND_URL = "https://e09a8b3d-383d-4221-9e57-baee4ca8034c.preview.emergentagent.com/api"
 TEST_TIMEOUT = 30
 
 class ReelsMarketplaceTester:
