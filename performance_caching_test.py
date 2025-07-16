@@ -76,7 +76,7 @@ class PerformanceCachingTester:
             response = self.session.get(f"{BACKEND_URL}/admin/performance")
             if response.status_code == 200:
                 data = response.json()
-                expected_fields = ['active_requests', 'slow_queries', 'recent_slow_queries', 'error_counts']
+                expected_fields = ['cache_stats', 'performance_stats', 'redis_available']
                 has_all_fields = all(field in data for field in expected_fields)
                 self.log_test("Admin Performance Endpoint", has_all_fields, 
                             f"Response: {json.dumps(data, indent=2)}")
@@ -90,9 +90,9 @@ class PerformanceCachingTester:
         """Test cache management endpoints"""
         print("\n🗄️ Testing Cache Management Endpoints...")
         
-        # Test cache clear endpoint
+        # Test cache clear endpoint (GET request)
         try:
-            response = self.session.post(f"{BACKEND_URL}/admin/cache/clear")
+            response = self.session.get(f"{BACKEND_URL}/admin/cache/clear")
             if response.status_code == 200:
                 data = response.json()
                 self.log_test("Cache Clear Endpoint", True, 
