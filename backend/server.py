@@ -8588,7 +8588,7 @@ async def search_messages_cached(
     if not chat or current_user["user_id"] not in chat["members"]:
         raise HTTPException(status_code=403, detail="Access denied")
     
-    cache_key = f"message_search:{chat_id}:{hashlib.md5(query.encode()).hexdigest()}"
+    cache_key = f"message_search:{chat_id}:{hashlib.sha256(query.encode()).hexdigest()}"
     
     # Try cache first
     cached_results = await cache_manager.get(cache_key)
