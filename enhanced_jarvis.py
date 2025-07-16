@@ -889,7 +889,72 @@ class EnhancedJarvisAI(JarvisAI):
         avg_complexity = sum(complexity_scores) / len(complexity_scores)
         return min(1.0 - (avg_complexity - 0.5), 1.0)
     
-    def _generate_improvement_roadmap(self, design_analysis: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _calculate_color_accessibility(self, colors: List[str]) -> float:
+        """Calculate color accessibility score"""
+        if not colors:
+            return 0.0
+        # Simple calculation based on number of colors
+        return min(len(colors) / 10, 1.0)
+    
+    def _calculate_color_consistency(self, colors: List[str]) -> float:
+        """Calculate color consistency score"""
+        if not colors:
+            return 0.0
+        # Simple calculation based on color diversity
+        unique_colors = set(colors)
+        return max(1.0 - (len(unique_colors) / len(colors)), 0.0)
+    
+    def _generate_color_recommendations(self, color_analysis: Dict[str, Any]) -> List[str]:
+        """Generate color recommendations"""
+        recommendations = []
+        if color_analysis.get('harmony_score', 0) < 0.7:
+            recommendations.append("Improve color harmony with a more cohesive palette")
+        if color_analysis.get('accessibility_score', 0) < 0.7:
+            recommendations.append("Improve color accessibility for better contrast")
+        return recommendations
+    
+    def _calculate_typography_readability(self, typography: Dict[str, Any]) -> float:
+        """Calculate typography readability score"""
+        fonts = typography.get('font_families', [])
+        sizes = typography.get('font_sizes', [])
+        return min((len(fonts) + len(sizes)) / 20, 1.0)
+    
+    def _calculate_typography_consistency(self, typography: Dict[str, Any]) -> float:
+        """Calculate typography consistency score"""
+        fonts = typography.get('font_families', [])
+        return max(1.0 - (len(fonts) / 5), 0.0)
+    
+    def _generate_typography_recommendations(self, typography: Dict[str, Any]) -> List[str]:
+        """Generate typography recommendations"""
+        recommendations = []
+        if typography.get('hierarchy_score', 0) < 0.7:
+            recommendations.append("Improve typography hierarchy")
+        if typography.get('consistency_score', 0) < 0.7:
+            recommendations.append("Reduce font variety for better consistency")
+        return recommendations
+    
+    def _calculate_component_layout_complexity(self, content: str) -> float:
+        """Calculate component layout complexity"""
+        grid_count = content.lower().count('grid')
+        flex_count = content.lower().count('flex')
+        return min((grid_count + flex_count) / 10, 1.0)
+    
+    def _generate_component_recommendations(self, component_analysis: Dict[str, Any], content: str) -> List[str]:
+        """Generate component recommendations"""
+        recommendations = []
+        if component_analysis.get('accessibility_score', 0) < 0.7:
+            recommendations.append("Improve accessibility with ARIA labels")
+        if component_analysis.get('jsx_complexity', 0) > 50:
+            recommendations.append("Consider breaking down complex components")
+        return recommendations
+    
+    def _generate_competitive_recommendations(self, competitive_analysis: Dict[str, Any]) -> List[str]:
+        """Generate competitive recommendations"""
+        recommendations = []
+        opportunities = competitive_analysis.get('improvement_opportunities', [])
+        for opportunity in opportunities[:3]:  # Top 3
+            recommendations.append(f"Competitive insight: {opportunity}")
+        return recommendations
         """Generate improvement roadmap"""
         roadmap = []
         
