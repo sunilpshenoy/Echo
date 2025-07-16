@@ -391,14 +391,32 @@ const SimpleMarketplace = ({ user, token, api }) => {
 
       {/* Simple Create Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" role="dialog" aria-labelledby="create-listing-title" aria-modal="true">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" 
+          role="dialog" 
+          aria-labelledby="create-listing-title" 
+          aria-modal="true"
+          onClick={(e) => {
+            // Close modal when clicking on backdrop
+            if (e.target === e.currentTarget) {
+              setShowCreateModal(false);
+            }
+          }}
+          onKeyDown={(e) => {
+            // Close modal when pressing Escape
+            if (e.key === 'Escape') {
+              setShowCreateModal(false);
+            }
+          }}
+        >
+          <div className="bg-white rounded-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
               <h3 id="create-listing-title" className="text-lg font-bold">Create Listing</h3>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="text-gray-500 hover:text-gray-700 text-xl"
+                className="text-gray-500 hover:text-gray-700 text-xl font-bold"
                 aria-label="Close create listing modal"
+                type="button"
               >
                 ✕
               </button>
