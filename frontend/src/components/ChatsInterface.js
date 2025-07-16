@@ -19,14 +19,22 @@ const ConnectionManager = ({ user, token, api, onConnectionUpdate }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [connectionMessage, setConnectionMessage] = useState('');
 
+  const [qrCodeError, setQrCodeError] = useState(null);
+  const [qrCodeLoading, setQrCodeLoading] = useState(false);
+
   const getQRCode = async () => {
     try {
+      setQrCodeLoading(true);
+      setQrCodeError(null);
       const response = await axios.get(`${api}/users/qr-code`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setQrCodeData(response.data);
     } catch (error) {
       console.error('Failed to get QR code:', error);
+      setQrCodeError(error.response?.data?.detail || 'Failed to load QR code. Please try again.');
+    } finally {
+      setQrCodeLoading(false);
     }
   };
 
