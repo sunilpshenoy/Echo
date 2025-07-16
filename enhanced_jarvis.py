@@ -94,8 +94,9 @@ class EnhancedJarvisAI(JarvisAI):
         """Comprehensive analysis with design intelligence"""
         print("🤖 Starting Enhanced JARVIS comprehensive analysis...")
         
-        # Run existing analysis
-        existing_analysis = super().analyze_comprehensive()
+        # Run existing analysis using the original monitor_application method
+        self.monitor_application(self.project_path)
+        existing_analysis = self.generate_comprehensive_report()
         
         # Run design intelligence analysis
         design_analysis = await self._analyze_design_intelligence()
