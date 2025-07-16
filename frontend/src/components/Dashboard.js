@@ -341,6 +341,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
                 onClick={() => setIsEditingProfile(true)}
                 className="flex items-center space-x-3 hover:bg-gray-100 rounded-lg p-1 transition-colors"
                 title={t('common.edit')}
+                aria-label={`Edit profile for ${user?.display_name || user?.username || 'user'}`}
               >
                 <div className="w-10 h-10 bg-pulse-secondary rounded-full flex items-center justify-center shadow-md">
                   <span className="text-white font-bold text-lg">
