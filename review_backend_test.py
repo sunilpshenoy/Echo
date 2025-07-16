@@ -167,10 +167,10 @@ class BackendTester:
         response, data, response_time = await self.make_request('GET', '/users/qr-code')
         
         if response and response.status == 200:
-            if 'qr_code' in data or 'qr_data' in data or 'image' in data:
+            if data and ('qr_code' in data or 'qr_data' in data or 'image' in data):
                 self.log_result("QR Code Generation", True, "QR code generated successfully", response_time, response.status)
             else:
-                self.log_result("QR Code Generation", False, f"QR code data missing in response: {list(data.keys())}", response_time, response.status)
+                self.log_result("QR Code Generation", False, f"QR code data missing in response: {list(data.keys()) if data else 'No data'}", response_time, response.status)
         else:
             error_msg = data.get('detail', 'Unknown error') if data else 'No response'
             self.log_result("QR Code Generation", False, f"QR code generation failed: {error_msg}", response_time, response.status if response else None)
