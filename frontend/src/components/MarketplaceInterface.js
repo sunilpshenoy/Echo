@@ -839,7 +839,7 @@ import axios from 'axios';
 
               <div className="flex space-x-3 pt-4">
                 <button
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={closeCreateModal}
                   className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200"
                 >
                   Cancel
