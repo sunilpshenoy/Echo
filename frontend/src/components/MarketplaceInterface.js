@@ -557,8 +557,9 @@ const MarketplaceInterface = ({ user, token, api }) => {
               <button
                 onClick={handleEnhancedSearch}
                 className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+                aria-label="Search marketplace listings"
               >
-                🔍
+                <span aria-hidden="true">🔍</span>
               </button>
             </div>
 
