@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import EmojiPicker from './EmojiPicker';
@@ -12,7 +12,7 @@ import MediaGallery from './MediaGallery';
 import E2EEncryption from '../crypto/E2EEncryption';
 import E2EKeyManager from '../crypto/E2EKeyManager';
 
-const ConnectionManager = ({ user, token, api, onConnectionUpdate }) => {
+const ConnectionManager = React.memo(({ user, token, api, onConnectionUpdate }) => {
   const [showPinModal, setShowPinModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [qrCodeData, setQrCodeData] = useState(null);
