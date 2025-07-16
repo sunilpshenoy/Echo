@@ -57,6 +57,14 @@ class EnhancedJarvisAI(JarvisAI):
         super().__init__()
         self.project_path = project_path
         
+        # Initialize analysis categories
+        self.analysis_categories = {
+            'security': 'Security Analysis',
+            'code_quality': 'Code Quality Analysis',
+            'ui_design': 'UI/Design Analysis',
+            'market_analysis': 'Market Analysis'
+        }
+        
         # Initialize design intelligence components
         self.design_db = DesignDatabase("jarvis_enhanced_design.db")
         self.design_analyzer = DesignPatternAnalyzer(self.design_db)
