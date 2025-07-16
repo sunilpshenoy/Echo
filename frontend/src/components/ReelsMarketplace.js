@@ -129,10 +129,14 @@ const ReelsMarketplace = ({ user, token, api }) => {
     }
   };
 
+  const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+
   // Fetch reels feed
   const fetchReelsFeed = async () => {
     try {
       setLoading(true);
+      setError(null);
       const params = new URLSearchParams();
       if (selectedCategory) params.append('category', selectedCategory);
       if (locationFilter) params.append('location', locationFilter);
@@ -147,13 +151,21 @@ const ReelsMarketplace = ({ user, token, api }) => {
         // Use mock data if no reels available
         setReels(mockReels);
       }
+      setRetryCount(0);
     } catch (error) {
       console.error('Failed to fetch reels:', error);
+      setError(error.response?.data?.detail || 'Failed to load reels. Please try again.');
       // Fall back to mock data
       setReels(mockReels);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Retry function
+  const retryFetch = () => {
+    setRetryCount(prev => prev + 1);
+    fetchReelsFeed();
   };
 
   // Video recording functions
