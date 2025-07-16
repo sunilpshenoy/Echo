@@ -1986,8 +1986,9 @@ const ChatsInterface = ({
                 <button
                   onClick={clearSearch}
                   className="text-gray-500 hover:text-gray-700 px-2 py-1 rounded-lg text-sm"
+                  aria-label="Clear search results"
                 >
-                  ✕
+                  <span aria-hidden="true">✕</span>
                 </button>
               </div>
               
