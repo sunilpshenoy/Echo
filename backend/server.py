@@ -62,14 +62,25 @@ SECURITY_CONFIG = {
     ]
 }
 
-# Initialize Redis for security tracking
+# Initialize Redis for security tracking and caching
 try:
     redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
     redis_client.ping()
     REDIS_AVAILABLE = True
+    print("✅ Redis connected successfully")
 except:
     REDIS_AVAILABLE = False
     print("⚠️ Redis not available - using memory-based rate limiting")
+
+# Performance and caching configuration
+CACHE_CONFIG = {
+    'DEFAULT_TTL': 3600,  # 1 hour
+    'SHORT_TTL': 300,     # 5 minutes
+    'LONG_TTL': 86400,    # 24 hours
+    'USER_CACHE_TTL': 1800,  # 30 minutes
+    'CHAT_CACHE_TTL': 600,   # 10 minutes
+    'SEARCH_CACHE_TTL': 300, # 5 minutes
+}
 
 # Rate limiter
 limiter = Limiter(key_func=get_remote_address)
