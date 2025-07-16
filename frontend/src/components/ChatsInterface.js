@@ -133,7 +133,26 @@ const ConnectionManager = ({ user, token, api, onConnectionUpdate }) => {
               </button>
             </div>
             
-            {qrCodeData ? (
+            {qrCodeLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading your QR code...</p>
+              </div>
+            ) : qrCodeError ? (
+              <div className="text-center py-8">
+                <div className="bg-red-50 p-4 rounded-lg mb-4">
+                  <div className="text-red-500 text-2xl mb-2">⚠️</div>
+                  <p className="text-red-700 font-medium">Error Loading QR Code</p>
+                  <p className="text-red-600 text-sm mt-2">{qrCodeError}</p>
+                </div>
+                <button
+                  onClick={getQRCode}
+                  className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : qrCodeData ? (
               <div className="text-center">
                 <div className="bg-gray-50 p-4 rounded-lg mb-4">
                   <QRCode 
@@ -159,8 +178,14 @@ const ConnectionManager = ({ user, token, api, onConnectionUpdate }) => {
               </div>
             ) : (
               <div className="text-center py-8">
-                <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                <p className="text-gray-600">Loading...</p>
+                <div className="text-gray-400 text-2xl mb-2">📱</div>
+                <p className="text-gray-600">Click to generate your QR code</p>
+                <button
+                  onClick={getQRCode}
+                  className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+                >
+                  Generate QR Code
+                </button>
               </div>
             )}
           </div>
