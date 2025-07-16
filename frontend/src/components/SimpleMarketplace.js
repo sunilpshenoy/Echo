@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 
-const SimpleMarketplace = ({ user, token, api }) => {
+  const SimpleMarketplace = ({ user, token, api }) => {
   const { t } = useTranslation();
   const [activeView, setActiveView] = useState('browse');
   const [listings, setListings] = useState([]);
@@ -21,6 +21,37 @@ const SimpleMarketplace = ({ user, token, api }) => {
     instagram_url: '',
     location: ''
   });
+
+  // Emergency close function
+  const closeModal = () => {
+    setShowCreateModal(false);
+    setLoading(false); // Reset loading state
+    // Reset form
+    setNewListing({
+      title: '',
+      description: '',
+      category: 'food',
+      price: '',
+      price_type: 'fixed',
+      youtube_url: '',
+      instagram_url: '',
+      location: ''
+    });
+  };
+
+  // Add escape key listener
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && showCreateModal) {
+        closeModal();
+      }
+    };
+
+    if (showCreateModal) {
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }
+  }, [showCreateModal]);
 
   // Simple categories
   const categories = [
