@@ -316,19 +316,8 @@ import axios from 'axios';
 
       alert('Listing created successfully!');
       
-      // Reset form
-      setNewListing({
-        title: '',
-        description: '',
-        category: '',
-        price: '',
-        price_type: 'fixed',
-        tags: '',
-        contact_method: 'chat'
-      });
-      
-      // Close modal
-      setShowCreateModal(false);
+      // Close modal and reset form
+      closeCreateModal();
       
       // Refresh listings
       if (activeView === 'my-listings') {
