@@ -51,7 +51,8 @@ class EnhancedJarvisAI(JarvisAI):
     """Enhanced Jarvis with Design Intelligence capabilities"""
     
     def __init__(self, project_path: str = "/app"):
-        super().__init__(project_path)
+        super().__init__()
+        self.project_path = project_path
         
         # Initialize design intelligence components
         self.design_db = DesignDatabase("jarvis_enhanced_design.db")
