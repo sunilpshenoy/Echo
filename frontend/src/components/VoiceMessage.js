@@ -130,7 +130,7 @@ const VoiceMessage = ({ isRecording, onStartRecording, onStopRecording, onSendVo
     if (waveformData.length === 0) return null;
     
     return (
-      <div className="flex items-center justify-center space-x-1 h-8">
+      <div className="flex items-center justify-center space-x-1 h-8" role="img" aria-label="Voice recording waveform">
         {waveformData.map((height, index) => (
           <div
             key={index}
@@ -139,6 +139,7 @@ const VoiceMessage = ({ isRecording, onStartRecording, onStopRecording, onSendVo
               height: `${Math.max(4, height / 3)}px`,
               opacity: isRecording ? 1 : 0.7
             }}
+            aria-hidden="true"
           />
         ))}
       </div>
@@ -147,15 +148,15 @@ const VoiceMessage = ({ isRecording, onStartRecording, onStopRecording, onSendVo
 
   if (isRecording) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4" role="region" aria-live="polite" aria-label="Voice recording in progress">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" aria-hidden="true"></div>
             <span className="text-sm font-medium text-red-700">
               {t('voice.recording')}
             </span>
           </div>
-          <span className="text-sm text-red-600">
+          <span className="text-sm text-red-600" aria-live="polite">
             {formatTime(duration)}
           </span>
         </div>
@@ -166,8 +167,9 @@ const VoiceMessage = ({ isRecording, onStartRecording, onStopRecording, onSendVo
           <button
             onClick={stopRecording}
             className="flex items-center space-x-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+            aria-label={`Stop recording voice message. Current duration: ${formatTime(duration)}`}
           >
-            <span>⏹️</span>
+            <span aria-hidden="true">⏹️</span>
             <span>{t('voice.stop')}</span>
           </button>
         </div>
@@ -177,7 +179,7 @@ const VoiceMessage = ({ isRecording, onStartRecording, onStopRecording, onSendVo
 
   if (audioData) {
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4" role="region" aria-label="Voice message recorded">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-blue-700">
             {t('voice.recorded')}
@@ -191,11 +193,12 @@ const VoiceMessage = ({ isRecording, onStartRecording, onStopRecording, onSendVo
           <button
             onClick={isPlaying ? pauseAudio : playAudio}
             className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
+            aria-label={isPlaying ? `Pause voice message playback` : `Play voice message (${formatTime(audioData.duration)})`}
           >
-            {isPlaying ? '⏸️' : '▶️'}
+            <span aria-hidden="true">{isPlaying ? '⏸️' : '▶️'}</span>
           </button>
           
-          <div className="flex-1 bg-gray-200 rounded-full h-2">
+          <div className="flex-1 bg-gray-200 rounded-full h-2" role="progressbar" aria-valuenow={currentTime} aria-valuemin={0} aria-valuemax={audioData.duration} aria-label="Voice message playback progress">
             <div
               className="bg-blue-500 h-2 rounded-full transition-all duration-100"
               style={{
@@ -212,21 +215,24 @@ const VoiceMessage = ({ isRecording, onStartRecording, onStopRecording, onSendVo
             setIsPlaying(false);
             setCurrentTime(0);
           }}
+          aria-label="Voice message audio"
         />
         
         <div className="flex justify-center space-x-2">
           <button
             onClick={cancelRecording}
             className="flex items-center space-x-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            aria-label="Cancel and delete voice message"
           >
-            <span>❌</span>
+            <span aria-hidden="true">❌</span>
             <span>{t('common.cancel')}</span>
           </button>
           <button
             onClick={sendVoiceMessage}
             className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+            aria-label={`Send voice message (${formatTime(audioData.duration)})`}
           >
-            <span>🎤</span>
+            <span aria-hidden="true">🎤</span>
             <span>{t('voice.send')}</span>
           </button>
         </div>
@@ -239,8 +245,9 @@ const VoiceMessage = ({ isRecording, onStartRecording, onStopRecording, onSendVo
       onClick={startRecording}
       className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
       title={t('voice.record')}
+      aria-label="Start recording voice message"
     >
-      🎤
+      <span aria-hidden="true">🎤</span>
     </button>
   );
 };

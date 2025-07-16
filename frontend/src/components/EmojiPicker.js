@@ -177,16 +177,20 @@ const EmojiPicker = ({ onEmojiSelect, onClose, customEmojis = [] }) => {
     <div 
       ref={pickerRef}
       className="absolute bottom-12 left-0 bg-white rounded-2xl shadow-2xl border border-gray-200 w-80 h-96 z-50 flex flex-col"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="emoji-picker-title"
     >
       {/* Header */}
       <div className="p-3 border-b border-gray-200">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-medium text-gray-900">{t('emojis.picker')}</h3>
+          <h3 id="emoji-picker-title" className="text-sm font-medium text-gray-900">{t('emojis.picker')}</h3>
           <button 
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 text-lg"
+            aria-label="Close emoji picker"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
         
@@ -197,11 +201,12 @@ const EmojiPicker = ({ onEmojiSelect, onClose, customEmojis = [] }) => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          aria-label="Search emojis"
         />
       </div>
 
       {/* Category tabs */}
-      <div className="flex overflow-x-auto border-b border-gray-200 px-1">
+      <div className="flex overflow-x-auto border-b border-gray-200 px-1" role="tablist" aria-label="Emoji categories">
         {Object.entries(emojiCategories).map(([categoryKey, category]) => (
           <button
             key={categoryKey}
@@ -210,8 +215,12 @@ const EmojiPicker = ({ onEmojiSelect, onClose, customEmojis = [] }) => {
               activeCategory === categoryKey ? 'bg-blue-100 ring-1 ring-blue-500' : ''
             }`}
             title={category.name}
+            role="tab"
+            aria-selected={activeCategory === categoryKey}
+            aria-controls={`emoji-panel-${categoryKey}`}
+            aria-label={`Show ${category.name} emojis`}
           >
-            {category.icon}
+            <span aria-hidden="true">{category.icon}</span>
           </button>
         ))}
       </div>
@@ -220,17 +229,19 @@ const EmojiPicker = ({ onEmojiSelect, onClose, customEmojis = [] }) => {
       <div className="flex-1 overflow-y-auto p-2">
         {searchQuery ? (
           // Search results
-          <div className="space-y-3">
+          <div className="space-y-3" role="region" aria-live="polite" aria-label="Search results">
             {Object.entries(filteredEmojis).map(([categoryKey, category]) => (
               <div key={categoryKey}>
                 <h4 className="text-xs font-medium text-gray-500 mb-1">{category.name}</h4>
-                <div className="grid grid-cols-8 gap-1">
+                <div className="grid grid-cols-8 gap-1" role="grid">
                   {category.emojis.map((emoji, index) => (
                     <button
                       key={`${categoryKey}-${index}`}
                       onClick={() => handleEmojiSelect(emoji)}
                       className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-lg"
                       title={typeof emoji === 'object' ? emoji.name : emoji}
+                      aria-label={`Insert ${typeof emoji === 'object' ? emoji.name : emoji} emoji`}
+                      role="gridcell"
                     >
                       {typeof emoji === 'object' ? (
                         <img 
@@ -239,7 +250,7 @@ const EmojiPicker = ({ onEmojiSelect, onClose, customEmojis = [] }) => {
                           className="w-6 h-6 object-contain"
                         />
                       ) : (
-                        emoji
+                        <span aria-hidden="true">{emoji}</span>
                       )}
                     </button>
                   ))}
@@ -249,13 +260,19 @@ const EmojiPicker = ({ onEmojiSelect, onClose, customEmojis = [] }) => {
           </div>
         ) : (
           // Category view
-          <div className="grid grid-cols-8 gap-1">
+          <div 
+            className="grid grid-cols-8 gap-1" 
+            role="tabpanel" 
+            id={`emoji-panel-${activeCategory}`}
+            aria-labelledby={`emoji-tab-${activeCategory}`}
+          >
             {filteredEmojis[activeCategory]?.emojis.map((emoji, index) => (
               <button
                 key={index}
                 onClick={() => handleEmojiSelect(emoji)}
                 className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-lg transition-colors"
                 title={typeof emoji === 'object' ? emoji.name : emoji}
+                aria-label={`Insert ${typeof emoji === 'object' ? emoji.name : emoji} emoji`}
               >
                 {typeof emoji === 'object' ? (
                   <img 
@@ -264,7 +281,7 @@ const EmojiPicker = ({ onEmojiSelect, onClose, customEmojis = [] }) => {
                     className="w-6 h-6 object-contain"
                   />
                 ) : (
-                  emoji
+                  <span aria-hidden="true">{emoji}</span>
                 )}
               </button>
             ))}
@@ -273,8 +290,8 @@ const EmojiPicker = ({ onEmojiSelect, onClose, customEmojis = [] }) => {
 
         {/* No results */}
         {searchQuery && Object.keys(filteredEmojis).length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            <div className="text-4xl mb-2">🔍</div>
+          <div className="text-center py-8 text-gray-500" role="region" aria-live="polite">
+            <div className="text-4xl mb-2" aria-hidden="true">🔍</div>
             <p className="text-sm">{t('emojis.noResults')}</p>
           </div>
         )}

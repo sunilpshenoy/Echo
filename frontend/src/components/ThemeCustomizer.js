@@ -103,10 +103,12 @@ const ThemeCustomizer = ({ onClose, onApplyTheme, currentTheme = 'default' }) =>
           <div 
             className="w-8 h-4 rounded text-xs"
             style={{ backgroundColor: theme.chatBubbles.otherBubbleColor }}
+            aria-hidden="true"
           ></div>
           <div 
             className="w-12 h-4 rounded text-xs"
             style={{ backgroundColor: theme.chatBubbles.ownBubbleColor }}
+            aria-hidden="true"
           ></div>
         </div>
       </div>
@@ -114,20 +116,21 @@ const ThemeCustomizer = ({ onClose, onApplyTheme, currentTheme = 'default' }) =>
   );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="theme-customizer-title">
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
-              <span>🎨</span>
+            <h2 id="theme-customizer-title" className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
+              <span aria-hidden="true">🎨</span>
               <span>{t('themes.title')}</span>
             </h2>
             <button 
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 text-xl"
+              aria-label="Close theme customizer"
             >
-              ✕
+              <span aria-hidden="true">✕</span>
             </button>
           </div>
         </div>
@@ -141,7 +144,8 @@ const ThemeCustomizer = ({ onClose, onApplyTheme, currentTheme = 'default' }) =>
               </h3>
               
               {/* Predefined Themes */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-labelledby="theme-selection-title">
+                <h4 id="theme-selection-title" className="sr-only">Select a theme</h4>
                 {Object.entries(predefinedThemes).map(([key, theme]) => (
                   <div key={key} className="text-center">
                     <button
@@ -149,10 +153,14 @@ const ThemeCustomizer = ({ onClose, onApplyTheme, currentTheme = 'default' }) =>
                       className={`w-full mb-2 border-2 rounded-lg overflow-hidden transition-all ${
                         selectedTheme === key ? 'border-blue-500 shadow-lg' : 'border-gray-200 hover:border-gray-300'
                       }`}
+                      role="radio"
+                      aria-checked={selectedTheme === key}
+                      aria-label={`Select ${theme.name} theme`}
+                      aria-describedby={`theme-${key}-description`}
                     >
                       {getThemePreview(theme)}
                     </button>
-                    <p className="text-sm font-medium">{theme.name}</p>
+                    <p id={`theme-${key}-description`} className="text-sm font-medium">{theme.name}</p>
                   </div>
                 ))}
               </div>
@@ -165,6 +173,7 @@ const ThemeCustomizer = ({ onClose, onApplyTheme, currentTheme = 'default' }) =>
           <button
             onClick={onClose}
             className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            aria-label="Cancel theme selection"
           >
             {t('common.cancel')}
           </button>
@@ -177,6 +186,7 @@ const ThemeCustomizer = ({ onClose, onApplyTheme, currentTheme = 'default' }) =>
               }
             }}
             className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            aria-label={`Apply ${predefinedThemes[selectedTheme]?.name || 'selected'} theme`}
           >
             {t('themes.apply')}
           </button>
