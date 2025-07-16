@@ -207,11 +207,11 @@ class BackendTester:
         
         team_id = None
         if response and response.status == 200:
-            if 'team_id' in data:
+            if data and 'team_id' in data:
                 team_id = data['team_id']
                 self.log_result("Team Creation", True, f"Team created successfully with ID: {team_id}", response_time, response.status)
             else:
-                self.log_result("Team Creation", False, f"Team creation response missing team_id: {list(data.keys())}", response_time, response.status)
+                self.log_result("Team Creation", False, f"Team creation response missing team_id: {list(data.keys()) if data else 'No data'}", response_time, response.status)
         else:
             error_msg = data.get('detail', 'Unknown error') if data else 'No response'
             self.log_result("Team Creation", False, f"Team creation failed: {error_msg}", response_time, response.status if response else None)
