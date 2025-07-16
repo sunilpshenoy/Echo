@@ -505,8 +505,16 @@ class JarvisAI:
         """Analyze UI/Design aspects of the code"""
         lines = content.split('\n')
         
+        # Special handling for accessibility patterns that need full element analysis
+        if file_path.endswith(('.js', '.jsx', '.ts', '.tsx')):
+            self._analyze_react_accessibility(content, file_path)
+        
         for category, patterns in self.ui_design_patterns.items():
             for issue_type, pattern_list in patterns.items():
+                # Skip accessibility issues for React files - handled separately
+                if category == 'accessibility' and file_path.endswith(('.js', '.jsx', '.ts', '.tsx')):
+                    continue
+                    
                 for pattern in pattern_list:
                     for line_num, line in enumerate(lines, 1):
                         if re.search(pattern, line):
@@ -523,6 +531,63 @@ class JarvisAI:
                                 impact_on_users=self._get_ui_impact(issue_type),
                                 code_snippet=line.strip()
                             ))
+    
+    def _analyze_react_accessibility(self, content: str, file_path: str):
+        """Analyze React components for accessibility issues with proper element parsing"""
+        
+        # Find all button elements and check for proper labeling
+        button_pattern = r'<button[^>]*>.*?</button>'
+        buttons = re.findall(button_pattern, content, re.DOTALL)
+        
+        for button in buttons:
+            button_lines = button.split('\n')
+            first_line = button_lines[0]
+            
+            # Check if button has proper accessibility attributes
+            has_aria_label = re.search(r'aria-label=', button)
+            has_aria_labelledby = re.search(r'aria-labelledby=', button)
+            has_aria_describedby = re.search(r'aria-describedby=', button)
+            
+            # Extract meaningful text content
+            text_content = re.sub(r'<[^>]*>', '', button).strip()
+            has_meaningful_text = text_content and len(text_content) > 2 and not text_content.isspace()
+            
+            # Only flag if no accessibility attributes AND no meaningful text
+            if not (has_aria_label or has_aria_labelledby or has_aria_describedby or has_meaningful_text):
+                # Find line number in original content
+                line_num = content[:content.find(button)].count('\n') + 1
+                
+                self.ui_design_issues.append(UIDesignIssue(
+                    file_path=file_path,
+                    line_number=line_num,
+                    issue_type='missing_aria_labels',
+                    severity='high',
+                    category='accessibility',
+                    description='Interactive button missing ARIA labels and meaningful text',
+                    suggestion='Add aria-label attribute or meaningful text content',
+                    impact_on_users='Screen reader users cannot understand button purpose',
+                    code_snippet=first_line.strip()
+                ))
+        
+        # Check for img elements without alt text
+        img_pattern = r'<img[^>]*/?>'
+        imgs = re.findall(img_pattern, content)
+        
+        for img in imgs:
+            if not re.search(r'alt=', img):
+                line_num = content[:content.find(img)].count('\n') + 1
+                
+                self.ui_design_issues.append(UIDesignIssue(
+                    file_path=file_path,
+                    line_number=line_num,
+                    issue_type='missing_alt_text',
+                    severity='high',
+                    category='accessibility',
+                    description='Image missing alt attribute for accessibility',
+                    suggestion='Add descriptive alt attribute to image',
+                    impact_on_users='Screen reader users cannot understand image content',
+                    code_snippet=img.strip()
+                ))
     
     def _get_ui_severity(self, issue_type: str) -> str:
         """Get severity level for UI/Design issues"""
