@@ -694,7 +694,7 @@ class EnhancedJarvisAI(JarvisAI):
         for root, dirs, files in os.walk(self.project_path):
             for file in files:
                 if file.endswith(('.js', '.jsx', '.ts', '.tsx')):
-                    css_files.append(os.path.join(root, file))
+                    react_files.append(os.path.join(root, file))
         return react_files
     
     def _calculate_design_score(self, design_analysis: Dict[str, Any]) -> float:
