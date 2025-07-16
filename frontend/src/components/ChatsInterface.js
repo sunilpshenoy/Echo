@@ -249,12 +249,43 @@ const ConnectionManager = ({ user, token, api, onConnectionUpdate }) => {
                 />
               </div>
               
+              {/* Error State */}
+              {connectionError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                  <div className="flex items-center">
+                    <div className="text-red-500 mr-2">⚠️</div>
+                    <p className="text-red-700 text-sm">{connectionError}</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Success State */}
+              {connectionSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                  <div className="flex items-center">
+                    <div className="text-green-500 mr-2">✅</div>
+                    <p className="text-green-700 text-sm">Connection request sent successfully!</p>
+                  </div>
+                </div>
+              )}
+              
               <button
                 onClick={sendConnectionRequest}
-                disabled={!searchQuery.trim()}
-                className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                disabled={!searchQuery.trim() || connectionLoading}
+                className={`w-full py-2 rounded-lg transition-all ${
+                  connectionLoading 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-blue-500 hover:bg-blue-600 disabled:opacity-50'
+                } text-white`}
               >
-                Send Connection Request
+                {connectionLoading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                    Sending Request...
+                  </div>
+                ) : (
+                  'Send Connection Request'
+                )}
               </button>
             </div>
           </div>
