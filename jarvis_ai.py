@@ -181,9 +181,10 @@ class JarvisAI:
                     r'<image(?![^>]*alt=)'
                 ],
                 'missing_aria_labels': [
-                    r'<button(?![^>]*aria-label)',
-                    r'<input(?![^>]*aria-label)(?![^>]*id=)',
-                    r'<select(?![^>]*aria-label)'
+                    r'<button(?![^>]*aria-label=)(?![^>]*aria-labelledby=)(?![^>]*aria-describedby=)',
+                    r'<input(?![^>]*aria-label=)(?![^>]*aria-labelledby=)(?![^>]*aria-describedby=)',
+                    r'<select(?![^>]*aria-label=)(?![^>]*aria-labelledby=)(?![^>]*aria-describedby=)',
+                    r'<textarea(?![^>]*aria-label=)(?![^>]*aria-labelledby=)(?![^>]*aria-describedby=)'
                 ],
                 'poor_color_contrast': [
                     r'color:\s*#[fF]{6}',  # Pure white text
