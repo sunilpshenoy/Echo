@@ -330,7 +330,7 @@ import axios from 'axios';
       alert('Failed to create listing. Please try again.');
       
       // Still close modal on error to prevent stuck state
-      setShowCreateModal(false);
+      closeCreateModal();
     } finally {
       setLoading(false);
     }
