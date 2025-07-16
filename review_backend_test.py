@@ -310,10 +310,10 @@ class BackendTester:
         response, data, response_time = await self.make_request('POST', '/upload', file_data)
         
         if response and response.status == 200:
-            if 'file_id' in data:
+            if data and 'file_id' in data:
                 self.log_result("File Upload", True, f"File uploaded successfully with ID: {data['file_id']}", response_time, response.status)
             else:
-                self.log_result("File Upload", False, f"File upload response missing file_id: {list(data.keys())}", response_time, response.status)
+                self.log_result("File Upload", False, f"File upload response missing file_id: {list(data.keys()) if data else 'No data'}", response_time, response.status)
         else:
             error_msg = data.get('detail', 'Unknown error') if data else 'No response'
             self.log_result("File Upload", False, f"File upload failed: {error_msg}", response_time, response.status if response else None)
