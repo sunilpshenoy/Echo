@@ -430,13 +430,7 @@ import axios from 'axios';
           onClick={(e) => {
             // Close modal when clicking on backdrop
             if (e.target === e.currentTarget) {
-              setShowCreateModal(false);
-            }
-          }}
-          onKeyDown={(e) => {
-            // Close modal when pressing Escape
-            if (e.key === 'Escape') {
-              setShowCreateModal(false);
+              closeModal();
             }
           }}
         >
