@@ -265,12 +265,14 @@ const MarketplaceInterface = ({ user, token, api }) => {
 
   // Create new listing
   const handleCreateListing = async () => {
-    try {
-      if (!newListing.title || !newListing.description || !newListing.category) {
-        alert('Please fill in all required fields');
-        return;
-      }
+    if (!newListing.title || !newListing.description || !newListing.category) {
+      alert('Please fill in all required fields');
+      return;
+    }
 
+    setLoading(true);
+    
+    try {
       const listingData = {
         ...newListing,
         price: newListing.price ? parseFloat(newListing.price) : null,
@@ -278,11 +280,13 @@ const MarketplaceInterface = ({ user, token, api }) => {
       };
 
       await axios.post(`${api}/marketplace/listings`, listingData, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 5000
       });
 
       alert('Listing created successfully!');
-      setShowCreateModal(false);
+      
+      // Reset form
       setNewListing({
         title: '',
         description: '',
@@ -293,6 +297,10 @@ const MarketplaceInterface = ({ user, token, api }) => {
         contact_method: 'chat'
       });
       
+      // Close modal
+      setShowCreateModal(false);
+      
+      // Refresh listings
       if (activeView === 'my-listings') {
         fetchMyListings();
       } else {
@@ -301,6 +309,11 @@ const MarketplaceInterface = ({ user, token, api }) => {
     } catch (error) {
       console.error('Failed to create listing:', error);
       alert('Failed to create listing. Please try again.');
+      
+      // Still close modal on error to prevent stuck state
+      setShowCreateModal(false);
+    } finally {
+      setLoading(false);
     }
   };
 
