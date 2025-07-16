@@ -8585,7 +8585,7 @@ async def search_messages_cached(
     """Search messages with caching"""
     # Verify user is in chat
     chat = await db.chats.find_one({"chat_id": chat_id})
-    if not chat or current_user["user_id"] not in chat["participants"]:
+    if not chat or current_user["user_id"] not in chat["members"]:
         raise HTTPException(status_code=403, detail="Access denied")
     
     cache_key = f"message_search:{chat_id}:{hashlib.md5(query.encode()).hexdigest()}"
