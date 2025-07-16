@@ -648,7 +648,16 @@ class EnhancedJarvisAI(JarvisAI):
 """
         
         # Original Jarvis Analysis
-        report += super().generate_report(analysis_results)
+        original_report = self.generate_comprehensive_report()
+        report += f"""
+🤖 ORIGINAL JARVIS ANALYSIS
+================================================================================
+📊 Total Issues: {original_report.get('summary', {}).get('total_issues', 0)}
+🔒 Security Vulnerabilities: {original_report.get('summary', {}).get('total_vulnerabilities', 0)}
+🎨 UI/Design Issues: {original_report.get('summary', {}).get('total_ui_design_issues', 0)}
+📈 Performance Optimizations: {original_report.get('summary', {}).get('total_optimizations', 0)}
+
+"""
         
         # Enhanced Recommendations
         recommendations = analysis_results.get('recommendations', [])
