@@ -748,7 +748,7 @@ import axios from 'axios';
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold text-gray-900">Create New Listing</h3>
               <button
-                onClick={() => setShowCreateModal(false)}
+                onClick={closeCreateModal}
                 className="text-gray-500 hover:text-gray-700 text-xl"
               >
                 ✕
