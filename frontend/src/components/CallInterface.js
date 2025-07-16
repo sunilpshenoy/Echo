@@ -239,8 +239,9 @@ const CallInterface = ({
           onClick={onEndCall}
           className="p-3 bg-red-500 text-white rounded-full"
           title="End Call"
+          aria-label="End call"
         >
-          📞❌
+          <span aria-hidden="true">📞❌</span>
         </button>
       </div>
     </div>
