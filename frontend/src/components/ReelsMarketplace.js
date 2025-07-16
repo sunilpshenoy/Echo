@@ -715,30 +715,36 @@ const ReelsMarketplace = ({ user, token, api }) => {
       {/* Bidding Modal */}
       {showBiddingModal && selectedReel && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold">Submit Your Bid</h3>
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-900">Submit Your Bid</h3>
               <button 
                 onClick={() => setShowBiddingModal(false)}
-                className="text-gray-500 hover:text-gray-700 text-xl"
+                className="text-gray-400 hover:text-gray-600 text-xl transition-colors p-1"
+                aria-label="Close bid modal"
               >
                 ✕
               </button>
             </div>
 
-            <div className="space-y-4">
-              {/* Service Info */}
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <h4 className="font-semibold">{selectedReel.service.title}</h4>
-                <p className="text-sm text-gray-600">by {selectedReel.seller.name}</p>
-                <p className="text-sm text-green-600 font-medium">
-                  Base Price: ₹{selectedReel.service.basePrice} {selectedReel.service.priceType}
-                </p>
+            <div className="space-y-6">
+              {/* Service Info Card */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border border-gray-200">
+                <h4 className="font-semibold text-gray-900 mb-1">{selectedReel.service.title}</h4>
+                <p className="text-sm text-gray-600 mb-2">by {selectedReel.seller.name}</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-green-600">
+                    Base Price: ₹{selectedReel.service.basePrice} {selectedReel.service.priceType}
+                  </p>
+                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                    {selectedReel.seller.verification_level}
+                  </span>
+                </div>
               </div>
 
               {/* Bid Amount */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Your Bid Amount (₹)
                 </label>
                 <input
@@ -746,13 +752,13 @@ const ReelsMarketplace = ({ user, token, api }) => {
                   value={bidAmount}
                   onChange={(e) => setBidAmount(e.target.value)}
                   placeholder={`Min: ${selectedReel.service.basePrice}`}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               {/* Message */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Message to Seller
                 </label>
                 <textarea
@@ -760,7 +766,7 @@ const ReelsMarketplace = ({ user, token, api }) => {
                   onChange={(e) => setBidMessage(e.target.value)}
                   placeholder="Describe your requirements..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
                 />
               </div>
 
@@ -768,13 +774,13 @@ const ReelsMarketplace = ({ user, token, api }) => {
               <div className="flex space-x-3 pt-4">
                 <button
                   onClick={() => setShowBiddingModal(false)}
-                  className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200"
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-medium transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmitBid}
-                  className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-3 px-4 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl"
                 >
                   Submit Bid
                 </button>
