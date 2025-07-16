@@ -177,7 +177,7 @@ const ChatGaming = ({ selectedChat, user, token, api, onSendMessage }) => {
     return (
       <div className="p-4 bg-blue-50 rounded-lg">
         <h3 className="font-medium text-blue-900 mb-2 flex items-center">
-          <span className="mr-2">🔤</span>
+          <span className="mr-2" aria-hidden="true">🔤</span>
           {t('games.wordChain')}
         </h3>
         
@@ -240,7 +240,7 @@ const ChatGaming = ({ selectedChat, user, token, api, onSendMessage }) => {
     return (
       <div className="p-4 bg-green-50 rounded-lg">
         <h3 className="font-medium text-green-900 mb-2 flex items-center">
-          <span className="mr-2">🔢</span>
+          <span className="mr-2" aria-hidden="true">🔢</span>
           {t('games.quickMath')}
         </h3>
         
@@ -317,7 +317,7 @@ const ChatGaming = ({ selectedChat, user, token, api, onSendMessage }) => {
     return (
       <div className="p-4 bg-purple-50 rounded-lg">
         <h3 className="font-medium text-purple-900 mb-2 flex items-center">
-          <span className="mr-2">😀</span>
+          <span className="mr-2" aria-hidden="true">😀</span>
           {t('games.emojiStory')}
         </h3>
         
@@ -331,7 +331,7 @@ const ChatGaming = ({ selectedChat, user, token, api, onSendMessage }) => {
                 className="p-2 hover:bg-purple-100 rounded text-lg"
                 aria-label={`Add ${emoji} to story`}
               >
-                {emoji}
+                <span aria-hidden="true">{emoji}</span>
               </button>
             ))}
           </div>
@@ -347,7 +347,7 @@ const ChatGaming = ({ selectedChat, user, token, api, onSendMessage }) => {
                 className="text-2xl hover:bg-red-100 rounded p-1"
                 aria-label={`Remove ${emoji} from story`}
               >
-                {emoji}
+                <span aria-hidden="true">{emoji}</span>
               </button>
             ))}
           </div>
@@ -417,7 +417,7 @@ const ChatGaming = ({ selectedChat, user, token, api, onSendMessage }) => {
     <div className="p-4 border-t border-gray-200">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-medium text-gray-900 flex items-center">
-          <span className="mr-2">🎮</span>
+          <span className="mr-2" aria-hidden="true">🎮</span>
           {t('games.chatGames')}
         </h3>
       </div>
@@ -430,6 +430,13 @@ const ChatGaming = ({ selectedChat, user, token, api, onSendMessage }) => {
             onClick={() => startGame(game.id)}
             role="button"
             aria-label={`Start ${game.name} game`}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                startGame(game.id);
+              }
+            }}
           >
             <div className="flex items-center space-x-3">
               <span className="text-2xl" aria-hidden="true">{game.icon}</span>
