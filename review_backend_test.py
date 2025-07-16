@@ -273,11 +273,11 @@ class BackendTester:
         
         chat_id = None
         if response and response.status == 200:
-            if 'chat_id' in data:
+            if data and 'chat_id' in data:
                 chat_id = data['chat_id']
                 self.log_result("Chat Creation", True, f"Chat created successfully with ID: {chat_id}", response_time, response.status)
             else:
-                self.log_result("Chat Creation", False, f"Chat creation response missing chat_id: {list(data.keys())}", response_time, response.status)
+                self.log_result("Chat Creation", False, f"Chat creation response missing chat_id: {list(data.keys()) if data else 'No data'}", response_time, response.status)
         else:
             error_msg = data.get('detail', 'Unknown error') if data else 'No response'
             self.log_result("Chat Creation", False, f"Chat creation failed: {error_msg}", response_time, response.status if response else None)
