@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 import uuid
 
 # Configuration
-BACKEND_URL = "https://e09a8b3d-383d-4221-9e57-baee4ca8034c.preview.emergentagent.com/api"
+BACKEND_URL = "https://1345bce5-cc7d-477e-8431-d11bc6e77861.preview.emergentagent.com/api"
 TEST_TIMEOUT = 30
 
 class E2ESigningKeyTester:
