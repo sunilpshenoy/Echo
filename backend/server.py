@@ -519,6 +519,11 @@ def serialize_mongo_doc(doc):
 # Create the main app without a prefix
 app = FastAPI()
 
+# Initialize core services
+security_manager = SecurityManager()
+cache_manager = CacheManager()
+performance_monitor = PerformanceMonitor()
+
 # Add CORS middleware FIRST (before security middleware)
 app.add_middleware(
     CORSMiddleware,
