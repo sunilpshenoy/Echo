@@ -12,11 +12,39 @@ import time
 import asyncio
 from datetime import datetime
 from typing import Dict, List, Any, Optional
+
+# Add the project path to sys.path
+sys.path.insert(0, '/app')
+
+# Import design agent components
 from jarvis_design_agent import *
 
 # Import existing Jarvis components
-sys.path.append('/app')
-from jarvis_ai import JarvisAI
+try:
+    from jarvis_ai import JarvisAI
+except ImportError:
+    print("⚠️  Original Jarvis not found, creating mock base class")
+    class JarvisAI:
+        def __init__(self, project_path: str = "/app"):
+            self.project_path = project_path
+            self.analysis_categories = {
+                'security': 'Security Analysis',
+                'code_quality': 'Code Quality Analysis',
+                'ui_design': 'UI/Design Analysis',
+                'market_analysis': 'Market Analysis'
+            }
+        
+        def analyze_comprehensive(self) -> Dict[str, Any]:
+            return {
+                'security_issues': [],
+                'code_quality_issues': [],
+                'ui_design_issues': [],
+                'market_analysis': {},
+                'total_issues': 0
+            }
+        
+        def generate_report(self, analysis_results: Dict[str, Any]) -> str:
+            return "Original Jarvis report would be here"
 
 
 class EnhancedJarvisAI(JarvisAI):
