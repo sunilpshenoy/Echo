@@ -955,7 +955,7 @@ class EnhancedJarvisAI(JarvisAI):
         for opportunity in opportunities[:3]:  # Top 3
             recommendations.append(f"Competitive insight: {opportunity}")
         return recommendations
-        """Generate improvement roadmap"""
+    def _generate_improvement_roadmap(self, design_analysis: Dict[str, Any]) -> List[Dict[str, Any]]:
         roadmap = []
         
         # Phase 1: Foundation
