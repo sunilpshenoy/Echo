@@ -827,9 +827,10 @@ const MarketplaceInterface = ({ user, token, api }) => {
                 </button>
                 <button
                   onClick={handleCreateListing}
-                  className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
+                  disabled={loading}
+                  className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Create Listing
+                  {loading ? 'Creating...' : 'Create Listing'}
                 </button>
               </div>
             </div>
