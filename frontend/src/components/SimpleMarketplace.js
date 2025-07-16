@@ -14,7 +14,7 @@ import axios from 'axios';
   const [newListing, setNewListing] = useState({
     title: '',
     description: '',
-    category: 'food',
+    category: 'services',
     price: '',
     price_type: 'fixed',
     youtube_url: '',
