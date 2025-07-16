@@ -149,9 +149,9 @@ const SimpleMarketplace = ({ user, token, api }) => {
       return;
     }
 
+    setLoading(true);
+    
     try {
-      setLoading(true);
-      
       // Try real API first
       await axios.post(`${api}/marketplace/listings`, {
         title: newListing.title,
@@ -196,8 +196,9 @@ const SimpleMarketplace = ({ user, token, api }) => {
         title: '', description: '', category: 'food', price: '', 
         price_type: 'fixed', youtube_url: '', instagram_url: '', location: ''
       });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const contactSeller = (listing) => {
