@@ -218,11 +218,7 @@ import axios from 'axios';
       
       setListings(prev => [mockListing, ...prev]);
       alert('Listing created successfully! (Demo mode)');
-      setShowCreateModal(false);
-      setNewListing({ 
-        title: '', description: '', category: 'food', price: '', 
-        price_type: 'fixed', youtube_url: '', instagram_url: '', location: ''
-      });
+      closeModal();
     } finally {
       setLoading(false);
     }
