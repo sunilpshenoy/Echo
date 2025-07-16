@@ -67,13 +67,21 @@ const ConnectionManager = ({ user, token, api, onConnectionUpdate }) => {
     }
   };
 
+  const [connectionError, setConnectionError] = useState(null);
+  const [connectionLoading, setConnectionLoading] = useState(false);
+  const [connectionSuccess, setConnectionSuccess] = useState(false);
+
   const sendConnectionRequest = async () => {
     if (!searchQuery.trim()) {
-      alert('Please enter a PIN');
+      setConnectionError('Please enter a PIN');
       return;
     }
     
     try {
+      setConnectionLoading(true);
+      setConnectionError(null);
+      setConnectionSuccess(false);
+      
       await axios.post(`${api}/connections/request-by-pin`, {
         connection_pin: searchQuery,
         message: connectionMessage
@@ -81,17 +89,24 @@ const ConnectionManager = ({ user, token, api, onConnectionUpdate }) => {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      alert('Connection request sent! 🎉');
+      setConnectionSuccess(true);
       setSearchQuery('');
       setConnectionMessage('');
-      setShowSearchModal(false);
+      
+      // Auto-close modal after success
+      setTimeout(() => {
+        setShowSearchModal(false);
+        setConnectionSuccess(false);
+      }, 2000);
       
       if (onConnectionUpdate) {
         onConnectionUpdate();
       }
     } catch (error) {
       console.error('Failed to send connection request:', error);
-      alert(error.response?.data?.detail || 'Failed to send connection request');
+      setConnectionError(error.response?.data?.detail || 'Failed to send connection request. Please try again.');
+    } finally {
+      setConnectionLoading(false);
     }
   };
 
