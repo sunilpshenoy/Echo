@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import QRCode from 'react-qr-code';
 import EmojiPicker from './EmojiPicker';
 import MessageReactions from './MessageReactions';
 import GifPicker from './GifPicker';
