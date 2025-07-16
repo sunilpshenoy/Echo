@@ -540,19 +540,24 @@ const SimpleMarketplace = ({ user, token, api }) => {
 
               <div className="flex space-x-3 pt-4">
                 <button
-                  onClick={() => setShowCreateModal(false)}
-                  className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200"
+                  type="button"
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setLoading(false); // Ensure loading state is reset
+                  }}
+                  className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
                   aria-label="Cancel listing creation"
                 >
                   Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={createListing}
                   disabled={loading}
-                  className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                  className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   aria-label="Create new listing"
                 >
-                  {loading ? '...' : 'Create'}
+                  {loading ? 'Creating...' : 'Create'}
                 </button>
               </div>
             </div>
