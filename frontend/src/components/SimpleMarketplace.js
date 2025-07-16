@@ -444,7 +444,7 @@ import axios from 'axios';
             <div className="flex justify-between items-center mb-4">
               <h3 id="create-listing-title" className="text-lg font-bold">Create Listing</h3>
               <button
-                onClick={() => setShowCreateModal(false)}
+                onClick={closeModal}
                 className="text-gray-500 hover:text-gray-700 text-xl font-bold"
                 aria-label="Close create listing modal"
                 type="button"
