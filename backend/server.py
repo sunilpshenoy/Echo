@@ -4338,7 +4338,12 @@ async def create_team(
     
     await db.chats.insert_one(team_chat)
     
-    return serialize_mongo_doc(team)
+    # Debug: Print the team document structure
+    print(f"Team document before serialization: {team}")
+    serialized_team = serialize_mongo_doc(team)
+    print(f"Team document after serialization: {serialized_team}")
+    
+    return serialized_team
 
 # Team Messaging Endpoints
 @api_router.get("/teams/{team_id}/messages")
