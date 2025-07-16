@@ -293,7 +293,9 @@ const ConnectionManager = React.memo(({ user, token, api, onConnectionUpdate }) 
       )}
     </div>
   );
-};
+});
+
+ConnectionManager.displayName = 'ConnectionManager';
 
 const ChatsInterface = ({ 
   user, 
