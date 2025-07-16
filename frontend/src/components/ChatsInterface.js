@@ -2307,8 +2307,9 @@ const ChatsInterface = ({
               onClick={sendMessage}
               disabled={!newMessage.trim()}
               className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Send message"
             >
-              ➤
+              <span aria-hidden="true">➤</span>
             </button>
           </div>
 
