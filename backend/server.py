@@ -8507,10 +8507,131 @@ async def get_reel_categories():
     
     return {"categories": categories}
 
+# Performance monitoring endpoints
+@api_router.get("/admin/performance")
+async def get_performance_stats(current_user = Depends(get_current_user)):
+    """Get performance statistics (admin only)"""
+    # TODO: Add admin role check
+    return {
+        "cache_stats": cache_manager.get_stats(),
+        "performance_stats": performance_monitor.get_stats(),
+        "redis_available": REDIS_AVAILABLE
+    }
+
+@api_router.get("/admin/cache/clear")
+async def clear_cache(pattern: str = None, current_user = Depends(get_current_user)):
+    """Clear cache (admin only)"""
+    # TODO: Add admin role check
+    if pattern:
+        await cache_manager.clear_pattern(pattern)
+        return {"message": f"Cache cleared for pattern: {pattern}"}
+    else:
+        await cache_manager.clear_pattern("")
+        return {"message": "All cache cleared"}
+
+# Enhanced user endpoint with caching
+@api_router.get("/users/profile")
+async def get_user_profile(current_user = Depends(get_current_user)):
+    """Get user profile with caching"""
+    user_id = current_user["user_id"]
+    cache_key = f"user_profile:{user_id}"
+    
+    # Try to get from cache first
+    cached_profile = await cache_manager.get(cache_key)
+    if cached_profile:
+        return cached_profile
+    
+    # If not in cache, fetch from database
+    user = await db.users.find_one({"user_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    profile = serialize_mongo_doc(user)
+    
+    # Cache the result
+    await cache_manager.set(cache_key, profile, CACHE_CONFIG['USER_CACHE_TTL'])
+    
+    return profile
+
+# Enhanced chat list with caching
+@api_router.get("/chats")
+async def get_user_chats_cached(current_user = Depends(get_current_user)):
+    """Get user chats with caching"""
+    user_id = current_user["user_id"]
+    cache_key = f"user_chats:{user_id}"
+    
+    # Try cache first
+    cached_chats = await cache_manager.get(cache_key)
+    if cached_chats:
+        return cached_chats
+    
+    # Get from database
+    chats = await db.chats.find({
+        "participants": user_id
+    }).sort("last_message_time", -1).to_list(100)
+    
+    result = {"chats": [serialize_mongo_doc(chat) for chat in chats]}
+    
+    # Cache result
+    await cache_manager.set(cache_key, result, CACHE_CONFIG['CHAT_CACHE_TTL'])
+    
+    return result
+
+# Enhanced message search with caching
+@api_router.get("/chats/{chat_id}/messages/search")
+async def search_messages_cached(
+    chat_id: str,
+    query: str,
+    current_user = Depends(get_current_user)
+):
+    """Search messages with caching"""
+    # Verify user is in chat
+    chat = await db.chats.find_one({"chat_id": chat_id})
+    if not chat or current_user["user_id"] not in chat["participants"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    cache_key = f"message_search:{chat_id}:{hashlib.md5(query.encode()).hexdigest()}"
+    
+    # Try cache first
+    cached_results = await cache_manager.get(cache_key)
+    if cached_results:
+        return cached_results
+    
+    # Search in database
+    messages = await db.messages.find({
+        "chat_id": chat_id,
+        "content": {"$regex": query, "$options": "i"}
+    }).sort("timestamp", -1).limit(50).to_list(50)
+    
+    result = [serialize_mongo_doc(msg) for msg in messages]
+    
+    # Cache results
+    await cache_manager.set(cache_key, result, CACHE_CONFIG['SEARCH_CACHE_TTL'])
+    
+    return result
+
 # Start background tasks
 @app.on_event("startup")
 async def startup_event():
     asyncio.create_task(cleanup_task())
+
+# Performance monitoring middleware
+@app.middleware("http")
+async def performance_middleware(request: Request, call_next):
+    """Monitor request performance"""
+    request_id = str(uuid.uuid4())
+    start_time = time.time()
+    
+    # Start monitoring
+    await performance_monitor.start_request(request_id, request.url.path)
+    
+    try:
+        response = await call_next(request)
+        await performance_monitor.end_request(request_id, response.status_code)
+        return response
+    except Exception as e:
+        await performance_monitor.end_request(request_id, 500)
+        raise e
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
