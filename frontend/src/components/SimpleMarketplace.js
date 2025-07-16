@@ -53,13 +53,13 @@ import axios from 'axios';
     }
   }, [showCreateModal]);
 
-  // Simple categories
+  // Simple categories (matching backend expectations)
   const categories = [
-    { value: 'food', label: 'Food & Catering', icon: '🍳' },
-    { value: 'design', label: 'Design & Creative', icon: '🎨' },
-    { value: 'tech', label: 'Tech Services', icon: '💻' },
-    { value: 'home', label: 'Home Services', icon: '🏠' },
-    { value: 'education', label: 'Education', icon: '📚' }
+    { value: 'items', label: 'Items & Products', icon: '📦' },
+    { value: 'services', label: 'Services', icon: '🛠' },
+    { value: 'jobs', label: 'Jobs & Gigs', icon: '💼' },
+    { value: 'housing', label: 'Housing & Rentals', icon: '🏠' },
+    { value: 'vehicles', label: 'Vehicles', icon: '🚗' }
   ];
 
   // Enhanced mock listings with social links
