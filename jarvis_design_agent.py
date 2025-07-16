@@ -696,3 +696,752 @@ class LayoutAnalyzer:
 
 
 # Continue with the rest of the implementation...
+
+class WebDesignScraper:
+    """Advanced web design scraper with intelligence"""
+    
+    def __init__(self, db: DesignDatabase):
+        self.db = db
+        self.session = None
+        self.scrape_delay = 2  # Respectful scraping delay
+        self.max_concurrent = 3  # Limit concurrent requests
+    
+    async def scrape_design_inspiration(self, sources: List[str]) -> List[DesignElement]:
+        """Scrape design inspiration from multiple sources"""
+        design_elements = []
+        
+        # Create session with proper headers
+        connector = aiohttp.TCPConnector(limit=self.max_concurrent)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        }
+        
+        async with aiohttp.ClientSession(connector=connector, headers=headers) as session:
+            self.session = session
+            
+            # Process sources concurrently but respectfully
+            semaphore = asyncio.Semaphore(self.max_concurrent)
+            tasks = []
+            
+            for source in sources:
+                task = self._scrape_single_source(semaphore, source)
+                tasks.append(task)
+            
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            for result in results:
+                if isinstance(result, list):
+                    design_elements.extend(result)
+                elif isinstance(result, Exception):
+                    print(f"Scraping error: {result}")
+        
+        return design_elements
+    
+    async def _scrape_single_source(self, semaphore: asyncio.Semaphore, source: str) -> List[DesignElement]:
+        """Scrape a single source with rate limiting"""
+        async with semaphore:
+            try:
+                await asyncio.sleep(self.scrape_delay)  # Respectful delay
+                
+                async with self.session.get(source, timeout=10) as response:
+                    if response.status == 200:
+                        html = await response.text()
+                        return self._analyze_scraped_content(html, source)
+                    else:
+                        print(f"Failed to scrape {source}: {response.status}")
+                        return []
+                        
+            except Exception as e:
+                print(f"Error scraping {source}: {e}")
+                return []
+    
+    def _analyze_scraped_content(self, html: str, source_url: str) -> List[DesignElement]:
+        """Analyze scraped HTML content"""
+        elements = []
+        
+        try:
+            soup = BeautifulSoup(html, 'html.parser')
+            
+            # Extract design elements
+            color_elements = self._extract_color_schemes(soup, source_url)
+            typography_elements = self._extract_typography_patterns(soup, source_url)
+            layout_elements = self._extract_layout_patterns(soup, source_url)
+            component_elements = self._extract_component_patterns(soup, source_url)
+            
+            elements.extend(color_elements)
+            elements.extend(typography_elements)
+            elements.extend(layout_elements)
+            elements.extend(component_elements)
+            
+        except Exception as e:
+            print(f"Error analyzing content from {source_url}: {e}")
+        
+        return elements
+    
+    def _extract_color_schemes(self, soup: BeautifulSoup, source_url: str) -> List[DesignElement]:
+        """Extract color schemes from HTML"""
+        elements = []
+        
+        # Extract colors from CSS
+        colors = self._extract_colors_from_css(soup)
+        
+        if colors:
+            # Analyze color harmony
+            harmony_score = self._calculate_color_harmony(colors)
+            accessibility_score = self._calculate_color_accessibility(colors)
+            
+            color_scheme = ColorScheme(
+                primary_colors=colors[:3],
+                secondary_colors=colors[3:6],
+                accent_colors=colors[6:9],
+                contrast_ratios={'average': accessibility_score},
+                accessibility_score=accessibility_score,
+                harmony_score=harmony_score
+            )
+            
+            # Store in database
+            self.db.store_color_scheme(color_scheme, source_url)
+            
+            elements.append(DesignElement(
+                element_type="color_scheme",
+                properties={
+                    "colors": colors,
+                    "harmony_score": harmony_score,
+                    "accessibility_score": accessibility_score
+                },
+                context="visual_design",
+                effectiveness_score=(harmony_score + accessibility_score) / 2,
+                usage_frequency=1,
+                source_url=source_url
+            ))
+        
+        return elements
+    
+    def _extract_colors_from_css(self, soup: BeautifulSoup) -> List[str]:
+        """Extract colors from CSS in HTML"""
+        colors = []
+        
+        # Extract from style tags
+        for style_tag in soup.find_all('style'):
+            css_text = style_tag.get_text()
+            color_matches = re.findall(r'(?:color|background-color|border-color|fill|stroke):\s*([^;]+)', css_text)
+            colors.extend(color_matches)
+        
+        # Extract from inline styles
+        for element in soup.find_all(style=True):
+            style = element.get('style', '')
+            color_matches = re.findall(r'(?:color|background-color|border-color):\s*([^;]+)', style)
+            colors.extend(color_matches)
+        
+        # Clean and filter colors
+        cleaned_colors = []
+        for color in colors:
+            color = color.strip()
+            if self._is_valid_color(color):
+                cleaned_colors.append(color)
+        
+        return list(set(cleaned_colors))[:12]  # Limit to 12 unique colors
+    
+    def _is_valid_color(self, color: str) -> bool:
+        """Check if color value is valid"""
+        color = color.strip().lower()
+        
+        # Check for common color formats
+        if color.startswith('#') and len(color) in [4, 7]:
+            return True
+        if color.startswith('rgb') or color.startswith('rgba'):
+            return True
+        if color.startswith('hsl') or color.startswith('hsla'):
+            return True
+        if color in ['black', 'white', 'red', 'green', 'blue', 'yellow', 'orange', 'purple', 'pink', 'gray', 'brown']:
+            return True
+        
+        return False
+    
+    def _calculate_color_harmony(self, colors: List[str]) -> float:
+        """Calculate color harmony score"""
+        if not colors:
+            return 0.0
+        
+        # Simple harmony calculation (can be enhanced with color theory)
+        unique_colors = set(colors)
+        diversity_score = min(len(unique_colors) / 8, 1.0)
+        
+        # Bonus for having both light and dark colors
+        has_light = any('white' in color.lower() or '#f' in color.lower() for color in colors)
+        has_dark = any('black' in color.lower() or '#0' in color.lower() for color in colors)
+        contrast_bonus = 0.2 if has_light and has_dark else 0.0
+        
+        return min(diversity_score + contrast_bonus, 1.0)
+    
+    def _calculate_color_accessibility(self, colors: List[str]) -> float:
+        """Calculate color accessibility score"""
+        if not colors:
+            return 0.0
+        
+        # Simple accessibility check
+        accessibility_score = 0.8  # Base score
+        
+        # Penalty for too many similar colors
+        if len(set(colors)) < len(colors) * 0.6:
+            accessibility_score -= 0.2
+        
+        # Bonus for high contrast indicators
+        if any('#000' in color or 'black' in color for color in colors) and \
+           any('#fff' in color or 'white' in color for color in colors):
+            accessibility_score += 0.1
+        
+        return min(accessibility_score, 1.0)
+    
+    def _extract_typography_patterns(self, soup: BeautifulSoup, source_url: str) -> List[DesignElement]:
+        """Extract typography patterns"""
+        elements = []
+        
+        # Extract font information
+        font_families = self._extract_font_families(soup)
+        font_sizes = self._extract_font_sizes(soup)
+        
+        if font_families or font_sizes:
+            typography = TypographyAnalysis(
+                font_families=font_families,
+                font_sizes=font_sizes,
+                line_heights=[],
+                font_weights=[],
+                hierarchy_score=self._calculate_typography_hierarchy(font_sizes),
+                readability_score=self._calculate_typography_readability(font_families, font_sizes)
+            )
+            
+            elements.append(DesignElement(
+                element_type="typography",
+                properties={
+                    "font_families": font_families,
+                    "font_sizes": font_sizes,
+                    "hierarchy_score": typography.hierarchy_score,
+                    "readability_score": typography.readability_score
+                },
+                context="visual_design",
+                effectiveness_score=(typography.hierarchy_score + typography.readability_score) / 2,
+                usage_frequency=1,
+                source_url=source_url
+            ))
+        
+        return elements
+    
+    def _extract_font_families(self, soup: BeautifulSoup) -> List[str]:
+        """Extract font families from HTML"""
+        font_families = []
+        
+        # Extract from style tags
+        for style_tag in soup.find_all('style'):
+            css_text = style_tag.get_text()
+            font_matches = re.findall(r'font-family:\s*([^;]+)', css_text)
+            font_families.extend(font_matches)
+        
+        # Clean and filter
+        cleaned_fonts = []
+        for font in font_families:
+            font = font.strip().replace('"', '').replace("'", '')
+            if font and font not in cleaned_fonts:
+                cleaned_fonts.append(font)
+        
+        return cleaned_fonts[:5]  # Limit to 5 fonts
+    
+    def _extract_font_sizes(self, soup: BeautifulSoup) -> List[str]:
+        """Extract font sizes from HTML"""
+        font_sizes = []
+        
+        # Extract from style tags
+        for style_tag in soup.find_all('style'):
+            css_text = style_tag.get_text()
+            size_matches = re.findall(r'font-size:\s*([^;]+)', css_text)
+            font_sizes.extend(size_matches)
+        
+        # Clean and filter
+        cleaned_sizes = []
+        for size in font_sizes:
+            size = size.strip()
+            if size and size not in cleaned_sizes:
+                cleaned_sizes.append(size)
+        
+        return cleaned_sizes[:8]  # Limit to 8 sizes
+    
+    def _calculate_typography_hierarchy(self, font_sizes: List[str]) -> float:
+        """Calculate typography hierarchy score"""
+        if not font_sizes:
+            return 0.0
+        
+        # Good hierarchy has variety in sizes
+        unique_sizes = set(font_sizes)
+        variety_score = min(len(unique_sizes) / 6, 1.0)
+        
+        # Bonus for having rem/em units (better for responsive design)
+        responsive_bonus = 0.0
+        if any('rem' in size or 'em' in size for size in font_sizes):
+            responsive_bonus = 0.2
+        
+        return min(variety_score + responsive_bonus, 1.0)
+    
+    def _calculate_typography_readability(self, font_families: List[str], font_sizes: List[str]) -> float:
+        """Calculate typography readability score"""
+        readability_score = 0.7  # Base score
+        
+        # Bonus for web-safe fonts
+        web_safe_fonts = ['Arial', 'Helvetica', 'Georgia', 'Times', 'Verdana', 'Trebuchet']
+        if any(font in ' '.join(font_families) for font in web_safe_fonts):
+            readability_score += 0.1
+        
+        # Bonus for reasonable font sizes
+        if any('px' in size for size in font_sizes):
+            try:
+                pixel_sizes = [int(re.search(r'(\d+)px', size).group(1)) for size in font_sizes if 'px' in size]
+                if any(14 <= size <= 18 for size in pixel_sizes):  # Good reading size
+                    readability_score += 0.2
+            except:
+                pass
+        
+        return min(readability_score, 1.0)
+    
+    def _extract_layout_patterns(self, soup: BeautifulSoup, source_url: str) -> List[DesignElement]:
+        """Extract layout patterns"""
+        elements = []
+        
+        # Look for grid and flex layouts
+        grid_elements = soup.find_all(class_=re.compile(r'grid|row|col'))
+        flex_elements = soup.find_all(class_=re.compile(r'flex|d-flex'))
+        
+        if grid_elements:
+            grid_pattern = LayoutPattern(
+                pattern_type="grid",
+                grid_system="css_grid",
+                spacing_system={"gap": "variable"},
+                responsive_breakpoints=["sm", "md", "lg"],
+                complexity_score=0.8
+            )
+            
+            elements.append(DesignElement(
+                element_type="layout_grid",
+                properties={
+                    "type": "grid",
+                    "elements_count": len(grid_elements),
+                    "complexity": grid_pattern.complexity_score
+                },
+                context="layout",
+                effectiveness_score=0.85,
+                usage_frequency=len(grid_elements),
+                source_url=source_url
+            ))
+        
+        if flex_elements:
+            flex_pattern = LayoutPattern(
+                pattern_type="flexbox",
+                grid_system="flexbox",
+                spacing_system={"gap": "variable"},
+                responsive_breakpoints=["sm", "md", "lg"],
+                complexity_score=0.7
+            )
+            
+            elements.append(DesignElement(
+                element_type="layout_flex",
+                properties={
+                    "type": "flexbox",
+                    "elements_count": len(flex_elements),
+                    "complexity": flex_pattern.complexity_score
+                },
+                context="layout",
+                effectiveness_score=0.8,
+                usage_frequency=len(flex_elements),
+                source_url=source_url
+            ))
+        
+        return elements
+    
+    def _extract_component_patterns(self, soup: BeautifulSoup, source_url: str) -> List[DesignElement]:
+        """Extract UI component patterns"""
+        elements = []
+        
+        # Look for common UI components
+        buttons = soup.find_all(['button', 'a'], class_=re.compile(r'btn|button'))
+        cards = soup.find_all(class_=re.compile(r'card|panel|tile'))
+        forms = soup.find_all('form')
+        navs = soup.find_all(['nav', 'header'])
+        
+        if buttons:
+            elements.append(DesignElement(
+                element_type="button_component",
+                properties={
+                    "count": len(buttons),
+                    "types": self._analyze_button_types(buttons),
+                    "has_states": self._check_button_states(buttons)
+                },
+                context="ui_component",
+                effectiveness_score=0.9,
+                usage_frequency=len(buttons),
+                source_url=source_url
+            ))
+        
+        if cards:
+            elements.append(DesignElement(
+                element_type="card_component",
+                properties={
+                    "count": len(cards),
+                    "layout": "grid" if len(cards) > 1 else "single",
+                    "has_images": bool(soup.find_all('img'))
+                },
+                context="ui_component",
+                effectiveness_score=0.85,
+                usage_frequency=len(cards),
+                source_url=source_url
+            ))
+        
+        if forms:
+            elements.append(DesignElement(
+                element_type="form_component",
+                properties={
+                    "count": len(forms),
+                    "input_types": self._analyze_form_inputs(forms),
+                    "has_validation": self._check_form_validation(forms)
+                },
+                context="ui_component",
+                effectiveness_score=0.8,
+                usage_frequency=len(forms),
+                source_url=source_url
+            ))
+        
+        if navs:
+            elements.append(DesignElement(
+                element_type="navigation_component",
+                properties={
+                    "count": len(navs),
+                    "type": "header" if navs[0].name == 'header' else "nav",
+                    "has_dropdown": bool(soup.find_all(class_=re.compile(r'dropdown|submenu')))
+                },
+                context="ui_component",
+                effectiveness_score=0.9,
+                usage_frequency=len(navs),
+                source_url=source_url
+            ))
+        
+        return elements
+    
+    def _analyze_button_types(self, buttons: List) -> List[str]:
+        """Analyze button types"""
+        types = []
+        for button in buttons:
+            classes = button.get('class', [])
+            class_str = ' '.join(classes) if classes else ''
+            
+            if 'primary' in class_str:
+                types.append('primary')
+            elif 'secondary' in class_str:
+                types.append('secondary')
+            elif 'danger' in class_str or 'delete' in class_str:
+                types.append('danger')
+            else:
+                types.append('default')
+        
+        return list(set(types))
+    
+    def _check_button_states(self, buttons: List) -> bool:
+        """Check if buttons have state variations"""
+        for button in buttons:
+            classes = button.get('class', [])
+            class_str = ' '.join(classes) if classes else ''
+            
+            if any(state in class_str for state in ['hover', 'active', 'disabled', 'focus']):
+                return True
+        
+        return False
+    
+    def _analyze_form_inputs(self, forms: List) -> List[str]:
+        """Analyze form input types"""
+        input_types = []
+        
+        for form in forms:
+            inputs = form.find_all(['input', 'textarea', 'select'])
+            for input_elem in inputs:
+                input_type = input_elem.get('type', 'text')
+                if input_type not in input_types:
+                    input_types.append(input_type)
+        
+        return input_types
+    
+    def _check_form_validation(self, forms: List) -> bool:
+        """Check if forms have validation"""
+        for form in forms:
+            inputs = form.find_all(['input', 'textarea', 'select'])
+            for input_elem in inputs:
+                if input_elem.get('required') or input_elem.get('pattern'):
+                    return True
+        
+        return False
+
+
+class CompetitiveAnalyzer:
+    """Analyze competitor designs for insights"""
+    
+    def __init__(self, db: DesignDatabase):
+        self.db = db
+        self.scraper = WebDesignScraper(db)
+    
+    async def analyze_competitors(self, competitor_urls: List[str]) -> Dict[str, Any]:
+        """Analyze competitor designs"""
+        competitive_analysis = {
+            "competitors": [],
+            "best_practices": [],
+            "improvement_opportunities": [],
+            "design_trends": []
+        }
+        
+        for url in competitor_urls:
+            try:
+                competitor_data = await self._analyze_single_competitor(url)
+                competitive_analysis["competitors"].append(competitor_data)
+            except Exception as e:
+                print(f"Error analyzing competitor {url}: {e}")
+        
+        # Extract best practices
+        competitive_analysis["best_practices"] = self._extract_best_practices(
+            competitive_analysis["competitors"]
+        )
+        
+        # Identify improvement opportunities
+        competitive_analysis["improvement_opportunities"] = self._identify_opportunities(
+            competitive_analysis["competitors"]
+        )
+        
+        # Analyze design trends
+        competitive_analysis["design_trends"] = self._analyze_design_trends(
+            competitive_analysis["competitors"]
+        )
+        
+        # Store in database
+        self._store_competitive_analysis(competitive_analysis)
+        
+        return competitive_analysis
+    
+    async def _analyze_single_competitor(self, url: str) -> Dict[str, Any]:
+        """Analyze a single competitor"""
+        competitor_name = urlparse(url).netloc
+        
+        # Scrape design elements
+        design_elements = await self.scraper.scrape_design_inspiration([url])
+        
+        # Calculate design score
+        design_score = self._calculate_design_score(design_elements)
+        
+        # Analyze features
+        feature_analysis = self._analyze_features(design_elements)
+        
+        return {
+            "name": competitor_name,
+            "url": url,
+            "design_score": design_score,
+            "design_elements": [asdict(elem) for elem in design_elements],
+            "feature_analysis": feature_analysis,
+            "analyzed_at": datetime.now().isoformat()
+        }
+    
+    def _calculate_design_score(self, design_elements: List[DesignElement]) -> float:
+        """Calculate overall design score for competitor"""
+        if not design_elements:
+            return 0.0
+        
+        total_score = sum(elem.effectiveness_score for elem in design_elements)
+        average_score = total_score / len(design_elements)
+        
+        # Bonus for having diverse design elements
+        diversity_bonus = min(len(design_elements) / 10, 0.2)
+        
+        return min(average_score + diversity_bonus, 1.0)
+    
+    def _analyze_features(self, design_elements: List[DesignElement]) -> Dict[str, Any]:
+        """Analyze competitor features"""
+        features = {
+            "has_responsive_design": False,
+            "has_modern_typography": False,
+            "has_consistent_colors": False,
+            "has_advanced_layouts": False,
+            "ui_components": []
+        }
+        
+        for element in design_elements:
+            if element.element_type == "layout_grid" or element.element_type == "layout_flex":
+                features["has_advanced_layouts"] = True
+            elif element.element_type == "typography":
+                features["has_modern_typography"] = element.effectiveness_score > 0.7
+            elif element.element_type == "color_scheme":
+                features["has_consistent_colors"] = element.effectiveness_score > 0.7
+            elif element.context == "ui_component":
+                features["ui_components"].append(element.element_type)
+        
+        return features
+    
+    def _extract_best_practices(self, competitors: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Extract best practices from competitors"""
+        best_practices = []
+        
+        # Find highest scoring design elements
+        all_elements = []
+        for competitor in competitors:
+            for element_dict in competitor["design_elements"]:
+                element_dict["competitor"] = competitor["name"]
+                all_elements.append(element_dict)
+        
+        # Sort by effectiveness score
+        all_elements.sort(key=lambda x: x["effectiveness_score"], reverse=True)
+        
+        # Extract top practices
+        for element in all_elements[:10]:  # Top 10 practices
+            best_practices.append({
+                "practice": element["element_type"],
+                "effectiveness": element["effectiveness_score"],
+                "source": element["competitor"],
+                "properties": element["properties"]
+            })
+        
+        return best_practices
+    
+    def _identify_opportunities(self, competitors: List[Dict[str, Any]]) -> List[str]:
+        """Identify improvement opportunities"""
+        opportunities = []
+        
+        # Common patterns across competitors
+        common_patterns = {}
+        for competitor in competitors:
+            for element_dict in competitor["design_elements"]:
+                pattern = element_dict["element_type"]
+                if pattern not in common_patterns:
+                    common_patterns[pattern] = 0
+                common_patterns[pattern] += 1
+        
+        # Identify most common patterns
+        for pattern, count in common_patterns.items():
+            if count >= len(competitors) * 0.6:  # Used by 60% of competitors
+                opportunities.append(f"Implement {pattern} - used by {count}/{len(competitors)} competitors")
+        
+        return opportunities
+    
+    def _analyze_design_trends(self, competitors: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Analyze design trends from competitors"""
+        trends = []
+        
+        # Analyze color trends
+        color_trends = self._analyze_color_trends(competitors)
+        if color_trends:
+            trends.append(color_trends)
+        
+        # Analyze layout trends
+        layout_trends = self._analyze_layout_trends(competitors)
+        if layout_trends:
+            trends.append(layout_trends)
+        
+        # Analyze component trends
+        component_trends = self._analyze_component_trends(competitors)
+        if component_trends:
+            trends.append(component_trends)
+        
+        return trends
+    
+    def _analyze_color_trends(self, competitors: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Analyze color trends"""
+        all_colors = []
+        
+        for competitor in competitors:
+            for element_dict in competitor["design_elements"]:
+                if element_dict["element_type"] == "color_scheme":
+                    colors = element_dict["properties"].get("colors", [])
+                    all_colors.extend(colors)
+        
+        if not all_colors:
+            return {}
+        
+        # Find most common colors
+        color_frequency = {}
+        for color in all_colors:
+            color_frequency[color] = color_frequency.get(color, 0) + 1
+        
+        popular_colors = sorted(color_frequency.items(), key=lambda x: x[1], reverse=True)[:5]
+        
+        return {
+            "trend_type": "color_scheme",
+            "popular_colors": [color for color, freq in popular_colors],
+            "usage_frequency": dict(popular_colors),
+            "trend_strength": len(popular_colors) / len(set(all_colors))
+        }
+    
+    def _analyze_layout_trends(self, competitors: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Analyze layout trends"""
+        layout_types = []
+        
+        for competitor in competitors:
+            for element_dict in competitor["design_elements"]:
+                if element_dict["element_type"].startswith("layout_"):
+                    layout_types.append(element_dict["element_type"])
+        
+        if not layout_types:
+            return {}
+        
+        # Find most common layout types
+        layout_frequency = {}
+        for layout in layout_types:
+            layout_frequency[layout] = layout_frequency.get(layout, 0) + 1
+        
+        popular_layouts = sorted(layout_frequency.items(), key=lambda x: x[1], reverse=True)
+        
+        return {
+            "trend_type": "layout_patterns",
+            "popular_layouts": [layout for layout, freq in popular_layouts],
+            "usage_frequency": dict(popular_layouts),
+            "trend_strength": len(popular_layouts) / len(competitors)
+        }
+    
+    def _analyze_component_trends(self, competitors: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Analyze UI component trends"""
+        components = []
+        
+        for competitor in competitors:
+            for element_dict in competitor["design_elements"]:
+                if element_dict["context"] == "ui_component":
+                    components.append(element_dict["element_type"])
+        
+        if not components:
+            return {}
+        
+        # Find most common components
+        component_frequency = {}
+        for component in components:
+            component_frequency[component] = component_frequency.get(component, 0) + 1
+        
+        popular_components = sorted(component_frequency.items(), key=lambda x: x[1], reverse=True)
+        
+        return {
+            "trend_type": "ui_components",
+            "popular_components": [comp for comp, freq in popular_components],
+            "usage_frequency": dict(popular_components),
+            "trend_strength": len(popular_components) / len(competitors)
+        }
+    
+    def _store_competitive_analysis(self, analysis: Dict[str, Any]):
+        """Store competitive analysis in database"""
+        conn = sqlite3.connect(self.db.db_path)
+        cursor = conn.cursor()
+        
+        for competitor in analysis["competitors"]:
+            cursor.execute('''
+                INSERT OR REPLACE INTO competitive_analysis 
+                (competitor_name, competitor_url, analysis_data, design_score, feature_analysis)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (
+                competitor["name"],
+                competitor["url"],
+                json.dumps(competitor),
+                competitor["design_score"],
+                json.dumps(competitor["feature_analysis"])
+            ))
+        
+        conn.commit()
+        conn.close()
+
+
+# Continue with Phase 3...
