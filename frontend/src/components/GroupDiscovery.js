@@ -233,6 +233,70 @@ const GroupDiscovery = ({ user, token, api }) => {
     }
   }, [api, token, groups, recommendations, trendingGroups]);
 
+  // Create group function
+  const createGroup = useCallback(async () => {
+    if (!token || !api) return;
+    
+    if (!createGroupForm.name.trim()) {
+      setError('Group name is required');
+      return;
+    }
+    
+    setIsCreatingGroup(true);
+    setError(null);
+    
+    try {
+      const response = await axios.post(`${api}/teams`, {
+        name: createGroupForm.name.trim(),
+        description: createGroupForm.description.trim(),
+        category: createGroupForm.category,
+        location: createGroupForm.location,
+        privacy: createGroupForm.privacy,
+        emoji: createGroupForm.emoji
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Add new group to the beginning of groups list
+      const newGroup = {
+        id: response.data.team_id,
+        name: response.data.name,
+        description: response.data.description || 'No description available',
+        category: response.data.category || 'general',
+        location: response.data.location || 'Online',
+        members: 1,
+        image: response.data.emoji || '👥',
+        tags: response.data.tags || [],
+        activity: 'quiet',
+        isJoined: true,
+        healthScore: 100,
+        isNew: true
+      };
+      
+      setGroups(prev => [newGroup, ...prev]);
+      
+      // Reset form and close modal
+      setCreateGroupForm({
+        name: '',
+        description: '',
+        category: 'business',
+        location: 'online',
+        privacy: 'public',
+        emoji: '👥'
+      });
+      setShowCreateGroupModal(false);
+      
+      // Switch to My Groups tab to show the new group
+      setActiveTab('my-groups');
+      
+    } catch (error) {
+      console.error('Failed to create group:', error);
+      setError(error.response?.data?.detail || 'Failed to create group. Please try again.');
+    } finally {
+      setIsCreatingGroup(false);
+    }
+  }, [api, token, createGroupForm]);
+
   useEffect(() => {
     fetchGroups();
   }, [fetchGroups]);
