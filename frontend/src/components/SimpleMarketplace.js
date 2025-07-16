@@ -30,7 +30,7 @@ import axios from 'axios';
     setNewListing({
       title: '',
       description: '',
-      category: 'food',
+      category: 'services',
       price: '',
       price_type: 'fixed',
       youtube_url: '',
