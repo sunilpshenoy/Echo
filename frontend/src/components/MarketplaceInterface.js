@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 
-const MarketplaceInterface = ({ user, token, api }) => {
+  const MarketplaceInterface = ({ user, token, api }) => {
   const { t } = useTranslation();
   const [activeView, setActiveView] = useState('browse'); // browse, create, my-listings, verification, analytics
   const [listings, setListings] = useState([]);
@@ -12,6 +12,36 @@ const MarketplaceInterface = ({ user, token, api }) => {
   const [loading, setLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [myListings, setMyListings] = useState([]);
+
+  // Emergency close function
+  const closeCreateModal = () => {
+    setShowCreateModal(false);
+    setLoading(false);
+    // Reset form
+    setNewListing({
+      title: '',
+      description: '',
+      category: '',
+      price: '',
+      price_type: 'fixed',
+      tags: '',
+      contact_method: 'chat'
+    });
+  };
+
+  // Add escape key listener for create modal
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && showCreateModal) {
+        closeCreateModal();
+      }
+    };
+
+    if (showCreateModal) {
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }
+  }, [showCreateModal]);
 
   // Enhanced search filters
   const [filters, setFilters] = useState({
