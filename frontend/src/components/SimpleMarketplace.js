@@ -200,11 +200,7 @@ import axios from 'axios';
       });
 
       alert('Listing created successfully!');
-      setShowCreateModal(false);
-      setNewListing({ 
-        title: '', description: '', category: 'food', price: '', 
-        price_type: 'fixed', youtube_url: '', instagram_url: '', location: ''
-      });
+      closeModal();
       loadListings();
     } catch (error) {
       console.error('Create listing error:', error);
