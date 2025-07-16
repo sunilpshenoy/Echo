@@ -104,13 +104,14 @@ const ProfileSetup = ({ user, token, api, onProfileComplete }) => {
           </p>
           
           {/* Progress Indicator */}
-          <div className="flex justify-center mt-6 space-x-4">
+          <div className="flex justify-center mt-6 space-x-4" role="progressbar" aria-valuenow={currentStep} aria-valuemin="1" aria-valuemax="3" aria-label="Profile setup progress">
             {[1, 2, 3].map((step) => (
               <div
                 key={step}
                 className={`trust-level-indicator ${
                   step <= currentStep ? 'trust-level-3' : 'bg-gray-200'
                 } ${step === currentStep ? 'animate-pulse-gentle' : ''}`}
+                aria-current={step === currentStep ? 'step' : undefined}
               >
                 {step}
               </div>
@@ -122,7 +123,7 @@ const ProfileSetup = ({ user, token, api, onProfileComplete }) => {
         </div>
         
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6" role="alert">
             {error}
           </div>
         )}
@@ -134,25 +135,29 @@ const ProfileSetup = ({ user, token, api, onProfileComplete }) => {
               <h2 className="heading-md mb-6">Basic Information</h2>
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="age">
                     What's your age?
                   </label>
                   <input
                     type="number"
+                    id="age"
                     min="18"
                     max="100"
                     value={profileData.age}
                     onChange={(e) => handleInputChange('age', e.target.value)}
                     className="input-field"
                     placeholder="e.g., 25"
+                    aria-describedby="age-help"
                   />
+                  <p id="age-help" className="text-xs text-gray-500 mt-1">Must be 18 or older</p>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="gender">
                     Gender
                   </label>
                   <select
+                    id="gender"
                     value={profileData.gender}
                     onChange={(e) => handleInputChange('gender', e.target.value)}
                     className="input-field"
@@ -166,16 +171,19 @@ const ProfileSetup = ({ user, token, api, onProfileComplete }) => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="location">
                     Where are you located?
                   </label>
                   <input
                     type="text"
+                    id="location"
                     value={profileData.location}
                     onChange={(e) => handleInputChange('location', e.target.value)}
                     className="input-field"
                     placeholder="e.g., New York, NY or London, UK"
+                    aria-describedby="location-help"
                   />
+                  <p id="location-help" className="text-xs text-gray-500 mt-1">City and country/state</p>
                 </div>
               </div>
             </div>
@@ -187,22 +195,26 @@ const ProfileSetup = ({ user, token, api, onProfileComplete }) => {
               <h2 className="heading-md mb-6">What You're Looking For</h2>
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="current_mood">
                     What's your current mood and why?
                   </label>
                   <textarea
+                    id="current_mood"
                     value={profileData.current_mood}
                     onChange={(e) => handleInputChange('current_mood', e.target.value)}
                     className="input-field h-20"
                     placeholder="e.g., Feeling optimistic because I just started a new hobby..."
+                    aria-describedby="mood-help"
                   />
+                  <p id="mood-help" className="text-xs text-gray-500 mt-1">Help others understand your current state of mind</p>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="seeking_type">
                     What kind of person would you like to meet?
                   </label>
                   <select
+                    id="seeking_type"
                     value={profileData.seeking_type}
                     onChange={(e) => handleInputChange('seeking_type', e.target.value)}
                     className="input-field"
@@ -218,22 +230,26 @@ const ProfileSetup = ({ user, token, api, onProfileComplete }) => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="seeking_age_range">
                       Preferred Age Range
                     </label>
                     <input
                       type="text"
+                      id="seeking_age_range"
                       value={profileData.seeking_age_range}
                       onChange={(e) => handleInputChange('seeking_age_range', e.target.value)}
                       className="input-field"
                       placeholder="e.g., 22-30"
+                      aria-describedby="age-range-help"
                     />
+                    <p id="age-range-help" className="text-xs text-gray-500 mt-1">Optional preference</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="seeking_gender">
                       Gender Preference
                     </label>
                     <select
+                      id="seeking_gender"
                       value={profileData.seeking_gender}
                       onChange={(e) => handleInputChange('seeking_gender', e.target.value)}
                       className="input-field"
@@ -247,15 +263,18 @@ const ProfileSetup = ({ user, token, api, onProfileComplete }) => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="connection_purpose">
                     What's the purpose of this connection?
                   </label>
                   <textarea
+                    id="connection_purpose"
                     value={profileData.connection_purpose}
                     onChange={(e) => handleInputChange('connection_purpose', e.target.value)}
                     className="input-field h-20"
                     placeholder="e.g., Looking for someone to explore the city with, deep conversations, shared hobbies..."
+                    aria-describedby="purpose-help"
                   />
+                  <p id="purpose-help" className="text-xs text-gray-500 mt-1">Be specific about what you're hoping to find</p>
                 </div>
               </div>
             </div>
@@ -267,54 +286,65 @@ const ProfileSetup = ({ user, token, api, onProfileComplete }) => {
               <h2 className="heading-md mb-6">Tell Us About Yourself</h2>
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="bio">
                     Bio - Share what makes you unique
                   </label>
                   <textarea
+                    id="bio"
                     value={profileData.bio}
                     onChange={(e) => handleInputChange('bio', e.target.value)}
                     className="input-field h-32"
                     placeholder="What do you love? What drives you? What kind of conversations excite you? Be authentic..."
+                    aria-describedby="bio-help"
                   />
-                  <p className="text-subtle text-sm mt-1">
+                  <p id="bio-help" className="text-subtle text-sm mt-1">
                     {profileData.bio.length}/500 characters
                   </p>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="interests">
                     Interests (comma-separated)
                   </label>
                   <input
                     type="text"
+                    id="interests"
                     onChange={(e) => handleArrayChange('interests', e.target.value)}
                     className="input-field"
                     placeholder="e.g., photography, hiking, cooking, philosophy, sci-fi books"
+                    aria-describedby="interests-help"
                   />
+                  <p id="interests-help" className="text-xs text-gray-500 mt-1">Separate multiple interests with commas</p>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="values">
                     Values that matter to you (comma-separated)
                   </label>
                   <input
                     type="text"
+                    id="values"
                     onChange={(e) => handleArrayChange('values', e.target.value)}
                     className="input-field"
                     placeholder="e.g., honesty, creativity, kindness, adventure, growth"
+                    aria-describedby="values-help"
                   />
+                  <p id="values-help" className="text-xs text-gray-500 mt-1">What principles guide your life?</p>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="additional_requirements">
                     Any other requirements or preferences?
                   </label>
                   <textarea
+                    id="additional_requirements"
                     value={profileData.additional_requirements}
                     onChange={(e) => handleInputChange('additional_requirements', e.target.value)}
                     className="input-field h-20"
                     placeholder="Anything specific you'd like potential connections to know?"
+                    aria-describedby="requirements-help"
                   />
+                  <p id="requirements-help" className="text-xs text-gray-500 mt-1">Optional additional information</p>
                 </div>
               </div>
             </div>
@@ -326,6 +356,7 @@ const ProfileSetup = ({ user, token, api, onProfileComplete }) => {
               onClick={prevStep}
               disabled={currentStep === 1}
               className={`btn-secondary ${currentStep === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              aria-label="Go to previous step"
             >
               Previous
             </button>
@@ -334,6 +365,7 @@ const ProfileSetup = ({ user, token, api, onProfileComplete }) => {
               onClick={nextStep}
               disabled={!isStepValid() || isLoading}
               className={`btn-primary ${!isStepValid() ? 'opacity-50 cursor-not-allowed' : ''}`}
+              aria-label={currentStep === 3 ? 'Complete profile setup' : 'Go to next step'}
             >
               {isLoading ? (
                 <div className="flex items-center">
