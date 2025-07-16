@@ -4322,6 +4322,9 @@ async def create_team(
     
     await db.teams.insert_one(team)
     
+    # Fetch the created team to get the proper document with _id
+    created_team = await db.teams.find_one({"team_id": team["team_id"]})
+    
     # Create team chat
     team_chat = {
         "chat_id": str(uuid.uuid4()),
@@ -4338,12 +4341,15 @@ async def create_team(
     
     await db.chats.insert_one(team_chat)
     
-    # Debug: Print the team document structure
-    print(f"Team document before serialization: {team}")
-    serialized_team = serialize_mongo_doc(team)
-    print(f"Team document after serialization: {serialized_team}")
+    # Add member count and creator info for the response
+    if created_team:
+        created_team["member_count"] = len(created_team["members"])
+        created_team["creator"] = {
+            "user_id": current_user["user_id"],
+            "display_name": current_user.get("display_name", current_user.get("username", "Unknown"))
+        }
     
-    return serialized_team
+    return serialize_mongo_doc(created_team)
 
 # Team Messaging Endpoints
 @api_router.get("/teams/{team_id}/messages")
