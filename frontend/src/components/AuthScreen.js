@@ -83,7 +83,7 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
 
         {/* Error Alert */}
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg" role="alert">
             <p className="text-red-700 text-sm">{error}</p>
           </div>
         )}
@@ -107,7 +107,13 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     placeholder="Choose a username"
                     required={!isLogin}
+                    aria-describedby={!isLogin ? "username-help" : undefined}
                   />
+                  {!isLogin && (
+                    <p id="username-help" className="text-xs text-gray-500 mt-1">
+                      This will be your unique identifier on Pulse
+                    </p>
+                  )}
                 </div>
               )}
               
@@ -124,7 +130,11 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   placeholder={t('auth.email')}
                   required
+                  aria-describedby="email-help"
                 />
+                <p id="email-help" className="text-xs text-gray-500 mt-1">
+                  We'll use this to send you important updates
+                </p>
               </div>
               
               <div>
@@ -140,7 +150,11 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   placeholder={t('auth.password')}
                   required
+                  aria-describedby="password-help"
                 />
+                <p id="password-help" className="text-xs text-gray-500 mt-1">
+                  {!isLogin ? "Choose a strong password with at least 8 characters" : "Enter your password"}
+                </p>
               </div>
             </div>
 
@@ -149,8 +163,9 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
               type="submit"
               disabled={isLoading}
               className="w-full mt-8 bg-pulse-accent text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              aria-label={isLoading ? 'Processing...' : (isLogin ? 'Sign in to your account' : 'Create new account')}
             >
-{isLoading ? t('common.loading') : (isLogin ? t('auth.signIn') : t('auth.signUp'))}
+              {isLoading ? t('common.loading') : (isLogin ? t('auth.signIn') : t('auth.signUp'))}
             </button>
 
             {/* Toggle Auth Mode */}
@@ -163,6 +178,7 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
                   setFormData({ email: '', password: '', username: '' });
                 }}
                 className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                aria-label={isLogin ? "Switch to create account" : "Switch to sign in"}
               >
                 {isLogin 
                   ? t('auth.newToApp')
@@ -178,15 +194,15 @@ const AuthScreen = ({ onAuthSuccess, api }) => {
           <h2 className="text-xl font-semibold text-white mb-4">{t('auth.whyChoose')}</h2>
           <div className="space-y-4">
             <div className="flex items-start space-x-3">
-              <div className="text-orange-400 text-xl">🔒</div>
+              <div className="text-orange-400 text-xl" aria-hidden="true">🔒</div>
               <div className="text-white/90 text-sm">{t('auth.secureConnections')}</div>
             </div>
             <div className="flex items-start space-x-3">
-              <div className="text-orange-400 text-xl">✅</div>
+              <div className="text-orange-400 text-xl" aria-hidden="true">✅</div>
               <div className="text-white/90 text-sm">{t('auth.verifiedUsers')}</div>
             </div>
             <div className="flex items-start space-x-3">
-              <div className="text-orange-400 text-xl">🛡️</div>
+              <div className="text-orange-400 text-xl" aria-hidden="true">🛡️</div>
               <div className="text-white/90 text-sm">{t('auth.privacyFirst')}</div>
             </div>
           </div>
