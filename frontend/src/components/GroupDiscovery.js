@@ -18,6 +18,18 @@ const GroupDiscovery = ({ user, token, api }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [error, setError] = useState(null);
+  
+  // Create group modal state
+  const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+  const [createGroupForm, setCreateGroupForm] = useState({
+    name: '',
+    description: '',
+    category: 'business',
+    location: 'online',
+    privacy: 'public',
+    emoji: '👥'
+  });
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
 
   const categories = [
     { value: 'all', label: 'All Categories', icon: '🌟' },
