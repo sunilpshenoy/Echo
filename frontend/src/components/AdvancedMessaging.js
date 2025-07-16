@@ -169,7 +169,7 @@ const AdvancedMessaging = ({
     const isOwnMessage = message.sender_id === user.id;
 
     return (
-      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50" role="menu" aria-label="Message actions">
         <div className="py-1">
           <button
             onClick={() => {
@@ -178,8 +178,9 @@ const AdvancedMessaging = ({
             }}
             className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center space-x-2"
             aria-label="Copy message text"
+            role="menuitem"
           >
-            <span>📋</span>
+            <span aria-hidden="true">📋</span>
             <span>Copy</span>
           </button>
           
@@ -192,8 +193,9 @@ const AdvancedMessaging = ({
                 }}
                 className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center space-x-2"
                 aria-label="Edit message"
+                role="menuitem"
               >
-                <span>✏️</span>
+                <span aria-hidden="true">✏️</span>
                 <span>Edit</span>
               </button>
               
@@ -204,8 +206,9 @@ const AdvancedMessaging = ({
                 }}
                 className="w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600 flex items-center space-x-2"
                 aria-label="Delete message"
+                role="menuitem"
               >
-                <span>🗑️</span>
+                <span aria-hidden="true">🗑️</span>
                 <span>Delete</span>
               </button>
             </>
@@ -218,8 +221,9 @@ const AdvancedMessaging = ({
             }}
             className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center space-x-2"
             aria-label="Forward message"
+            role="menuitem"
           >
-            <span>📤</span>
+            <span aria-hidden="true">📤</span>
             <span>Forward</span>
           </button>
           
@@ -230,8 +234,9 @@ const AdvancedMessaging = ({
             }}
             className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center space-x-2"
             aria-label="Select message"
+            role="menuitem"
           >
-            <span>☑️</span>
+            <span aria-hidden="true">☑️</span>
             <span>Select</span>
           </button>
         </div>
@@ -352,7 +357,7 @@ const AdvancedMessaging = ({
                 {/* Disappearing timer */}
                 {timeLeft && (
                   <span className="text-orange-400 flex items-center space-x-1">
-                    <span>⏰</span>
+                    <span aria-hidden="true">⏰</span>
                     <span>{formatTimeLeft(timeLeft)}</span>
                   </span>
                 )}
@@ -415,6 +420,17 @@ const AdvancedMessaging = ({
                   }
                 }}
                 aria-label={`Jump to message: ${result.content}`}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    const messageElement = document.getElementById(`message-${result.id}`);
+                    if (messageElement) {
+                      messageElement.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }
+                }}
               >
                 <p className="text-sm text-gray-600 truncate">{result.content}</p>
                 <p className="text-xs text-gray-400">
@@ -499,9 +515,9 @@ const AdvancedMessaging = ({
 
       {/* Delete Confirmation Modal */}
       {messageToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
           <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
+            <h3 id="delete-modal-title" className="text-lg font-medium text-gray-900 mb-4">
               {t('messages.deleteConfirmation')}
             </h3>
             <p className="text-gray-600 mb-4">
