@@ -32,6 +32,30 @@
   
   <!-- Register Service Worker for PWA -->
   <script>
+    // Force cache clear and reload
+    window.addEventListener('load', () => {
+      // Clear all caches
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          for (let name of names)
+            caches.delete(name);
+        });
+      }
+      
+      // Add cache-busting to all requests
+      const version = Date.now();
+      
+      // Override fetch to add cache-busting
+      const originalFetch = window.fetch;
+      window.fetch = function(...args) {
+        const url = args[0];
+        if (typeof url === 'string' && url.includes('/static/')) {
+          args[0] = url + (url.includes('?') ? '&' : '?') + 'v=' + version;
+        }
+        return originalFetch.apply(this, args);
+      };
+    });
+    
     let deferredPrompt;
     
     // Register service worker and clear old cache
