@@ -42,6 +42,9 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const [showThemeCustomizer, setShowThemeCustomizer] = useState(false);
   const [currentTheme, setCurrentTheme] = useState('default');
   const [appliedTheme, setAppliedTheme] = useState(null);
+  const [profileCompleteness, setProfileCompleteness] = useState({});
+  const [showContextualSetup, setShowContextualSetup] = useState(false);
+  const [currentContext, setCurrentContext] = useState(null);
   
   // Connection management state
   const [connections, setConnections] = useState([]);
