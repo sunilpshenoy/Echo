@@ -352,8 +352,8 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
                   <h1 className="text-xl font-semibold text-gray-900">
                     {user?.display_name || user?.username || 'User'}
                   </h1>
-                  <p className="text-sm text-gray-700 font-medium">
-                    {t('profile.trustLevel')} {user?.trust_level || 1} • {t('profile.authenticity')} {(user?.authenticity_rating || 0).toFixed(1)}
+                  <p className="text-sm text-gray-500">
+                    {t('dashboard.clickToEdit')}
                   </p>
                 </div>
               </button>
