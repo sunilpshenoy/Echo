@@ -136,6 +136,16 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
     setAttemptedTab(null);
   };
 
+  // Handle contextual profile setup completion
+  const handleContextualSetupComplete = (data) => {
+    setShowContextualSetup(false);
+    checkProfileCompleteness(); // Refresh completeness
+    if (currentContext) {
+      setActiveTab(currentContext); // Switch to the tab they wanted
+      setCurrentContext(null);
+    }
+  };
+
   // Listen for storage changes to update premium status
   useEffect(() => {
     const handleStorageChange = () => {
