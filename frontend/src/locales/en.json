@@ -141,7 +141,10 @@
     "teams": "Teams",
     "premium": "Premium",
     "discover": "Discover",
-    "settings": "Settings"
+    "settings": "Settings",
+    "clickToEdit": "Click to edit profile",
+    "signOut": "Sign Out",
+    "findPeopleSafely": "Find and connect with people safely"
   },
   "groups": {
     "title": "Groups & Communities",
