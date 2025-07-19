@@ -275,11 +275,67 @@ const DiscoverInterface = ({
       )}
 
       {activeDiscoverTab === 'trust' && (
-        <TrustSystem 
-          user={user}
-          token={token}
-          api={api}
-        />
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="max-w-2xl mx-auto space-y-6">
+            
+            {/* Trust & Authenticity Display */}
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Your Trust & Authenticity Profile</h3>
+                <p className="text-gray-600">Your premium ratings that help others trust you</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Trust Level */}
+                <div className="text-center">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-white font-bold text-2xl">
+                      {user?.trust_level || 1}
+                    </span>
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-1">{t('profile.trustLevel')}</h4>
+                  <p className="text-sm text-gray-600 mb-2">Level {user?.trust_level || 1} of 5</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${((user?.trust_level || 1) / 5) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+                
+                {/* Authenticity Rating */}
+                <div className="text-center">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-white font-bold text-lg">
+                      {(user?.authenticity_rating || 0).toFixed(1)}
+                    </span>
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-1">{t('profile.authenticity')}</h4>
+                  <p className="text-sm text-gray-600 mb-2">Out of 10.0</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-emerald-500 to-teal-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${((user?.authenticity_rating || 0) / 10) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+                <p className="text-sm text-gray-600">
+                  🔒 These ratings are visible to other premium users and help build trust in the community
+                </p>
+              </div>
+            </div>
+            
+            {/* Trust System Component */}
+            <TrustSystem 
+              user={user}
+              token={token}
+              api={api}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
