@@ -168,30 +168,38 @@ const App = () => {
   
   // Render appropriate screen based on current step
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {currentStep === 'auth' && (
-        <AuthScreen onAuthSuccess={handleAuthSuccess} api={API} />
-      )}
-      
-      {currentStep === 'profile_setup' && (
-        <ProfileSetup
-          user={user}
-          token={token}
-          api={API}
-          onProfileComplete={handleProfileComplete}
-        />
-      )}
-      
-      {currentStep === 'dashboard' && (
-        <Dashboard
-          user={user}
-          token={token}
-          api={API}
-          onLogout={handleLogout}
-          onUserUpdate={handleUserUpdate}
-        />
-      )}
-    </div>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+        {currentStep === 'auth' && (
+          <ErrorBoundary>
+            <AuthScreen onAuthSuccess={handleAuthSuccess} api={API} />
+          </ErrorBoundary>
+        )}
+        
+        {currentStep === 'profile_setup' && (
+          <ErrorBoundary>
+            <ProfileSetup
+              user={user}
+              token={token}
+              api={API}
+              onProfileComplete={handleProfileComplete}
+            />
+          </ErrorBoundary>
+        )}
+        
+        {currentStep === 'dashboard' && (
+          <ErrorBoundary>
+            <Dashboard
+              user={user}
+              token={token}
+              api={API}
+              onLogout={handleLogout}
+              onUserUpdate={handleUserUpdate}
+            />
+          </ErrorBoundary>
+        )}
+      </div>
+    </ErrorBoundary>
   );
 };
 
