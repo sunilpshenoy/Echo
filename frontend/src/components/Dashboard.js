@@ -69,6 +69,42 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
     user?.premium || localStorage.getItem('demo_premium') === 'true'
   );
   
+  // Check profile completeness on component mount
+  useEffect(() => {
+    checkProfileCompleteness();
+  }, [user, token, api]);
+
+  const checkProfileCompleteness = async () => {
+    if (!user || !token) return;
+    
+    try {
+      const response = await axios.get(`${api}/users/profile/completeness`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setProfileCompleteness(response.data.profiles || {});
+    } catch (error) {
+      console.error('Failed to check profile completeness:', error);
+    }
+  };
+
+  // Check if user can access tab
+  const canAccessTab = (tab) => {
+    const requirements = {
+      chats: { required: ['display_name'] },
+      teams: { required: ['interests', 'location'] },
+      marketplace: { required: ['full_name', 'phone_verification', 'location'] },
+      premium: { required: ['premium_display_name', 'current_mood'] }
+    };
+
+    if (tab === 'chats') return true; // Always allow chats
+
+    const tabRequirements = requirements[tab];
+    if (!tabRequirements) return true;
+
+    const userProfile = profileCompleteness[tab] || {};
+    return tabRequirements.required.every(field => userProfile[field]);
+  };
+
   // Function to check if profile is required for a tab
   const requiresProfile = (tabId) => {
     return tabId === 'teams' || tabId === 'premium';
