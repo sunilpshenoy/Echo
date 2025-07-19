@@ -1262,6 +1262,157 @@ async def cleanup_task():
         await asyncio.sleep(300)  # Run every 5 minutes
 
 # Authentication routes
+# Contextual Profile Endpoints
+@api_router.get("/users/profile/completeness")
+async def get_profile_completeness(current_user = Depends(get_current_user)):
+    """Get profile completeness for all contexts"""
+    try:
+        user_id = current_user["user_id"]
+        
+        # Define context requirements
+        contexts = {
+            "chats": {
+                "required": ["display_name"],
+                "optional": ["status_message", "avatar_url"]
+            },
+            "groups": {
+                "required": ["interests", "location"],
+                "optional": ["age_range", "skills", "availability", "group_preferences"]
+            },
+            "marketplace": {
+                "required": ["full_name", "phone_verification", "location"],
+                "optional": ["id_verification", "business_info", "service_categories"]
+            },
+            "premium": {
+                "required": ["premium_display_name", "current_mood"],
+                "optional": ["personality_insights", "relationship_goals", "premium_interests"]
+            }
+        }
+        
+        # Get user's contextual profiles
+        contextual_profiles = {}
+        for context, fields in contexts.items():
+            profile_doc = await db.user_profiles.find_one({
+                "user_id": user_id,
+                "context": context
+            })
+            
+            if profile_doc:
+                contextual_profiles[context] = serialize_mongo_doc(profile_doc)
+            else:
+                # Check main user profile for basic fields
+                user_profile = await db.users.find_one({"user_id": user_id})
+                contextual_profiles[context] = {}
+                
+                # Map common fields from main profile
+                if context == "chats" and user_profile:
+                    contextual_profiles[context]["display_name"] = user_profile.get("display_name")
+                elif context == "marketplace" and user_profile:
+                    contextual_profiles[context]["full_name"] = user_profile.get("full_name")
+                    contextual_profiles[context]["location"] = user_profile.get("location")
+        
+        return {"status": "success", "profiles": contextual_profiles}
+        
+    except Exception as e:
+        print(f"Profile completeness check error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to check profile completeness")
+
+@api_router.post("/users/profile/{context}")
+async def update_contextual_profile(
+    context: str,
+    profile_data: dict,
+    current_user = Depends(get_current_user)
+):
+    """Update contextual profile for specific tab"""
+    try:
+        user_id = current_user["user_id"]
+        
+        # Validate context
+        valid_contexts = ["chats", "groups", "marketplace", "premium"]
+        if context not in valid_contexts:
+            raise HTTPException(status_code=400, detail="Invalid context")
+        
+        # Prepare profile document
+        profile_doc = {
+            "user_id": user_id,
+            "context": context,
+            "updated_at": datetime.utcnow(),
+            **profile_data
+        }
+        
+        # Upsert contextual profile
+        await db.user_profiles.replace_one(
+            {"user_id": user_id, "context": context},
+            profile_doc,
+            upsert=True
+        )
+        
+        # Update main user profile with essential fields
+        main_profile_updates = {}
+        if context == "chats" and "display_name" in profile_data:
+            main_profile_updates["display_name"] = profile_data["display_name"]
+        elif context == "marketplace" and "full_name" in profile_data:
+            main_profile_updates["full_name"] = profile_data["full_name"]
+        elif context == "premium" and "premium_display_name" in profile_data:
+            main_profile_updates["premium_display_name"] = profile_data["premium_display_name"]
+        
+        if main_profile_updates:
+            await db.users.update_one(
+                {"user_id": user_id},
+                {"$set": main_profile_updates}
+            )
+        
+        return {
+            "status": "success",
+            "message": f"{context.title()} profile updated successfully",
+            "profile": serialize_mongo_doc(profile_doc)
+        }
+        
+    except Exception as e:
+        print(f"Contextual profile update error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update profile")
+
+@api_router.get("/users/profile/requirements/{context}")
+async def get_context_requirements(context: str):
+    """Get profile requirements for specific context"""
+    requirements = {
+        "chats": {
+            "required": ["display_name"],
+            "optional": ["status_message", "avatar_url"],
+            "description": "Basic info for messaging",
+            "impact": "Better messaging experience",
+            "can_skip": False
+        },
+        "groups": {
+            "required": ["interests", "location"],
+            "optional": ["age_range", "skills", "availability", "group_preferences"],
+            "description": "Help us suggest perfect groups",
+            "impact": "Personalized group suggestions",
+            "can_skip": True,
+            "skip_message": "You can browse but won't get personalized suggestions"
+        },
+        "marketplace": {
+            "required": ["full_name", "phone_verification", "location"],
+            "optional": ["id_verification", "business_info", "service_categories"],
+            "description": "Build trust for safe transactions",
+            "impact": "Ability to buy and sell safely",
+            "can_skip": True,
+            "skip_message": "You can browse but won't be able to transact"
+        },
+        "premium": {
+            "required": ["premium_display_name", "current_mood"],
+            "optional": ["personality_insights", "relationship_goals", "premium_interests"],
+            "description": "Express yourself and connect meaningfully",
+            "impact": "Enhanced social features",
+            "can_skip": False
+        }
+    }
+    
+    if context not in requirements:
+        raise HTTPException(status_code=404, detail="Context not found")
+    
+    return {"status": "success", "requirements": requirements[context]}
+
 @api_router.post("/register")
 async def register(user_data: UserCreate):
     existing_user = await db.users.find_one({"email": user_data.email})
