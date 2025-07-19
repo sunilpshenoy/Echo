@@ -20,6 +20,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
   const [attemptedTab, setAttemptedTab] = useState(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [showSmartProfileManager, setShowSmartProfileManager] = useState(false);
   const [editProfileData, setEditProfileData] = useState({
     display_name: user?.display_name || user?.username || '',
     age: user?.age || '',
