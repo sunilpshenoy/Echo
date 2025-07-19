@@ -112,11 +112,12 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
 
   // Handle tab selection with profile requirement check
   const handleTabSelection = (tabId) => {
-    if (requiresProfile(tabId) && !user?.profile_completed) {
-      setAttemptedTab(tabId);
-      setShowProfilePrompt(true);
-    } else {
+    if (canAccessTab(tabId)) {
       setActiveTab(tabId);
+    } else {
+      // Show contextual profile setup
+      setCurrentContext(tabId);
+      setShowContextualSetup(true);
     }
   };
 
