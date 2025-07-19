@@ -1307,6 +1307,27 @@ async def register(user_data: UserCreate):
         }
     }
 
+@api_router.post("/auth/refresh")
+async def refresh_token(current_user = Depends(get_current_user)):
+    """Refresh JWT access token for authenticated user"""
+    try:
+        # Generate new access token
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": current_user["user_id"]},
+            expires_delta=access_token_expires
+        )
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            "user": serialize_mongo_doc(current_user)
+        }
+    except Exception as e:
+        print(f"Token refresh error: {e}")
+        raise HTTPException(status_code=401, detail="Token refresh failed")
+
 @api_router.post("/login")
 @limiter.limit("5/minute")
 async def login(request: Request, login_data: UserLogin):
