@@ -22,6 +22,29 @@ const App = () => {
   const API = `${BACKEND_URL}/api`;
   
   // Check authentication on app load
+  // Token refresh mechanism
+  const refreshToken = async () => {
+    try {
+      const currentToken = localStorage.getItem('token');
+      if (!currentToken) return false;
+
+      const response = await axios.post(`${API}/auth/refresh`, {}, {
+        headers: { Authorization: `Bearer ${currentToken}` },
+        timeout: 5000
+      });
+
+      if (response.data.access_token) {
+        localStorage.setItem('token', response.data.access_token);
+        setToken(response.data.access_token);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     // Initialize language from localStorage with multiple fallbacks
     const savedLanguage = localStorage.getItem('i18nextLng') || localStorage.getItem('pulse-language');
@@ -36,12 +59,14 @@ const App = () => {
       }
     }
     
-    const checkAuth = async () => {
+    // Enhanced auth check with retry mechanism
+    const checkAuth = async (retryCount = 0) => {
       const savedToken = localStorage.getItem('token');
       if (savedToken) {
         try {
           const response = await axios.get(`${API}/users/me`, {
-            headers: { Authorization: `Bearer ${savedToken}` }
+            headers: { Authorization: `Bearer ${savedToken}` },
+            timeout: 10000 // Increase timeout
           });
           setUser(response.data);
           setToken(savedToken);
@@ -54,8 +79,19 @@ const App = () => {
           }
         } catch (error) {
           console.error('Token validation failed:', error);
+          
+          // Try token refresh on 401 errors
+          if (error.response?.status === 401 && retryCount < 2) {
+            const refreshSuccess = await refreshToken();
+            if (refreshSuccess) {
+              return checkAuth(retryCount + 1);
+            }
+          }
+          
+          // Clear invalid token
           localStorage.removeItem('token');
           setToken(null);
+          setUser(null);
           setCurrentStep('auth');
         }
       } else {
