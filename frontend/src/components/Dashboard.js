@@ -444,16 +444,24 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
                 className={`flex items-center space-x-2 px-6 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'border-purple-500 text-purple-700 bg-purple-50 font-semibold'
-                    : 'border-transparent text-gray-700 hover:text-purple-600 hover:bg-purple-50'
-                }`}
+                    : canAccessTab(tab.id) 
+                      ? 'border-transparent text-gray-700 hover:text-purple-600 hover:bg-purple-50'
+                      : 'border-transparent text-gray-400 hover:text-orange-500 hover:bg-orange-50'
+                } ${!canAccessTab(tab.id) ? 'cursor-help' : 'cursor-pointer'}`}
                 aria-label={`Switch to ${tab.label} tab - ${tab.description}`}
                 aria-current={activeTab === tab.id ? 'page' : undefined}
+                title={!canAccessTab(tab.id) ? `Complete profile to access ${tab.label}` : `Switch to ${tab.label} tab - ${tab.description}`}
               >
                 <span className="text-lg">{tab.icon}</span>
                 <span>{tab.label}</span>
                 {tab.premium && !isPremium && (
                   <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-medium">
                     ⭐
+                  </span>
+                )}
+                {!canAccessTab(tab.id) && (
+                  <span className="bg-orange-100 text-orange-600 px-2 py-1 rounded-full text-xs font-medium ml-1">
+                    Setup needed
                   </span>
                 )}
               </button>
