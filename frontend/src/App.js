@@ -4,6 +4,7 @@ import './App.css';
 import AuthScreen from './components/AuthScreen';
 import ProfileSetup from './components/ProfileSetup';
 import Dashboard from './components/Dashboard';
+import ErrorBoundary from './components/ErrorBoundary';
 import { useTranslation } from 'react-i18next';
 import './i18n';
 
