@@ -11,6 +11,8 @@ import ThemeCustomizer from './ThemeCustomizer';
 import GroupsHub from './GroupsHub';
 import ChannelsInterface from './ChannelsInterface';
 import SimpleMarketplace from './SimpleMarketplace';
+import SmartProfileManager from './SmartProfileManager';
+import ContextualProfileSetup from './ContextualProfileSetup';
 
 const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const { t } = useTranslation();
