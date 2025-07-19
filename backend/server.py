@@ -565,6 +565,7 @@ async def options_handler(path: str):
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production-' + str(int(time.time())))
+ACCESS_TOKEN_EXPIRE_MINUTES = 30  # Token expires in 30 minutes
 
 # Enhanced Connection manager with advanced features
 class ConnectionManager:
