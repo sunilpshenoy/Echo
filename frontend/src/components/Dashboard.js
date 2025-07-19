@@ -798,6 +798,21 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
         </div>
       )}
 
+      {/* Contextual Profile Setup Modal */}
+      {showContextualSetup && currentContext && (
+        <ContextualProfileSetup
+          user={user}
+          token={token}
+          api={api}
+          context={currentContext}
+          onComplete={handleContextualSetupComplete}
+          onSkip={() => {
+            setShowContextualSetup(false);
+            setCurrentContext(null);
+          }}
+        />
+      )}
+
       {/* Smart Profile Manager Modal */}
       {showSmartProfileManager && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
