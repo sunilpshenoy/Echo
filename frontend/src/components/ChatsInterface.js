@@ -1214,6 +1214,30 @@ const ChatsInterface = ({
     }
   };
 
+  // Add contact by phone
+  const addContactByPhone = async () => {
+    if (!contactPhone.trim()) {
+      alert('Please enter a phone number');
+      return;
+    }
+    
+    try {
+      await axios.post(`${api}/contacts`, {
+        phone: contactPhone
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      alert('Contact added successfully! 🎉');
+      setContactPhone('');
+      setShowAddContact(false);
+      
+    } catch (error) {
+      console.error('Failed to add contact:', error);
+      alert(error.response?.data?.detail || 'Failed to add contact');
+    }
+  };
+
   // Get user's QR code for PIN sharing
   const getMyQRCode = async () => {
     try {
