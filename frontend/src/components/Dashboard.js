@@ -341,6 +341,16 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
       // Fetch connections for discover tab
       fetchConnections();
     }
+    
+    // Cleanup function to reset loading states when switching tabs
+    return () => {
+      if (activeTab !== 'chats') {
+        setIsLoadingChats(false);
+      }
+      if (activeTab !== 'teams') {
+        setIsLoadingTeams(false);
+      }
+    };
   }, [activeTab]); // Only depend on activeTab to prevent infinite loops
 
   // Theme application function
