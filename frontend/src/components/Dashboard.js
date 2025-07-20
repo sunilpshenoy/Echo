@@ -192,15 +192,25 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
     
     setIsLoadingChats(true);
     console.log('🔄 Fetching chats...');
+    
+    // Add timeout mechanism to prevent indefinite loading
+    const fetchTimeout = setTimeout(() => {
+      console.log('⏰ Chat fetch timeout - resetting loading state');
+      setIsLoadingChats(false);
+    }, 10000); // 10 second timeout
+    
     try {
       const response = await axios.get(`${api}/chats`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 8000 // 8 second axios timeout
       });
       console.log('✅ Chats response:', response.data);
       setChats(response.data);
+      clearTimeout(fetchTimeout); // Clear timeout on success
     } catch (error) {
       console.error('❌ Failed to fetch chats:', error);
       setChats([]); // Set empty array on error
+      clearTimeout(fetchTimeout); // Clear timeout on error
     } finally {
       setIsLoadingChats(false);
       console.log('🏁 Chat loading completed');
