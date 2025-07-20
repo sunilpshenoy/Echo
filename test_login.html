@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Login</title>
+</head>
+<body>
+    <h1>Direct Login Test</h1>
+    <button onclick="testLogin()">Test Login</button>
+    <div id="result"></div>
+    
+    <script>
+        async function testLogin() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch('http://localhost:8001/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'testlogin@example.com',
+                        password: 'SimplePass123'
+                    })
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = '<div style="color: green;">✅ LOGIN SUCCESS: ' + JSON.stringify(data, null, 2) + '</div>';
+                } else {
+                    resultDiv.innerHTML = '<div style="color: red;">❌ LOGIN FAILED: ' + JSON.stringify(data, null, 2) + '</div>';
+                }
+            } catch (error) {
+                console.error('Network error:', error);
+                resultDiv.innerHTML = '<div style="color: red;">❌ NETWORK ERROR: ' + error.message + '</div>';
+            }
+        }
+    </script>
+</body>
+</html>
