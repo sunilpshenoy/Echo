@@ -318,6 +318,13 @@ const ChatsInterface = ({
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [addContactMethod, setAddContactMethod] = useState('pin'); // 'pin', 'email', 'phone'
+  const [showTemporaryChatModal, setShowTemporaryChatModal] = useState(false);
+  const [temporaryChatData, setTemporaryChatData] = useState({
+    name: '',
+    description: '',
+    duration: '1hour',
+    type: 'group'
+  });
   
   // E2E Encryption State
   const [e2eEncryption, setE2eEncryption] = useState(null);
