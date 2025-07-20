@@ -315,8 +315,31 @@ class ChatSystemTester:
             # Test connection request creation
             start_time = time.time()
             
+            # First create a target user for connection request
+            target_email = f"connection_target_{int(time.time())}@example.com"
+            target_user_data = {
+                "username": f"target_user_{int(time.time())}",
+                "email": target_email,
+                "password": "TestPassword123!",
+                "display_name": "Connection Target User"
+            }
+            
+            # Register the target user
+            register_response = self.session.post(
+                f"{BACKEND_URL}/register",
+                json=target_user_data,
+                timeout=TIMEOUT
+            )
+            
+            if register_response.status_code != 200:
+                self.log_test("POST /api/connections/request", False, 
+                            f"Failed to create target user: {register_response.status_code}")
+                return False
+            
+            target_user_id = register_response.json().get("user", {}).get("user_id")
+            
             connection_data = {
-                "recipient_email": f"connection_test_{int(time.time())}@example.com",
+                "user_id": target_user_id,
                 "message": "Test connection request"
             }
             
@@ -328,7 +351,7 @@ class ChatSystemTester:
             
             response_time = time.time() - start_time
             
-            if response.status_code in [200, 201, 404]:  # 404 is acceptable if user doesn't exist
+            if response.status_code in [200, 201]:
                 self.log_test("POST /api/connections/request", True, 
                             f"Connection request endpoint working", response_time)
                 
