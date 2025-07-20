@@ -185,6 +185,11 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   
   // Chat management functions
   const fetchChats = async () => {
+    if (isLoadingChats) {
+      console.log('⚠️ Already loading chats, skipping duplicate request');
+      return;
+    }
+    
     setIsLoadingChats(true);
     console.log('🔄 Fetching chats...');
     try {
@@ -193,11 +198,12 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
       });
       console.log('✅ Chats response:', response.data);
       setChats(response.data);
-      setIsLoadingChats(false);
     } catch (error) {
       console.error('❌ Failed to fetch chats:', error);
       setChats([]); // Set empty array on error
+    } finally {
       setIsLoadingChats(false);
+      console.log('🏁 Chat loading completed');
     }
   };
 
