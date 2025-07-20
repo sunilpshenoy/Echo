@@ -60,6 +60,8 @@
 agent_communication:
     - agent: "main"
       message: "Phase 1 Progress: Fixed ChatsInterface.js compilation errors. Frontend build now compiles successfully with no errors. Ready to proceed with backend testing before addressing frontend functionality issues."
+    - agent: "testing"
+      message: "🎉 CRITICAL ISSUE RESOLVED - 'CHATS LOADING ALL THE TIME' FIXED! Successfully identified and resolved the persistent infinite loading issue in the Pulse application. ROOT CAUSE: The useEffect in Dashboard.js had unstable dependencies (api, token) causing fetchChats to be called every second. SOLUTION: Removed unstable dependencies and made API URL stable using useMemo. VERIFICATION: Console monitoring shows zero excessive loading messages (previously 30+ per 15 seconds). ADDITIONAL TESTING: ✅ Authentication working correctly with registration flow, ✅ Tab navigation functional with contextual profile system working as designed, ✅ Add Contact modal fully functional with PIN/Email/Phone tabs, ✅ Mobile contact addition via phone number working, ✅ Contextual profile setup modals triggering correctly for restricted tabs. The application is now performing optimally without any infinite loading issues."
     - agent: "main"
       message: "🔧 CHATS INTERFACE ISSUES - PROGRESS UPDATE: Fixed mobile contact functionality by implementing missing addContactByPhone function. Added proper error handling and state management to fetchChats to prevent infinite loading. Backend testing confirms all chat endpoints working perfectly (avg 0.323s response time) - the 'chats loading all the time' issue is frontend-related. Ready to proceed with frontend testing to verify fixes work correctly."
     - agent: "testing"
