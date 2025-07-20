@@ -445,7 +445,7 @@ const ChatsInterface = ({
       return false;
     }
   };
-  const [addContactMethod, setAddContactMethod] = useState('pin');
+  
   const [viewMode, setViewMode] = useState('contacts');
   const [activeContact, setActiveContact] = useState(null);
   
