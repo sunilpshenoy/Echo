@@ -315,6 +315,9 @@ const ChatsInterface = ({
   const [showAddContact, setShowAddContact] = useState(false);
   const [showMyPin, setShowMyPin] = useState(false);
   const [contactPin, setContactPin] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [addContactMethod, setAddContactMethod] = useState('pin'); // 'pin', 'email', 'phone'
   
   // E2E Encryption State
   const [e2eEncryption, setE2eEncryption] = useState(null);
