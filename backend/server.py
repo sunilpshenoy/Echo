@@ -906,6 +906,21 @@ class GroupChatCreate(BaseModel):
     description: Optional[str] = None
     members: List[str]
     chat_type: str = "group"
+    
+    # Temporary chat options
+    is_temporary: bool = False
+    expiry_duration: Optional[str] = None  # "1hour", "1day", "1week"
+
+class TemporaryChatCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    members: List[str]
+    chat_type: str  # "direct" or "group"
+    expiry_duration: str  # "1hour", "1day", "1week"
+
+class ExtendChatRequest(BaseModel):
+    chat_id: str
+    extension_duration: str  # "1hour", "1day", "1week"
 
 class ChannelCreate(BaseModel):
     name: str
