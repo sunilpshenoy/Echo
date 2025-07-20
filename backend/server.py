@@ -3052,8 +3052,10 @@ async def create_temporary_chat(chat_data: TemporaryChatCreate, current_user = D
         }
         
     except Exception as e:
-        print(f"Error creating temporary chat: {e}")
-        raise HTTPException(status_code=500, detail="Failed to create temporary chat")
+        import traceback
+        print(f"Error creating temporary chat: {str(e)}")
+        print(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Failed to create temporary chat: {str(e)}")
 
 @api_router.post("/chats/{chat_id}/extend")
 async def extend_temporary_chat(chat_id: str, extend_data: ExtendChatRequest, current_user = Depends(get_current_user)):
