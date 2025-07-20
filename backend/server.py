@@ -2911,13 +2911,22 @@ async def create_chat(chat_data: dict, current_user = Depends(get_current_user))
         if current_user["user_id"] not in members:
             members.append(current_user["user_id"])
         
+        # Create group name with T prefix if temporary
+        group_name = chat_data.get("name", "New Group")
+        if chat_data.get("is_temporary", False):
+            group_name = f"T {group_name}" if not group_name.startswith("T ") else group_name
+        
         chat = Chat(
             chat_type="group",
-            name=chat_data.get("name", "New Group"),
+            name=group_name,
             description=chat_data.get("description"),
             members=members,
             admins=[current_user["user_id"]],
-            created_by=current_user["user_id"]
+            created_by=current_user["user_id"],
+            # Handle temporary chat options
+            is_temporary=chat_data.get("is_temporary", False),
+            expires_at=calculate_expiry_time(chat_data["expiry_duration"]) if chat_data.get("is_temporary") else None,
+            expiry_duration=chat_data.get("expiry_duration")
         )
     else:
         raise HTTPException(status_code=400, detail="Invalid chat_type")
