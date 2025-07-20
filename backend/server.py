@@ -3125,7 +3125,7 @@ async def extend_temporary_chat(chat_id: str, extend_data: ExtendChatRequest, cu
                     "chat_id": chat_id,
                     "new_expires_at": new_expiry.isoformat(),
                     "extension": extend_data.extension_duration,
-                    "message": extension_message
+                    "message": serialize_mongo_doc(extension_message)
                 }),
                 member_id
             )
