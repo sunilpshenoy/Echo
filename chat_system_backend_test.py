@@ -136,10 +136,32 @@ class ChatSystemTester:
         try:
             start_time = time.time()
             
+            # First create a test user to add as contact
+            test_contact_email = f"contact_email_{int(time.time())}@example.com"
+            
+            # Register a test contact user
+            contact_user_data = {
+                "username": f"contact_user_{int(time.time())}",
+                "email": test_contact_email,
+                "password": "TestPassword123!",
+                "display_name": "Contact Test User"
+            }
+            
+            # Register the contact user first
+            register_response = self.session.post(
+                f"{BACKEND_URL}/register",
+                json=contact_user_data,
+                timeout=TIMEOUT
+            )
+            
+            if register_response.status_code != 200:
+                self.log_test("POST /api/contacts (Email)", False, 
+                            f"Failed to create test contact user: {register_response.status_code}")
+                return False
+            
+            # Now add the contact using the correct API format
             contact_data = {
-                "contact_method": "email",
-                "contact_value": f"contact_email_{int(time.time())}@example.com",
-                "display_name": "Email Contact Test"
+                "email": test_contact_email
             }
             
             response = self.session.post(
