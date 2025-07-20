@@ -2839,6 +2839,184 @@ const ChatsInterface = ({
           </div>
         </div>
       )}
+
+      {/* Temporary Chat Modal */}
+      {showTemporaryChatModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-bold text-gray-900 flex items-center">
+                  ⏰ Create Temporary Chat
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowTemporaryChatModal(false);
+                    setTemporaryChatData({
+                      name: '',
+                      description: '',
+                      duration: '1hour',
+                      type: 'group'
+                    });
+                  }}
+                  className="text-gray-400 hover:text-gray-600 p-1"
+                  aria-label="Close temporary chat modal"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Chat Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Chat Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={temporaryChatData.name}
+                    onChange={(e) => setTemporaryChatData({...temporaryChatData, name: e.target.value})}
+                    placeholder="e.g., Holiday Planning, Shopping List"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    maxLength={50}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Will be prefixed with "T" to indicate temporary chat
+                  </p>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description (Optional)
+                  </label>
+                  <textarea
+                    value={temporaryChatData.description}
+                    onChange={(e) => setTemporaryChatData({...temporaryChatData, description: e.target.value})}
+                    placeholder="Brief description of the chat purpose"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    rows={3}
+                    maxLength={200}
+                  />
+                </div>
+
+                {/* Chat Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Chat Type
+                  </label>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setTemporaryChatData({...temporaryChatData, type: 'group'})}
+                      className={`flex-1 p-2 rounded-lg border ${
+                        temporaryChatData.type === 'group'
+                          ? 'bg-purple-100 border-purple-500 text-purple-700'
+                          : 'bg-white border-gray-300 text-gray-600'
+                      }`}
+                    >
+                      👥 Group
+                    </button>
+                    <button
+                      onClick={() => setTemporaryChatData({...temporaryChatData, type: 'direct'})}
+                      className={`flex-1 p-2 rounded-lg border ${
+                        temporaryChatData.type === 'direct'
+                          ? 'bg-purple-100 border-purple-500 text-purple-700'
+                          : 'bg-white border-gray-300 text-gray-600'
+                      }`}
+                    >
+                      💬 Direct
+                    </button>
+                  </div>
+                </div>
+
+                {/* Duration */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Duration
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => setTemporaryChatData({...temporaryChatData, duration: '1hour'})}
+                      className={`p-2 rounded-lg border ${
+                        temporaryChatData.duration === '1hour'
+                          ? 'bg-purple-100 border-purple-500 text-purple-700'
+                          : 'bg-white border-gray-300 text-gray-600'
+                      }`}
+                    >
+                      1 Hour
+                    </button>
+                    <button
+                      onClick={() => setTemporaryChatData({...temporaryChatData, duration: '1day'})}
+                      className={`p-2 rounded-lg border ${
+                        temporaryChatData.duration === '1day'
+                          ? 'bg-purple-100 border-purple-500 text-purple-700'
+                          : 'bg-white border-gray-300 text-gray-600'
+                      }`}
+                    >
+                      1 Day
+                    </button>
+                    <button
+                      onClick={() => setTemporaryChatData({...temporaryChatData, duration: '1week'})}
+                      className={`p-2 rounded-lg border ${
+                        temporaryChatData.duration === '1week'
+                          ? 'bg-purple-100 border-purple-500 text-purple-700'
+                          : 'bg-white border-gray-300 text-gray-600'
+                      }`}
+                    >
+                      1 Week
+                    </button>
+                  </div>
+                </div>
+
+                {/* Info Message */}
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                  <div className="flex items-start space-x-2">
+                    <span className="text-purple-600 text-sm">ℹ️</span>
+                    <div className="text-sm text-purple-700">
+                      <p className="font-medium mb-1">Temporary Chat Features:</p>
+                      <ul className="text-xs space-y-1">
+                        <li>• Automatically expires after selected duration</li>
+                        <li>• Reminder sent before expiration</li>
+                        <li>• Content saved for creator before deletion</li>
+                        <li>• Can be extended by any member</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Buttons */}
+                <div className="flex space-x-3 pt-2">
+                  <button
+                    onClick={() => {
+                      setShowTemporaryChatModal(false);
+                      setTemporaryChatData({
+                        name: '',
+                        description: '',
+                        duration: '1hour',
+                        type: 'group'
+                      });
+                    }}
+                    className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-lg font-medium hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={createTemporaryChat}
+                    disabled={!temporaryChatData.name.trim()}
+                    className={`flex-1 py-3 rounded-lg font-medium ${
+                      temporaryChatData.name.trim()
+                        ? 'bg-purple-500 text-white hover:bg-purple-600'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    Create Chat
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
