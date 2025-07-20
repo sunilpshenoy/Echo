@@ -69,6 +69,11 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
     user?.premium || localStorage.getItem('demo_premium') === 'true'
   );
   
+  // Check profile completeness on component mount
+  useEffect(() => {
+    checkProfileCompleteness();
+  }, [user, token, api]);
+  
   // Cleanup loading states on component unmount
   useEffect(() => {
     return () => {
