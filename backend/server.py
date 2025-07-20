@@ -2843,6 +2843,20 @@ async def get_chats(current_user = Depends(get_current_user)):
             if last_msg:
                 chat["last_message"] = serialize_mongo_doc(last_msg)
         
+        # Add temporary chat status information
+        if chat.get("is_temporary", False):
+            expires_at = chat.get("expires_at")
+            if expires_at:
+                if isinstance(expires_at, str):
+                    expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+                
+                chat["temporary_info"] = {
+                    "expires_at": expires_at.isoformat(),
+                    "time_remaining": format_time_remaining(expires_at),
+                    "expiry_duration": chat.get("expiry_duration", ""),
+                    "is_expired": expires_at < datetime.utcnow()
+                }
+        
         # Get other chat member info for direct chats
         if chat.get("chat_type") == "direct" or chat.get("type") == "direct":
             other_member_id = next(
