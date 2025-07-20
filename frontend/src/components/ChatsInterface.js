@@ -1285,6 +1285,29 @@ const ChatsInterface = ({
     }
   };
 
+  // Extend temporary chat
+  const extendTemporaryChat = async (chatId, duration = '1day') => {
+    try {
+      const response = await axios.post(`${api}/chats/${chatId}/extend`, {
+        chat_id: chatId,
+        extension_duration: duration
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      alert(`Chat extended! ⏰ New expiry: ${response.data.time_remaining}`);
+      
+      // Refresh chats to show updated expiry
+      if (onRefresh) {
+        onRefresh();
+      }
+      
+    } catch (error) {
+      console.error('Failed to extend temporary chat:', error);
+      alert(error.response?.data?.detail || 'Failed to extend temporary chat');
+    }
+  };
+
   // Get user's QR code for PIN sharing
   const getMyQRCode = async () => {
     try {
