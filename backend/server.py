@@ -2989,13 +2989,12 @@ async def create_temporary_chat(chat_data: TemporaryChatCreate, current_user = D
             chat_name = f"T {chat_data.name}" if not chat_data.name.startswith("T ") else chat_data.name
             
         elif chat_data.chat_type == "group":
-            if len(chat_data.members) < 2:
-                raise HTTPException(status_code=400, detail="Group temporary chat requires at least 2 other members")
-            
+            # For group chats, we can start with just the creator
             members = chat_data.members[:]
             if current_user["user_id"] not in members:
                 members.append(current_user["user_id"])
             
+            # Group can be created with just the creator and others can be added later
             chat_name = f"T {chat_data.name}" if not chat_data.name.startswith("T ") else chat_data.name
         else:
             raise HTTPException(status_code=400, detail="Invalid chat_type for temporary chat")
