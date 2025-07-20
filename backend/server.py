@@ -56,8 +56,8 @@ SECURITY_CONFIG = {
     ],
     'ALLOWED_ORIGINS': [
         'http://localhost:3000',
-        'https://1345bce5-cc7d-477e-8431-d11bc6e77861.preview.emergentagent.com',
-        'https://1345bce5-cc7d-477e-8431-d11bc6e77861.preview.emergentagent.com',
+        'https://a205b7e3-f535-4569-8dd8-c1f8fc23e5dc.preview.emergentagent.com',
+        'https://a205b7e3-f535-4569-8dd8-c1f8fc23e5dc.preview.emergentagent.com',
         'https://*.emergentagent.com'
     ]
 }

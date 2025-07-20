@@ -11,7 +11,7 @@ import base64
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://1345bce5-cc7d-477e-8431-d11bc6e77861.preview.emergentagent.com/api"
+BACKEND_URL = "https://a205b7e3-f535-4569-8dd8-c1f8fc23e5dc.preview.emergentagent.com/api"
 
 class TargetedBackendTester:
     def __init__(self):
