@@ -2578,7 +2578,7 @@ const ChatsInterface = ({
                     Send Connection Request
                   </button>
                 </>
-              ) : (
+              ) : addContactMethod === 'email' ? (
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -2588,16 +2588,41 @@ const ChatsInterface = ({
                       type="email"
                       value={contactEmail}
                       onChange={(e) => setContactEmail(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       placeholder="friend@example.com"
                     />
                   </div>
                   <button
                     onClick={addContactByEmail}
                     disabled={!contactEmail.trim()}
-                    className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                    className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Add Contact
+                    Add Contact via Email
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={contactPhone}
+                      onChange={(e) => setContactPhone(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      placeholder="+1 (555) 123-4567"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Include country code for international numbers
+                    </p>
+                  </div>
+                  <button
+                    onClick={addContactByPhone}
+                    disabled={!contactPhone.trim()}
+                    className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Add Contact via Phone
                   </button>
                 </>
               )}
