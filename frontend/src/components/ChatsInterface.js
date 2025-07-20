@@ -2539,6 +2539,7 @@ const ChatsInterface = ({
                   setShowAddContact(false);
                   setContactPin('');
                   setContactEmail('');
+                  setContactPhone('');
                 }}
                 className="text-gray-500 hover:text-gray-700 text-xl"
               >
