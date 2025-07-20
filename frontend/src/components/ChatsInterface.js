@@ -2455,6 +2455,14 @@ const ChatsInterface = ({
             >
               ➕
             </button>
+            <button 
+              onClick={() => setShowTemporaryChatModal(true)}
+              className="bg-purple-500 text-white p-2 rounded-lg hover:bg-purple-600"
+              title="Create Temporary Chat"
+              aria-label="Create a new temporary chat"
+            >
+              ⏰
+            </button>
           </div>
         </div>
       </div>
