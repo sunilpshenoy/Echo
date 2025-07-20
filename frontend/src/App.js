@@ -19,8 +19,11 @@ const App = () => {
   // App flow state
   const [currentStep, setCurrentStep] = useState('auth'); // 'auth', 'profile_setup', 'dashboard'
   
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-  const API = `${BACKEND_URL}/api`;
+  // Stable API URL to prevent useEffect loops
+  const API = useMemo(() => {
+    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+    return `${BACKEND_URL}/api`;
+  }, []);
   
   // Check authentication on app load
   // Token refresh mechanism
