@@ -771,6 +771,13 @@ class Chat(BaseModel):
     })
     topics: List[str] = Field(default_factory=list)
     tags: List[str] = Field(default_factory=list)
+    
+    # Temporary chat fields
+    is_temporary: bool = False
+    expires_at: Optional[datetime] = None
+    reminder_sent: bool = False
+    expiry_duration: Optional[str] = None  # "1hour", "1day", "1week"
+    saved_content_for_creator: Optional[str] = None  # Path to saved content archive
 
 class VoiceRoom(BaseModel):
     room_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
