@@ -2895,7 +2895,11 @@ async def create_chat(chat_data: dict, current_user = Depends(get_current_user))
             chat_type="direct",
             members=[current_user["user_id"], other_user_id],
             admins=[current_user["user_id"]],
-            created_by=current_user["user_id"]
+            created_by=current_user["user_id"],
+            # Handle temporary chat options
+            is_temporary=chat_data.get("is_temporary", False),
+            expires_at=calculate_expiry_time(chat_data["expiry_duration"]) if chat_data.get("is_temporary") else None,
+            expiry_duration=chat_data.get("expiry_duration")
         )
     elif chat_data.get("chat_type") == "group":
         # Create group chat
