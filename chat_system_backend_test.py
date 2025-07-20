@@ -99,8 +99,8 @@ class ChatSystemTester:
             response_time = time.time() - start_time
             
             if response.status_code == 200:
-                data = response.json()
-                chats = data.get("chats", [])
+                # The API returns a list directly, not wrapped in an object
+                chats = response.json()
                 
                 # Check if response is properly formatted
                 if isinstance(chats, list):
