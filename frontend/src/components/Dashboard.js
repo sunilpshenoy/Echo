@@ -186,14 +186,17 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   // Chat management functions
   const fetchChats = async () => {
     setIsLoadingChats(true);
+    console.log('🔄 Fetching chats...');
     try {
       const response = await axios.get(`${api}/chats`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('✅ Chats response:', response.data);
       setChats(response.data);
+      setIsLoadingChats(false);
     } catch (error) {
-      console.error('Failed to fetch chats:', error);
-    } finally {
+      console.error('❌ Failed to fetch chats:', error);
+      setChats([]); // Set empty array on error
       setIsLoadingChats(false);
     }
   };
