@@ -1245,6 +1245,46 @@ const ChatsInterface = ({
     }
   };
 
+  // Create temporary chat
+  const createTemporaryChat = async () => {
+    if (!temporaryChatData.name.trim()) {
+      alert('Please enter a chat name');
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${api}/chats/temporary`, {
+        name: temporaryChatData.name,
+        description: temporaryChatData.description,
+        members: [],
+        chat_type: temporaryChatData.type,
+        expiry_duration: temporaryChatData.duration
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      alert(`Temporary chat created! ⏰ Expires in ${response.data.time_remaining}`);
+      
+      // Reset form and close modal
+      setTemporaryChatData({
+        name: '',
+        description: '',
+        duration: '1hour',
+        type: 'group'
+      });
+      setShowTemporaryChatModal(false);
+      
+      // Refresh chats to show the new temporary chat
+      if (onRefresh) {
+        onRefresh();
+      }
+      
+    } catch (error) {
+      console.error('Failed to create temporary chat:', error);
+      alert(error.response?.data?.detail || 'Failed to create temporary chat');
+    }
+  };
+
   // Get user's QR code for PIN sharing
   const getMyQRCode = async () => {
     try {
