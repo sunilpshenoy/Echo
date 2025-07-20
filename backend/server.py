@@ -1258,6 +1258,203 @@ async def cleanup_expired_messages():
     now = datetime.utcnow()
     await db.messages.delete_many({"expires_at": {"$lt": now}})
 
+# Temporary Chat Utility Functions
+def calculate_expiry_time(duration: str) -> datetime:
+    """Calculate expiry time based on duration string"""
+    now = datetime.utcnow()
+    if duration == "1hour":
+        return now + timedelta(hours=1)
+    elif duration == "1day":
+        return now + timedelta(days=1)
+    elif duration == "1week":
+        return now + timedelta(weeks=1)
+    else:
+        raise ValueError(f"Invalid duration: {duration}")
+
+def get_reminder_time(expires_at: datetime) -> datetime:
+    """Calculate when to send reminder (15 minutes before expiry for 1hour, 1 hour before for longer)"""
+    now = datetime.utcnow()
+    time_remaining = expires_at - now
+    
+    if time_remaining.total_seconds() <= 3600:  # Less than 1 hour remaining
+        return expires_at - timedelta(minutes=15)
+    else:
+        return expires_at - timedelta(hours=1)
+
+async def save_chat_content_for_creator(chat_id: str, creator_id: str) -> str:
+    """Save all chat content (messages, media) for the creator before deletion"""
+    try:
+        # Get all messages from the chat
+        messages = await db.messages.find({"chat_id": chat_id}).to_list(1000)
+        chat_info = await db.chats.find_one({"chat_id": chat_id})
+        
+        # Create a temporary directory for the archive
+        with tempfile.TemporaryDirectory() as temp_dir:
+            archive_dir = f"{temp_dir}/chat_archive_{chat_id}"
+            os.makedirs(archive_dir, exist_ok=True)
+            
+            # Save chat info
+            with open(f"{archive_dir}/chat_info.json", 'w') as f:
+                chat_data = {
+                    "chat_id": chat_id,
+                    "name": chat_info.get("name", ""),
+                    "description": chat_info.get("description", ""),
+                    "created_at": chat_info.get("created_at", datetime.utcnow()).isoformat(),
+                    "members": chat_info.get("members", []),
+                    "chat_type": chat_info.get("chat_type", ""),
+                    "archived_at": datetime.utcnow().isoformat()
+                }
+                json.dump(chat_data, f, indent=2)
+            
+            # Save messages
+            messages_data = []
+            media_files = []
+            
+            for msg in messages:
+                # Convert ObjectId to string and datetime to ISO format
+                msg_data = {
+                    "message_id": msg.get("message_id", ""),
+                    "sender_id": msg.get("sender_id", ""),
+                    "content": msg.get("content", ""),
+                    "message_type": msg.get("message_type", "text"),
+                    "timestamp": msg.get("timestamp", datetime.utcnow()).isoformat(),
+                    "is_edited": msg.get("is_edited", False),
+                    "reply_to": msg.get("reply_to", None)
+                }
+                
+                # Handle media content
+                if msg.get("media_data"):
+                    media_filename = f"{msg['message_id']}.{msg.get('media_type', 'bin')}"
+                    media_path = f"{archive_dir}/{media_filename}"
+                    
+                    try:
+                        # Decode base64 media data and save
+                        media_content = base64.b64decode(msg["media_data"])
+                        with open(media_path, 'wb') as f:
+                            f.write(media_content)
+                        msg_data["media_file"] = media_filename
+                        media_files.append(media_filename)
+                    except Exception as e:
+                        print(f"Failed to save media for message {msg['message_id']}: {e}")
+                
+                messages_data.append(msg_data)
+            
+            # Save messages to JSON
+            with open(f"{archive_dir}/messages.json", 'w') as f:
+                json.dump(messages_data, f, indent=2)
+            
+            # Create ZIP archive
+            archive_filename = f"chat_archive_{chat_id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.zip"
+            archive_path = f"/tmp/{archive_filename}"
+            
+            with zipfile.ZipFile(archive_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                for root, dirs, files in os.walk(archive_dir):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        arcname = os.path.relpath(file_path, archive_dir)
+                        zipf.write(file_path, arcname)
+            
+            return archive_path
+    
+    except Exception as e:
+        print(f"Failed to save chat content for creator: {e}")
+        return None
+
+async def cleanup_expired_chats():
+    """Clean up expired temporary chats"""
+    now = datetime.utcnow()
+    
+    # Find chats that are about to expire (send reminders first)
+    reminder_threshold = now + timedelta(minutes=15)  # 15 minutes from now
+    chats_needing_reminders = await db.chats.find({
+        "is_temporary": True,
+        "expires_at": {"$lte": reminder_threshold, "$gt": now},
+        "reminder_sent": False
+    }).to_list(100)
+    
+    # Send reminders
+    for chat in chats_needing_reminders:
+        try:
+            # Mark reminder as sent
+            await db.chats.update_one(
+                {"chat_id": chat["chat_id"]},
+                {"$set": {"reminder_sent": True}}
+            )
+            
+            # Send reminder notification to all members
+            reminder_message = {
+                "message_id": str(uuid.uuid4()),
+                "chat_id": chat["chat_id"],
+                "sender_id": "system",
+                "content": f"⏰ This temporary chat will expire in {format_time_remaining(chat['expires_at'])}. You can extend it if needed.",
+                "message_type": "system",
+                "timestamp": now,
+                "is_system": True
+            }
+            await db.messages.insert_one(reminder_message)
+            
+            # Notify through WebSocket if available
+            if hasattr(manager, 'broadcast_to_chat'):
+                await manager.broadcast_to_chat(chat["chat_id"], {
+                    "type": "expiry_reminder",
+                    "message": reminder_message,
+                    "expires_at": chat["expires_at"].isoformat()
+                })
+                
+        except Exception as e:
+            print(f"Failed to send reminder for chat {chat['chat_id']}: {e}")
+    
+    # Find and clean up expired chats
+    expired_chats = await db.chats.find({
+        "is_temporary": True,
+        "expires_at": {"$lt": now}
+    }).to_list(100)
+    
+    for chat in expired_chats:
+        try:
+            # Save content for creator
+            if chat.get("created_by"):
+                archive_path = await save_chat_content_for_creator(chat["chat_id"], chat["created_by"])
+                if archive_path:
+                    # Update user's saved archives list
+                    await db.users.update_one(
+                        {"user_id": chat["created_by"]},
+                        {"$push": {"saved_chat_archives": {
+                            "chat_id": chat["chat_id"],
+                            "chat_name": chat.get("name", ""),
+                            "archive_path": archive_path,
+                            "archived_at": now,
+                            "expires_at": now + timedelta(days=30)  # Keep archives for 30 days
+                        }}}
+                    )
+            
+            # Delete all messages in the chat
+            await db.messages.delete_many({"chat_id": chat["chat_id"]})
+            
+            # Delete the chat itself
+            await db.chats.delete_one({"chat_id": chat["chat_id"]})
+            
+            print(f"✅ Cleaned up expired temporary chat: {chat['chat_id']}")
+            
+        except Exception as e:
+            print(f"Failed to cleanup expired chat {chat['chat_id']}: {e}")
+
+def format_time_remaining(expires_at: datetime) -> str:
+    """Format time remaining until expiry"""
+    now = datetime.utcnow()
+    remaining = expires_at - now
+    
+    if remaining.days > 0:
+        return f"{remaining.days} day{'s' if remaining.days != 1 else ''}"
+    elif remaining.seconds > 3600:
+        hours = remaining.seconds // 3600
+        return f"{hours} hour{'s' if hours != 1 else ''}"
+    elif remaining.seconds > 60:
+        minutes = remaining.seconds // 60
+        return f"{minutes} minute{'s' if minutes != 1 else ''}"
+    else:
+        return "less than a minute"
+
 async def cleanup_expired_stories():
     """Clean up expired stories"""
     now = datetime.utcnow()
