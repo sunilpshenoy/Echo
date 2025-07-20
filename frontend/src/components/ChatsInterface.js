@@ -2601,6 +2601,31 @@ const ChatsInterface = ({
                     >
                       📎
                     </button>
+
+                    {/* Extend Temporary Chat Button (only for temporary chats) */}
+                    {chat.is_temporary && !chat.temporary_info?.is_expired && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const extendOptions = ['1hour', '1day', '1week'];
+                          const selectedDuration = prompt(
+                            `Extend this temporary chat by:\n1. 1 hour\n2. 1 day\n3. 1 week\n\nEnter your choice (1-3):`,
+                            '2'
+                          );
+                          
+                          const durationMap = { '1': '1hour', '2': '1day', '3': '1week' };
+                          const duration = durationMap[selectedDuration] || '1day';
+                          
+                          if (selectedDuration && ['1', '2', '3'].includes(selectedDuration)) {
+                            extendTemporaryChat(chat.chat_id, duration);
+                          }
+                        }}
+                        className="p-2 rounded-lg text-orange-500 hover:text-orange-600 hover:bg-orange-50 transition-all"
+                        title="Extend temporary chat duration"
+                      >
+                        ⏱️
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
