@@ -2544,6 +2544,16 @@ const ChatsInterface = ({
                 >
                   Email
                 </button>
+                <button
+                  onClick={() => setAddContactMethod('phone')}
+                  className={`flex-1 py-2 px-3 rounded text-sm font-medium ${
+                    addContactMethod === 'phone' 
+                      ? 'bg-blue-500 text-white' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  Phone
+                </button>
               </div>
 
               {addContactMethod === 'pin' ? (
