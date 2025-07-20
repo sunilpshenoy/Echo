@@ -2947,6 +2947,226 @@ async def create_chat(chat_data: dict, current_user = Depends(get_current_user))
     
     return serialize_mongo_doc(chat_dict)
 
+@api_router.post("/chats/temporary")
+async def create_temporary_chat(chat_data: TemporaryChatCreate, current_user = Depends(get_current_user)):
+    """Create a new temporary chat"""
+    try:
+        # Validate expiry duration
+        if chat_data.expiry_duration not in ["1hour", "1day", "1week"]:
+            raise HTTPException(status_code=400, detail="Invalid expiry_duration. Must be '1hour', '1day', or '1week'")
+        
+        if chat_data.chat_type == "direct":
+            if len(chat_data.members) != 1:
+                raise HTTPException(status_code=400, detail="Direct temporary chat requires exactly 1 other member")
+            
+            other_user_id = chat_data.members[0]
+            
+            # Check if users are blocked
+            block_check = await db.blocked_users.find_one({
+                "$or": [
+                    {"user_id": current_user["user_id"], "blocked_user_id": other_user_id},
+                    {"user_id": other_user_id, "blocked_user_id": current_user["user_id"]}
+                ]
+            })
+            if block_check:
+                raise HTTPException(status_code=403, detail="Cannot create chat with blocked user")
+            
+            members = [current_user["user_id"], other_user_id]
+            chat_name = f"T {chat_data.name}" if not chat_data.name.startswith("T ") else chat_data.name
+            
+        elif chat_data.chat_type == "group":
+            if len(chat_data.members) < 2:
+                raise HTTPException(status_code=400, detail="Group temporary chat requires at least 2 other members")
+            
+            members = chat_data.members[:]
+            if current_user["user_id"] not in members:
+                members.append(current_user["user_id"])
+            
+            chat_name = f"T {chat_data.name}" if not chat_data.name.startswith("T ") else chat_data.name
+        else:
+            raise HTTPException(status_code=400, detail="Invalid chat_type for temporary chat")
+        
+        # Calculate expiry time
+        expires_at = calculate_expiry_time(chat_data.expiry_duration)
+        
+        # Create temporary chat
+        chat = Chat(
+            chat_type=chat_data.chat_type,
+            name=chat_name,
+            description=chat_data.description,
+            members=members,
+            admins=[current_user["user_id"]],
+            created_by=current_user["user_id"],
+            is_temporary=True,
+            expires_at=expires_at,
+            expiry_duration=chat_data.expiry_duration,
+            reminder_sent=False
+        )
+        
+        chat_dict = chat.dict()
+        await db.chats.insert_one(chat_dict)
+        
+        # Create initial system message
+        welcome_message = {
+            "message_id": str(uuid.uuid4()),
+            "chat_id": chat.chat_id,
+            "sender_id": "system",
+            "content": f"🕒 This is a temporary chat that will expire in {format_time_remaining(expires_at)}. Content will be saved for the creator.",
+            "message_type": "system",
+            "timestamp": datetime.utcnow(),
+            "is_system": True,
+            "is_encrypted": False
+        }
+        await db.messages.insert_one(welcome_message)
+        
+        # Notify other members via WebSocket
+        for member_id in chat.members:
+            if member_id != current_user["user_id"]:
+                await manager.send_personal_message(
+                    json.dumps({
+                        "type": "new_temporary_chat",
+                        "data": serialize_mongo_doc(chat_dict),
+                        "expires_at": expires_at.isoformat(),
+                        "duration": chat_data.expiry_duration
+                    }),
+                    member_id
+                )
+        
+        return {
+            "chat": serialize_mongo_doc(chat_dict),
+            "expires_at": expires_at.isoformat(),
+            "time_remaining": format_time_remaining(expires_at)
+        }
+        
+    except Exception as e:
+        print(f"Error creating temporary chat: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create temporary chat")
+
+@api_router.post("/chats/{chat_id}/extend")
+async def extend_temporary_chat(chat_id: str, extend_data: ExtendChatRequest, current_user = Depends(get_current_user)):
+    """Extend a temporary chat's expiry time"""
+    try:
+        # Validate extension duration
+        if extend_data.extension_duration not in ["1hour", "1day", "1week"]:
+            raise HTTPException(status_code=400, detail="Invalid extension_duration. Must be '1hour', '1day', or '1week'")
+        
+        # Find the chat
+        chat = await db.chats.find_one({"chat_id": chat_id})
+        if not chat:
+            raise HTTPException(status_code=404, detail="Chat not found")
+        
+        # Verify user is a member
+        if current_user["user_id"] not in chat["members"]:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        # Verify it's a temporary chat
+        if not chat.get("is_temporary", False):
+            raise HTTPException(status_code=400, detail="Only temporary chats can be extended")
+        
+        # Calculate new expiry time (extend from current expiry, not from now)
+        current_expiry = chat.get("expires_at", datetime.utcnow())
+        if isinstance(current_expiry, str):
+            current_expiry = datetime.fromisoformat(current_expiry.replace('Z', '+00:00'))
+        
+        extension_delta = timedelta()
+        if extend_data.extension_duration == "1hour":
+            extension_delta = timedelta(hours=1)
+        elif extend_data.extension_duration == "1day":
+            extension_delta = timedelta(days=1)
+        elif extend_data.extension_duration == "1week":
+            extension_delta = timedelta(weeks=1)
+        
+        new_expiry = current_expiry + extension_delta
+        
+        # Update the chat
+        await db.chats.update_one(
+            {"chat_id": chat_id},
+            {
+                "$set": {
+                    "expires_at": new_expiry,
+                    "reminder_sent": False  # Reset reminder flag
+                }
+            }
+        )
+        
+        # Create system message about extension
+        extension_message = {
+            "message_id": str(uuid.uuid4()),
+            "chat_id": chat_id,
+            "sender_id": "system",
+            "content": f"🔄 Chat extended by {extend_data.extension_duration.replace('1', '1 ')}. New expiry: {format_time_remaining(new_expiry)}",
+            "message_type": "system",
+            "timestamp": datetime.utcnow(),
+            "is_system": True,
+            "is_encrypted": False
+        }
+        await db.messages.insert_one(extension_message)
+        
+        # Notify all members
+        for member_id in chat["members"]:
+            await manager.send_personal_message(
+                json.dumps({
+                    "type": "chat_extended",
+                    "chat_id": chat_id,
+                    "new_expires_at": new_expiry.isoformat(),
+                    "extension": extend_data.extension_duration,
+                    "message": extension_message
+                }),
+                member_id
+            )
+        
+        return {
+            "success": True,
+            "new_expires_at": new_expiry.isoformat(),
+            "time_remaining": format_time_remaining(new_expiry),
+            "extended_by": extend_data.extension_duration
+        }
+        
+    except Exception as e:
+        print(f"Error extending temporary chat: {e}")
+        raise HTTPException(status_code=500, detail="Failed to extend temporary chat")
+
+@api_router.get("/chats/{chat_id}/status")
+async def get_chat_status(chat_id: str, current_user = Depends(get_current_user)):
+    """Get status of a chat (especially for temporary chats)"""
+    try:
+        # Find the chat
+        chat = await db.chats.find_one({"chat_id": chat_id})
+        if not chat:
+            raise HTTPException(status_code=404, detail="Chat not found")
+        
+        # Verify user is a member
+        if current_user["user_id"] not in chat["members"]:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        response = {
+            "chat_id": chat_id,
+            "is_temporary": chat.get("is_temporary", False),
+            "chat_type": chat.get("chat_type", ""),
+            "name": chat.get("name", ""),
+            "members_count": len(chat.get("members", []))
+        }
+        
+        if chat.get("is_temporary", False):
+            expires_at = chat.get("expires_at")
+            if expires_at:
+                if isinstance(expires_at, str):
+                    expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+                
+                response.update({
+                    "expires_at": expires_at.isoformat(),
+                    "time_remaining": format_time_remaining(expires_at),
+                    "expiry_duration": chat.get("expiry_duration", ""),
+                    "is_expired": expires_at < datetime.utcnow(),
+                    "created_by": chat.get("created_by", "")
+                })
+        
+        return response
+        
+    except Exception as e:
+        print(f"Error getting chat status: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get chat status")
+
 @api_router.get("/chats/{chat_id}/messages")
 async def get_chat_messages(chat_id: str, current_user = Depends(get_current_user)):
     """Get messages for a specific chat"""
