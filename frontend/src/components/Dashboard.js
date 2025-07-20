@@ -341,7 +341,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
       // Fetch connections for discover tab
       fetchConnections();
     }
-  }, [activeTab]);
+  }, [activeTab, api, token]); // Added dependencies to prevent issues
 
   // Theme application function
   const applyThemeStyles = (theme) => {
