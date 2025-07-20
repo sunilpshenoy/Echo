@@ -2495,12 +2495,29 @@ const ChatsInterface = ({
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">
-                        {chat.other_user?.display_name || chat.other_user?.username || chat.name || 'Unknown Contact'}
-                      </p>
-                      <p className="text-sm text-gray-600 truncate">
-                        {chat.last_message?.content || t('chat.noMessages')}
-                      </p>
+                      <div className="flex items-center space-x-2">
+                        <p className="font-medium text-gray-900 truncate">
+                          {chat.other_user?.display_name || chat.other_user?.username || chat.name || 'Unknown Contact'}
+                        </p>
+                        {chat.is_temporary && (
+                          <div className="flex items-center space-x-1">
+                            <span className="text-purple-600 text-xs">⏰</span>
+                            {chat.temporary_info && (
+                              <span className="text-xs text-purple-600 font-medium">
+                                {chat.temporary_info.time_remaining}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-gray-600 truncate flex-1">
+                          {chat.last_message?.content || t('chat.noMessages')}
+                        </p>
+                        {chat.is_temporary && chat.temporary_info?.is_expired && (
+                          <span className="text-xs text-red-500 font-medium ml-2">Expired</span>
+                        )}
+                      </div>
                     </div>
                     <div className="text-xs text-gray-500">
                       {chat.last_message?.created_at && formatTime(chat.last_message.created_at)}
