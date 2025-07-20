@@ -1478,6 +1478,7 @@ async def cleanup_task():
         await cleanup_expired_messages()
         await cleanup_expired_stories()
         await cleanup_expired_backups()
+        await cleanup_expired_chats()  # Add temporary chat cleanup
         await asyncio.sleep(300)  # Run every 5 minutes
 
 # Authentication routes
