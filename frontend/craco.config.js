@@ -115,12 +115,18 @@ module.exports = {
     },
   },
   devServer: {
-    headers: {
-      'X-Content-Type-Options': 'nosniff',
-      'X-Frame-Options': 'DENY',
-      'X-XSS-Protection': '1; mode=block',
-      'Referrer-Policy': 'strict-origin-when-cross-origin',
-      'Content-Security-Policy': "default-src 'self' *; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' *; img-src 'self' data: https: http:; font-src 'self' *; connect-src 'self' https: http: ws: wss: *; frame-ancestors 'none';",
+    setupMiddlewares: (middlewares, devServer) => {
+      // Set security headers
+      devServer.app.use((req, res, next) => {
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-Frame-Options', 'DENY');
+        res.setHeader('X-XSS-Protection', '1; mode=block');
+        res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+        res.setHeader('Content-Security-Policy', "default-src 'self' *; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' *; img-src 'self' data: https: http:; font-src 'self' *; connect-src 'self' https: http: ws: wss: *; frame-ancestors 'none';");
+        next();
+      });
+      
+      return middlewares;
     },
   },
 };
