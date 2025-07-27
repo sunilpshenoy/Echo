@@ -38,6 +38,10 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const [authenticityDetails, setAuthenticityDetails] = useState(null);
   const [isLoadingAuthenticity, setIsLoadingAuthenticity] = useState(false);
   
+  // Calendar and Calculator Modal States
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [showCalculatorModal, setShowCalculatorModal] = useState(false);
+  
   // Theme customization state
   const [showThemeCustomizer, setShowThemeCustomizer] = useState(false);
   const [currentTheme, setCurrentTheme] = useState('default');
