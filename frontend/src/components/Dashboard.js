@@ -451,6 +451,27 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
             </div>
             
             <div className="flex items-center space-x-4">
+              {/* Calendar with Planner Icon */}
+              <button
+                onClick={() => setShowCalendarModal(true)}
+                className="text-gray-600 hover:text-blue-600 p-2 transition-colors"
+                title="Calendar & Planner"
+                aria-label="Open calendar and planner"
+              >
+                📅
+              </button>
+              
+              {/* Calculator Icon */}
+              <button
+                onClick={() => setShowCalculatorModal(true)}
+                className="text-gray-600 hover:text-green-600 p-2 transition-colors"
+                title="Calculator"
+                aria-label="Open calculator"
+              >
+                🧮
+              </button>
+              
+              {/* Logout Button */}
               <button
                 onClick={onLogout}
                 className="text-gray-600 hover:text-gray-800 p-2"
