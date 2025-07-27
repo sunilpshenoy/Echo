@@ -12,6 +12,12 @@ import axios from 'axios';
   const [loading, setLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [myListings, setMyListings] = useState([]);
+  
+  // Check if profile is complete for marketplace access
+  const isProfileComplete = user && (
+    user.profile_completed || 
+    (user.display_name && user.age && user.location)
+  );
 
   // Emergency close function
   const closeCreateModal = () => {
