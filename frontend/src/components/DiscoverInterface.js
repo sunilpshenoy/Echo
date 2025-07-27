@@ -17,6 +17,12 @@ const DiscoverInterface = ({
   const { t } = useTranslation();
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [activeDiscoverTab, setActiveDiscoverTab] = useState('discovery');
+  
+  // Check if profile is complete for premium features
+  const isProfileComplete = user && (
+    user.profile_completed || 
+    (user.display_name && user.age && user.location)
+  );
 
   if (!isPremium) {
     return (
