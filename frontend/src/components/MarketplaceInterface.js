@@ -533,6 +533,34 @@ import axios from 'axios';
       <div className="bg-white border-b border-gray-200 p-4">
         <h2 className="text-xl font-bold text-gray-900 mb-4">🛒 Marketplace</h2>
         
+        {/* Profile Setup Message */}
+        {!isProfileComplete && (
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0">
+                <span className="text-orange-500 text-lg">⚠️</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-orange-800 mb-1">
+                  Complete Your Profile to Access Marketplace
+                </h3>
+                <p className="text-sm text-orange-700 mb-3">
+                  To buy, sell, or trade items, please complete your profile with basic information like display name, age, and location.
+                </p>
+                <button
+                  onClick={() => {
+                    // This would trigger profile setup - integrate with existing profile setup
+                    alert('Profile setup functionality - integrate with existing profile setup system');
+                  }}
+                  className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
+                >
+                  Complete Profile
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Navigation tabs */}
         <div className="flex space-x-4 mb-4">
           <button
