@@ -947,6 +947,212 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
         </div>
       )}
 
+      {/* Calendar & Planner Modal */}
+      {showCalendarModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                  📅 Calendar & Planner
+                </h2>
+                <button
+                  onClick={() => setShowCalendarModal(false)}
+                  className="text-gray-500 hover:text-gray-700 text-xl"
+                  aria-label="Close calendar"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Calendar Section */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                    📆 Calendar
+                  </h3>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-gray-800">
+                        {new Date().toLocaleDateString('en-US', { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </div>
+                      <div className="text-sm text-gray-600 mt-2">
+                        {new Date().toLocaleTimeString('en-US', { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
+                      </div>
+                    </div>
+                    
+                    {/* Quick Date Navigation */}
+                    <div className="grid grid-cols-7 gap-1 mt-4 text-xs">
+                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                        <div key={day} className="text-center p-2 font-medium text-gray-600">
+                          {day}
+                        </div>
+                      ))}
+                      {Array.from({length: 35}, (_, i) => {
+                        const date = new Date();
+                        const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+                        const startingDay = firstDay.getDay();
+                        const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+                        const currentDay = i - startingDay + 1;
+                        const isCurrentMonth = currentDay > 0 && currentDay <= daysInMonth;
+                        const isToday = isCurrentMonth && currentDay === date.getDate();
+                        
+                        return (
+                          <div 
+                            key={i} 
+                            className={`text-center p-2 hover:bg-blue-100 cursor-pointer rounded ${
+                              isToday ? 'bg-blue-500 text-white' : ''
+                            } ${isCurrentMonth ? 'text-gray-800' : 'text-gray-300'}`}
+                          >
+                            {isCurrentMonth ? currentDay : ''}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  
+                  {/* Quick Actions */}
+                  <div className="space-y-2">
+                    <button className="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition-colors">
+                      📅 Schedule Event
+                    </button>
+                    <button className="w-full bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition-colors">
+                      🔔 Set Reminder
+                    </button>
+                  </div>
+                </div>
+
+                {/* Planner Section */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                    📝 Today's Tasks
+                  </h3>
+                  <div className="bg-gray-50 rounded-lg p-4 min-h-[300px]">
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <input type="checkbox" className="w-4 h-4" />
+                        <span className="text-gray-700">Review chat messages</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input type="checkbox" className="w-4 h-4" />
+                        <span className="text-gray-700">Plan weekend activities</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input type="checkbox" className="w-4 h-4" />
+                        <span className="text-gray-700">Update profile information</span>
+                      </div>
+                      
+                      {/* Add Task Input */}
+                      <div className="border-t pt-3 mt-4">
+                        <div className="flex space-x-2">
+                          <input 
+                            type="text" 
+                            placeholder="Add new task..." 
+                            className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                          <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                            ➕
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Planner Actions */}
+                  <div className="space-y-2">
+                    <button className="w-full bg-purple-500 text-white p-3 rounded-lg hover:bg-purple-600 transition-colors">
+                      📋 Create Task List
+                    </button>
+                    <button className="w-full bg-orange-500 text-white p-3 rounded-lg hover:bg-orange-600 transition-colors">
+                      🎯 Set Goals
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Calculator Modal */}
+      {showCalculatorModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                  🧮 Calculator
+                </h2>
+                <button
+                  onClick={() => setShowCalculatorModal(false)}
+                  className="text-gray-500 hover:text-gray-700 text-xl"
+                  aria-label="Close calculator"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="bg-gray-50 rounded-lg p-4">
+                {/* Calculator Display */}
+                <div className="bg-black text-white text-right text-2xl p-4 rounded-lg mb-4 font-mono">
+                  <div id="calculator-display">0</div>
+                </div>
+                
+                {/* Calculator Buttons */}
+                <div className="grid grid-cols-4 gap-2">
+                  {/* Row 1 */}
+                  <button className="bg-gray-300 hover:bg-gray-400 p-4 rounded-lg font-semibold transition-colors" onClick={() => calculatorAction('clear')}>C</button>
+                  <button className="bg-gray-300 hover:bg-gray-400 p-4 rounded-lg font-semibold transition-colors" onClick={() => calculatorAction('±')}>±</button>
+                  <button className="bg-gray-300 hover:bg-gray-400 p-4 rounded-lg font-semibold transition-colors" onClick={() => calculatorAction('%')}>%</button>
+                  <button className="bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-lg font-semibold transition-colors" onClick={() => calculatorAction('÷')}>÷</button>
+                  
+                  {/* Row 2 */}
+                  <button className="bg-gray-200 hover:bg-gray-300 p-4 rounded-lg font-semibold transition-colors" onClick={() => calculatorAction('7')}>7</button>
+                  <button className="bg-gray-200 hover:bg-gray-300 p-4 rounded-lg font-semibold transition-colors" onClick={() => calculatorAction('8')}>8</button>
+                  <button className="bg-gray-200 hover:bg-gray-300 p-4 rounded-lg font-semibold transition-colors" onClick={() => calculatorAction('9')}>9</button>
+                  <button className="bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-lg font-semibold transition-colors" onClick={() => calculatorAction('×')}>×</button>
+                  
+                  {/* Row 3 */}
+                  <button className="bg-gray-200 hover:bg-gray-300 p-4 rounded-lg font-semibold transition-colors" onClick={() => calculatorAction('4')}>4</button>
+                  <button className="bg-gray-200 hover:bg-gray-300 p-4 rounded-lg font-semibold transition-colors" onClick={() => calculatorAction('5')}>5</button>
+                  <button className="bg-gray-200 hover:bg-gray-300 p-4 rounded-lg font-semibold transition-colors" onClick={() => calculatorAction('6')}>6</button>
+                  <button className="bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-lg font-semibold transition-colors" onClick={() => calculatorAction('-')}>-</button>
+                  
+                  {/* Row 4 */}
+                  <button className="bg-gray-200 hover:bg-gray-300 p-4 rounded-lg font-semibold transition-colors" onClick={() => calculatorAction('1')}>1</button>
+                  <button className="bg-gray-200 hover:bg-gray-300 p-4 rounded-lg font-semibold transition-colors" onClick={() => calculatorAction('2')}>2</button>
+                  <button className="bg-gray-200 hover:bg-gray-300 p-4 rounded-lg font-semibold transition-colors" onClick={() => calculatorAction('3')}>3</button>
+                  <button className="bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-lg font-semibold transition-colors" onClick={() => calculatorAction('+')}>+</button>
+                  
+                  {/* Row 5 */}
+                  <button className="bg-gray-200 hover:bg-gray-300 p-4 rounded-lg font-semibold col-span-2 transition-colors" onClick={() => calculatorAction('0')}>0</button>
+                  <button className="bg-gray-200 hover:bg-gray-300 p-4 rounded-lg font-semibold transition-colors" onClick={() => calculatorAction('.')}>.</button>
+                  <button className="bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-lg font-semibold transition-colors" onClick={() => calculatorAction('=')}>=</button>
+                </div>
+                
+                {/* Quick Actions */}
+                <div className="mt-4 space-y-2">
+                  <button className="w-full bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors text-sm">
+                    💬 Share Result in Chat
+                  </button>
+                  <button className="w-full bg-green-500 text-white p-2 rounded-lg hover:bg-green-600 transition-colors text-sm">
+                    💰 Split Bill Calculator
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Theme Customizer Modal */}
       {showThemeCustomizer && (
         <ThemeCustomizer
