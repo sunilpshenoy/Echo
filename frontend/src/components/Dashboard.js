@@ -351,6 +351,57 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
     }
   };
 
+  // Calculator functionality
+  const calculatorAction = (action) => {
+    const display = document.getElementById('calculator-display');
+    if (!display) return;
+    
+    const currentValue = display.textContent;
+    
+    switch (action) {
+      case 'clear':
+        display.textContent = '0';
+        break;
+      case '=':
+        try {
+          // Replace display symbols with JavaScript operators
+          const expression = currentValue
+            .replace(/×/g, '*')
+            .replace(/÷/g, '/')
+            .replace(/−/g, '-');
+          const result = eval(expression);
+          display.textContent = result.toString();
+        } catch (error) {
+          display.textContent = 'Error';
+        }
+        break;
+      case '±':
+        if (currentValue !== '0') {
+          display.textContent = currentValue.startsWith('-') 
+            ? currentValue.slice(1) 
+            : '-' + currentValue;
+        }
+        break;
+      case '%':
+        try {
+          const result = parseFloat(currentValue) / 100;
+          display.textContent = result.toString();
+        } catch (error) {
+          display.textContent = 'Error';
+        }
+        break;
+      default:
+        if (currentValue === '0' && !isNaN(action)) {
+          display.textContent = action;
+        } else if (currentValue === 'Error') {
+          display.textContent = action;
+        } else {
+          display.textContent = currentValue + action;
+        }
+        break;
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'chats') {
       fetchChats();
