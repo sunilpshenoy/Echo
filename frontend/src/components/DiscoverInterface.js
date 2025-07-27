@@ -177,6 +177,34 @@ const DiscoverInterface = ({
           </button>
         )}
 
+        {/* Profile Setup Message for Premium Users */}
+        {isPremium && !isProfileComplete && (
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mt-3">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0">
+                <span className="text-purple-500 text-lg">⚠️</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-purple-800 mb-1">
+                  Complete Your Profile to Access Premium Features
+                </h3>
+                <p className="text-sm text-purple-700 mb-3">
+                  To discover people safely and access advanced trust features, please complete your profile with basic information.
+                </p>
+                <button
+                  onClick={() => {
+                    // This would trigger profile setup - integrate with existing profile setup
+                    alert('Profile setup functionality - integrate with existing profile setup system');
+                  }}
+                  className="bg-purple-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-600 transition-colors"
+                >
+                  Complete Profile
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Discovery Sub-Tabs */}
         <div className="flex mt-3 border-b">
           {[
