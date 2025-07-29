@@ -100,17 +100,17 @@ echo "🔵 DEV-ONLY: Accept calculated risk"
 
 echo ""
 echo "📊 SECURITY SCORE CALCULATION:"
-TOTAL_VULN=$((CRITICAL_COUNT + HIGH_COUNT + MODERATE_COUNT + LOW_COUNT))
-RISK_SCORE=$((CRITICAL_COUNT * 10 + HIGH_COUNT * 5 + MODERATE_COUNT * 2 + LOW_COUNT * 1))
+TOTAL_VULN=$((${CRITICAL_COUNT:-0} + ${HIGH_COUNT:-0} + ${MODERATE_COUNT:-0} + ${LOW_COUNT:-0}))
+RISK_SCORE=$((${CRITICAL_COUNT:-0} * 10 + ${HIGH_COUNT:-0} * 5 + ${MODERATE_COUNT:-0} * 2 + ${LOW_COUNT:-0} * 1))
 
-if [ $RISK_SCORE -eq 0 ]; then
+if [ ${RISK_SCORE:-0} -eq 0 ]; then
     echo "🟢 EXCELLENT (0 risk points) - Production ready"
-elif [ $RISK_SCORE -lt 10 ]; then
-    echo "🟡 GOOD ($RISK_SCORE risk points) - Acceptable for production"
-elif [ $RISK_SCORE -lt 30 ]; then
-    echo "🟠 MODERATE ($RISK_SCORE risk points) - Address high-priority issues"
+elif [ ${RISK_SCORE:-0} -lt 10 ]; then
+    echo "🟡 GOOD (${RISK_SCORE} risk points) - Acceptable for production"
+elif [ ${RISK_SCORE:-0} -lt 30 ]; then
+    echo "🟠 MODERATE (${RISK_SCORE} risk points) - Address high-priority issues"
 else
-    echo "🔴 HIGH RISK ($RISK_SCORE risk points) - Immediate attention required"
+    echo "🔴 HIGH RISK (${RISK_SCORE} risk points) - Immediate attention required"
 fi
 
 echo ""
