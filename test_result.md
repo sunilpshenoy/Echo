@@ -141,9 +141,12 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Fix 'chats loading all the time' infinite loading issue"
-    - "Mobile contact addition functionality"
-    - "Authentication and navigation system"
+    - "Games Tab Navigation"
+    - "Games Hub Interface"
+    - "Game Room Management"
+    - "Available Games Display"
+    - "Real-time WebSocket Features"
+    - "Game Components Integration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
