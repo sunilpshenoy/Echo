@@ -160,12 +160,8 @@ metadata:
 test_plan:
   current_focus:
     - "Games Tab Navigation"
-    - "Games Hub Interface"
-    - "Game Room Management"
-    - "Available Games Display"
-    - "Real-time WebSocket Features"
-    - "Game Components Integration"
-  stuck_tasks: []
+  stuck_tasks:
+    - "Games Tab Navigation"
   test_all: false
   test_priority: "high_first"
 ## backend:
