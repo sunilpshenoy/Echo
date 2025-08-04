@@ -561,12 +561,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
             ].map(tab => (
               <button
                 key={tab.id}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('🎮 Button clicked for tab:', tab.id);
-                  handleTabSelection(tab.id);
-                }}
+                onClick={() => handleTabSelection(tab.id)}
                 className={`flex items-center space-x-2 px-6 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'border-purple-500 text-purple-700 bg-purple-50 font-semibold'
