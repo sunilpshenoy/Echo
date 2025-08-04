@@ -59,7 +59,7 @@ class GamesSystemTester:
                 self.token = data.get("access_token")
                 self.user_id = data.get("user", {}).get("user_id")
                 self.log_test("User Registration", True, f"New user created: {TEST_USER_EMAIL}", response_time)
-            elif response.status_code == 400 and "already exists" in response.text:
+            elif response.status_code == 400 and ("already exists" in response.text or "already registered" in response.text):
                 # User exists, try to login
                 self.log_test("User Registration", True, "User already exists, proceeding to login", response_time)
             else:
