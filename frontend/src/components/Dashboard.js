@@ -616,14 +616,11 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
             )}
             
             {activeTab === 'games' && (
-              <>
-                {console.log('🎮 Rendering GamesInterface, activeTab:', activeTab)}
-                <GamesInterface 
-                  user={user}
-                  token={token}
-                  api={api}
-                />
-              </>
+              <GamesInterface 
+                user={user}
+                token={token}
+                api={api}
+              />
             )}
             
             {activeTab === 'teams' && (
