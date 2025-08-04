@@ -13,7 +13,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://a205b7e3-f535-4569-8dd8-c1f8fc23e5dc.preview.emergentagent.com/api"
+BASE_URL = "https://d2ce893b-8b01-49a3-8aed-a13ce7bbac25.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "contextual_test@example.com"
 TEST_USER_PASSWORD = "TestPassword123!"
 TEST_USER_USERNAME = "contextual_tester"

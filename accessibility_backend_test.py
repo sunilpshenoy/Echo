@@ -22,7 +22,7 @@ import os
 from datetime import datetime
 
 # Get backend URL from environment
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://a205b7e3-f535-4569-8dd8-c1f8fc23e5dc.preview.emergentagent.com')
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://d2ce893b-8b01-49a3-8aed-a13ce7bbac25.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class AccessibilityBackendTester:
