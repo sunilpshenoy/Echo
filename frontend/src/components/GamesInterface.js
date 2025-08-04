@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import io from 'socket.io-client';
-import TicTacToeGame from './games/TicTacToe';
+import TicTacToeGame from './games/TicTacToeGame';
 import WordGuessGame from './games/WordGuessGame';
 import LudoGame from './games/LudoGame';
 import MafiaGame from './games/MafiaGame';
