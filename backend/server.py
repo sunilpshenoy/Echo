@@ -9190,6 +9190,411 @@ logger = logging.getLogger(__name__)
 # Include the router in the main app after all endpoints are defined
 app.include_router(api_router)
 
+# Games System Endpoints
+@api_router.get("/games/rooms")
+async def get_game_rooms(current_user = Depends(get_current_user)):
+    """Get all active game rooms"""
+    try:
+        rooms = await db.game_rooms.find({
+            "status": {"$in": ["waiting", "playing"]}
+        }).sort("created_at", -1).to_list(100)
+        
+        # Add player names and current status
+        for room in rooms:
+            # Get player names
+            player_names = {}
+            for player_id in room.get("players", []):
+                player = await db.users.find_one({"user_id": player_id})
+                if player:
+                    player_names[player_id] = player.get("display_name", player["username"])
+            
+            room["player_names"] = player_names
+            room["current_players"] = len(room.get("players", []))
+            room["is_joined"] = current_user["user_id"] in room.get("players", [])
+        
+        return serialize_mongo_doc(rooms)
+        
+    except Exception as e:
+        logging.error(f"Get game rooms error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch game rooms")
+
+@api_router.post("/games/rooms/create")
+async def create_game_room(room_data: dict, current_user = Depends(get_current_user)):
+    """Create a new game room"""
+    try:
+        room = {
+            "room_id": str(uuid.uuid4()),
+            "name": room_data["name"],
+            "game_type": room_data["gameType"],
+            "max_players": room_data.get("maxPlayers", 4),
+            "is_private": room_data.get("isPrivate", False),
+            "password": room_data.get("password"),
+            "created_by": current_user["user_id"],
+            "players": [current_user["user_id"]],
+            "spectators": [],
+            "status": "waiting",  # waiting, playing, finished
+            "game_state": {},
+            "created_at": datetime.utcnow(),
+            "started_at": None,
+            "finished_at": None
+        }
+        
+        await db.game_rooms.insert_one(room)
+        return serialize_mongo_doc(room)
+        
+    except Exception as e:
+        logging.error(f"Create game room error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create game room")
+
+@api_router.post("/games/rooms/{room_id}/join")
+async def join_game_room(room_id: str, current_user = Depends(get_current_user)):
+    """Join a game room"""
+    try:
+        room = await db.game_rooms.find_one({"room_id": room_id})
+        if not room:
+            raise HTTPException(status_code=404, detail="Game room not found")
+        
+        if room["status"] != "waiting":
+            raise HTTPException(status_code=400, detail="Game already started")
+        
+        players = room.get("players", [])
+        if current_user["user_id"] in players:
+            raise HTTPException(status_code=400, detail="Already in room")
+        
+        if len(players) >= room.get("max_players", 4):
+            # Add to spectators if room is full
+            await db.game_rooms.update_one(
+                {"room_id": room_id},
+                {"$push": {"spectators": current_user["user_id"]}}
+            )
+            return {"status": "joined_as_spectator"}
+        else:
+            # Add to players
+            await db.game_rooms.update_one(
+                {"room_id": room_id},
+                {"$push": {"players": current_user["user_id"]}}
+            )
+            return {"status": "joined_as_player"}
+        
+    except Exception as e:
+        logging.error(f"Join game room error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to join game room")
+
+@api_router.post("/games/rooms/{room_id}/start")
+async def start_game(room_id: str, current_user = Depends(get_current_user)):
+    """Start a game in the room"""
+    try:
+        room = await db.game_rooms.find_one({"room_id": room_id})
+        if not room:
+            raise HTTPException(status_code=404, detail="Game room not found")
+        
+        if room["created_by"] != current_user["user_id"]:
+            raise HTTPException(status_code=403, detail="Only room creator can start game")
+        
+        if room["status"] != "waiting":
+            raise HTTPException(status_code=400, detail="Game already started or finished")
+        
+        players = room.get("players", [])
+        if len(players) < 2:
+            raise HTTPException(status_code=400, detail="Need at least 2 players to start")
+        
+        # Initialize game state based on game type
+        initial_game_state = await initialize_game_state(room["game_type"], players)
+        
+        # Update room status
+        await db.game_rooms.update_one(
+            {"room_id": room_id},
+            {
+                "$set": {
+                    "status": "playing",
+                    "started_at": datetime.utcnow(),
+                    "game_state": initial_game_state
+                }
+            }
+        )
+        
+        return {"status": "game_started", "game_state": initial_game_state}
+        
+    except Exception as e:
+        logging.error(f"Start game error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to start game")
+
+async def initialize_game_state(game_type: str, players: list):
+    """Initialize game state for different game types"""
+    if game_type == "tic-tac-toe":
+        return {
+            "board": [None] * 9,
+            "current_player": "X",
+            "players": {players[0]: "X", players[1]: "O"} if len(players) >= 2 else {},
+            "winner": None,
+            "status": "playing"
+        }
+    elif game_type == "word-guess":
+        words = ["python", "gaming", "communication", "technology", "friendship"]
+        import random
+        word = random.choice(words)
+        return {
+            "word": word,
+            "guessed_letters": [],
+            "wrong_guesses": 0,
+            "max_wrong_guesses": 6,
+            "status": "playing",
+            "hint": "Technology related word"
+        }
+    elif game_type == "ludo":
+        return {
+            "board": initialize_ludo_board(),
+            "current_player": 0,
+            "dice_value": None,
+            "players": players[:4],  # Max 4 players for Ludo
+            "status": "playing"
+        }
+    elif game_type == "mafia":
+        return initialize_mafia_game(players)
+    else:
+        return {"status": "playing", "players": players}
+
+def initialize_ludo_board():
+    """Initialize Ludo board state"""
+    return {
+        "track": [None] * 52,
+        "homes": {
+            "red": [None] * 4,
+            "blue": [None] * 4,
+            "green": [None] * 4,
+            "yellow": [None] * 4
+        },
+        "pieces": {
+            "red": [{"id": i, "position": "home", "home_index": i} for i in range(4)],
+            "blue": [{"id": i, "position": "home", "home_index": i} for i in range(4)],
+            "green": [{"id": i, "position": "home", "home_index": i} for i in range(4)],
+            "yellow": [{"id": i, "position": "home", "home_index": i} for i in range(4)]
+        }
+    }
+
+def initialize_mafia_game(players: list):
+    """Initialize Mafia game with role assignments"""
+    import random
+    
+    num_players = len(players)
+    if num_players < 5:
+        raise ValueError("Need at least 5 players for Mafia")
+    
+    # Calculate roles based on player count
+    num_mafia = max(1, num_players // 4)
+    num_detective = 1 if num_players >= 7 else 0
+    num_doctor = 1 if num_players >= 6 else 0
+    num_townspeople = num_players - num_mafia - num_detective - num_doctor
+    
+    # Create role list
+    roles = (["mafia"] * num_mafia + 
+             ["detective"] * num_detective + 
+             ["doctor"] * num_doctor + 
+             ["townsperson"] * num_townspeople)
+    
+    # Shuffle and assign roles
+    random.shuffle(roles)
+    role_assignments = dict(zip(players, roles))
+    
+    return {
+        "phase": "lobby",  # lobby, day, night, voting, ended
+        "players": [{"id": p, "alive": True, "votes": 0} for p in players],
+        "roles": role_assignments,
+        "time_remaining": 0,
+        "log": [],
+        "winner": None,
+        "status": "playing"
+    }
+
+# WebSocket for real-time gaming
+@app.websocket("/ws/games/{room_id}")
+async def game_websocket_endpoint(websocket: WebSocket, room_id: str):
+    await websocket.accept()
+    
+    # Add connection to room
+    if room_id not in game_connections:
+        game_connections[room_id] = []
+    game_connections[room_id].append(websocket)
+    
+    try:
+        while True:
+            data = await websocket.receive_json()
+            
+            # Handle different game actions
+            if data["type"] == "game_move":
+                await handle_game_move(room_id, data, websocket)
+            elif data["type"] == "chat_message":
+                await handle_game_chat(room_id, data, websocket)
+            
+    except WebSocketDisconnect:
+        # Remove connection
+        if room_id in game_connections:
+            game_connections[room_id].remove(websocket)
+            if not game_connections[room_id]:
+                del game_connections[room_id]
+
+async def handle_game_move(room_id: str, data: dict, websocket: WebSocket):
+    """Handle game moves and update game state"""
+    try:
+        room = await db.game_rooms.find_one({"room_id": room_id})
+        if not room:
+            return
+        
+        game_type = room["game_type"]
+        current_state = room.get("game_state", {})
+        move = data.get("move", {})
+        
+        # Process move based on game type
+        new_state = await process_game_move(game_type, current_state, move, data.get("player_id"))
+        
+        # Update database
+        await db.game_rooms.update_one(
+            {"room_id": room_id},
+            {"$set": {"game_state": new_state}}
+        )
+        
+        # Broadcast update to all connections in room
+        if room_id in game_connections:
+            for connection in game_connections[room_id]:
+                try:
+                    await connection.send_json({
+                        "type": "game_state_update",
+                        "game_state": new_state
+                    })
+                except:
+                    pass  # Connection might be closed
+        
+    except Exception as e:
+        logging.error(f"Game move error: {e}")
+
+async def process_game_move(game_type: str, current_state: dict, move: dict, player_id: str):
+    """Process move for specific game type"""
+    if game_type == "tic-tac-toe":
+        return process_tic_tac_toe_move(current_state, move, player_id)
+    elif game_type == "word-guess":
+        return process_word_guess_move(current_state, move, player_id)
+    elif game_type == "ludo":
+        return process_ludo_move(current_state, move, player_id)
+    elif game_type == "mafia":
+        return process_mafia_move(current_state, move, player_id)
+    else:
+        return current_state
+
+def process_tic_tac_toe_move(state: dict, move: dict, player_id: str):
+    """Process Tic-Tac-Toe move"""
+    if move.get("type") == "cell_click":
+        position = move.get("position")
+        board = state.get("board", [None] * 9)
+        
+        if board[position] is None:
+            symbol = state.get("players", {}).get(player_id, "X")
+            board[position] = symbol
+            
+            # Check for winner
+            winner = check_tic_tac_toe_winner(board)
+            next_player = "O" if symbol == "X" else "X"
+            
+            return {
+                **state,
+                "board": board,
+                "current_player": next_player,
+                "winner": winner,
+                "status": "finished" if winner or all(cell is not None for cell in board) else "playing"
+            }
+    
+    return state
+
+def check_tic_tac_toe_winner(board):
+    """Check if there's a winner in Tic-Tac-Toe"""
+    lines = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],  # rows
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],  # columns
+        [0, 4, 8], [2, 4, 6]  # diagonals
+    ]
+    
+    for line in lines:
+        if board[line[0]] and board[line[0]] == board[line[1]] == board[line[2]]:
+            return board[line[0]]
+    
+    return None
+
+def process_word_guess_move(state: dict, move: dict, player_id: str):
+    """Process Word Guess move"""
+    if move.get("type") == "letter_guess":
+        letter = move.get("letter", "").lower()
+        word = state.get("word", "").lower()
+        guessed_letters = state.get("guessed_letters", [])
+        wrong_guesses = state.get("wrong_guesses", 0)
+        
+        if letter not in guessed_letters:
+            guessed_letters.append(letter)
+            
+            if letter not in word:
+                wrong_guesses += 1
+            
+            # Check win condition
+            word_completed = all(char in guessed_letters for char in word if char.isalpha())
+            game_over = wrong_guesses >= state.get("max_wrong_guesses", 6)
+            
+            return {
+                **state,
+                "guessed_letters": guessed_letters,
+                "wrong_guesses": wrong_guesses,
+                "status": "won" if word_completed else "lost" if game_over else "playing"
+            }
+    
+    return state
+
+def process_ludo_move(state: dict, move: dict, player_id: str):
+    """Process Ludo move"""
+    if move.get("type") == "roll_dice":
+        import random
+        dice_value = random.randint(1, 6)
+        return {
+            **state,
+            "dice_value": dice_value
+        }
+    elif move.get("type") == "move_piece":
+        # Implement piece movement logic
+        return state
+    
+    return state
+
+def process_mafia_move(state: dict, move: dict, player_id: str):
+    """Process Mafia game move"""
+    if move.get("type") == "vote":
+        # Handle voting logic
+        return state
+    elif move.get("type") == "night_action":
+        # Handle night actions (mafia kill, detective investigate, doctor protect)
+        return state
+    
+    return state
+
+async def handle_game_chat(room_id: str, data: dict, websocket: WebSocket):
+    """Handle chat messages in game room"""
+    try:
+        message = {
+            "type": "chat_message",
+            "player_id": data.get("player_id"),
+            "message": data.get("message"),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        # Broadcast to all connections in room
+        if room_id in game_connections:
+            for connection in game_connections[room_id]:
+                try:
+                    await connection.send_json(message)
+                except:
+                    pass
+        
+    except Exception as e:
+        logging.error(f"Game chat error: {e}")
+
+# Global game connections storage
+game_connections = {}
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
