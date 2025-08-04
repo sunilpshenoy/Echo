@@ -126,9 +126,14 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
 
   // Handle tab selection with profile requirement check
   const handleTabSelection = (tabId) => {
+    console.log('🎮 Tab selection triggered:', tabId);
+    console.log('🎮 Can access tab:', canAccessTab(tabId));
+    
     if (canAccessTab(tabId)) {
+      console.log('🎮 Setting active tab to:', tabId);
       setActiveTab(tabId);
     } else {
+      console.log('🎮 Showing contextual setup for:', tabId);
       // Show contextual profile setup
       setCurrentContext(tabId);
       setShowContextualSetup(true);
