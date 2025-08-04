@@ -183,9 +183,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Games Tab Navigation"
+    []
   stuck_tasks:
-    - "Games Tab Navigation"
+    []
   test_all: false
   test_priority: "high_first"
 ## backend:
