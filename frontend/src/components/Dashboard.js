@@ -17,7 +17,7 @@ import GamesInterface from './GamesInterface';
 
 const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState('chats'); // Default to chats
+  const [activeTab, setActiveTab] = useState('games'); // Test: Default to games
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
   const [attemptedTab, setAttemptedTab] = useState(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
