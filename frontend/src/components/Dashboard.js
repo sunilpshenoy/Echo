@@ -169,11 +169,6 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [user?.premium]);
-
-  // Debug activeTab changes
-  useEffect(() => {
-    console.log('🎮 Active tab changed to:', activeTab);
-  }, [activeTab]);
   
   // Fetch authenticity details
   const fetchAuthenticityDetails = async () => {
