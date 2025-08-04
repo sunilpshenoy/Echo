@@ -544,6 +544,7 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
             {[
               { id: 'chats', label: t('dashboard.chats'), icon: '💬', description: 'Direct messages & conversations' },
               { id: 'teams', label: 'Groups', icon: '👥', description: 'Discover groups, map view & events' },
+              { id: 'games', label: 'Games', icon: '🎮', description: 'Multiplayer games & tournaments' },
               { id: 'marketplace', label: 'Marketplace', icon: '🛒', description: 'Buy, sell & trade items and services' },
               { 
                 id: 'premium', 
