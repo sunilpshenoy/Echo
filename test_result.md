@@ -66,7 +66,7 @@ frontend:
     implemented: true
     working: false
     file: "Dashboard.js, GamesInterface.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -76,6 +76,9 @@ frontend:
         - working: false
           agent: "testing"
           comment: "CRITICAL ISSUE FOUND: Games tab (🎮) is visible and clickable in navigation, but clicking it opens the profile edit modal instead of the GamesInterface component. The tab routing is broken - it's not properly switching to the 'games' activeTab state. The Games tab appears to be triggering the profile edit functionality instead of the games interface."
+        - working: false
+          agent: "testing"
+          comment: "BUG CONFIRMED THROUGH FOCUSED TESTING: Successfully registered new user (games_nav_tester) and accessed dashboard. Games tab (🎮) is clearly visible and clickable in navigation. However, clicking the Games tab consistently opens the 'Edit Your Profile' modal instead of loading the GamesInterface component with 'Games Hub' title and 'Create Room' button. The tab routing is definitively broken - the Games tab click handler is incorrectly triggering profile edit functionality rather than setting activeTab to 'games'. Screenshots confirm the bug persists."
 
   - task: "Games Hub Interface"
     implemented: true
