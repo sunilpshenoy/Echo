@@ -13,6 +13,7 @@ import ChannelsInterface from './ChannelsInterface';
 import SimpleMarketplace from './SimpleMarketplace';
 import SmartProfileManager from './SmartProfileManager';
 import ContextualProfileSetup from './ContextualProfileSetup';
+import GamesInterface from './GamesInterface';
 
 const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const { t } = useTranslation();
