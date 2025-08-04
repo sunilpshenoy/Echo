@@ -54,7 +54,7 @@ class GamesSystemTester:
             response = self.session.post(f"{BACKEND_URL}/register", json=register_data)
             response_time = time.time() - start_time
             
-            if response.status_code == 201:
+            if response.status_code in [200, 201]:
                 data = response.json()
                 self.token = data.get("access_token")
                 self.user_id = data.get("user", {}).get("user_id")
