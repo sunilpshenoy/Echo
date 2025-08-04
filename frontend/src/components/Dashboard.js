@@ -610,6 +610,14 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
               />
             )}
             
+            {activeTab === 'games' && (
+              <GamesInterface 
+                user={user}
+                token={token}
+                api={api}
+              />
+            )}
+            
             {activeTab === 'teams' && (
               <GroupsHub 
                 user={user}
