@@ -527,16 +527,6 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
                 🧮
               </button>
               
-              {/* Debug Games Button */}
-              <button
-                onClick={() => setActiveTab('games')}
-                className="text-red-600 hover:text-red-800 p-2 transition-colors"
-                title="Debug Games"
-                aria-label="Debug games tab"
-              >
-                🎮
-              </button>
-              
               {/* Logout Button */}
               <button
                 onClick={onLogout}
