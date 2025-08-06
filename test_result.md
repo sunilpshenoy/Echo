@@ -273,12 +273,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Offline Gaming Mode Switching"
-    - "Offline Game Creation and Management"
-    - "Single-Player Tic-Tac-Toe with AI"
-    - "Offline Word Guessing Game"
-    - "Offline Games Persistence and Management"
-    - "Offline Gaming UI Indicators"
+    []
   stuck_tasks:
     []
   test_all: false
