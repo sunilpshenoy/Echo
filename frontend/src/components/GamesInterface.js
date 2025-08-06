@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import io from 'socket.io-client';
+import { offlineGameManager } from './games/OfflineGameManager';
 import TicTacToeGame from './games/TicTacToeGame';
 import WordGuessGame from './games/WordGuessGame';
 import LudoGame from './games/LudoGame';
@@ -20,6 +21,10 @@ const GamesInterface = ({ user, token, api }) => {
   const [socket, setSocket] = useState(null);
   const [gameInvitations, setGameInvitations] = useState([]);
   const [searchFilter, setSearchFilter] = useState('');
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [offlineGames, setOfflineGames] = useState([]);
+  const [gameMode, setGameMode] = useState('auto'); // auto, online, offline
+  const [currentOfflineGame, setCurrentOfflineGame] = useState(null);
   const socketRef = useRef(null);
 
   const availableGames = [
@@ -32,18 +37,20 @@ const GamesInterface = ({ user, token, api }) => {
       description: 'Classic 3x3 grid game',
       difficulty: 'Easy',
       duration: '2-5 minutes',
-      category: 'Strategy'
+      category: 'Strategy',
+      offlineSupported: true
     },
     {
       id: 'word-guess',
       name: 'Word Guessing',
       icon: '🔤',
-      minPlayers: 2,
+      minPlayers: 1,
       maxPlayers: 8,
-      description: 'Guess the word together',
+      description: 'Guess the word with hints',
       difficulty: 'Medium',
       duration: '5-10 minutes',
-      category: 'Word'
+      category: 'Word',
+      offlineSupported: true
     },
     {
       id: 'ludo',
@@ -54,7 +61,8 @@ const GamesInterface = ({ user, token, api }) => {
       description: 'Classic board race game',
       difficulty: 'Medium',
       duration: '15-30 minutes',
-      category: 'Board'
+      category: 'Board',
+      offlineSupported: true
     },
     {
       id: 'mafia',
@@ -62,16 +70,53 @@ const GamesInterface = ({ user, token, api }) => {
       icon: '🕵️',
       minPlayers: 5,
       maxPlayers: 12,
-      description: 'Social deduction game',
+      description: 'Social deduction puzzle',
       difficulty: 'Hard',
       duration: '20-45 minutes',
-      category: 'Social'
+      category: 'Social',
+      offlineSupported: true
     }
   ];
 
-  // Initialize WebSocket connection
+  // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      setError('');
+    };
+    
+    const handleOffline = () => {
+      setIsOnline(false);
+      setError('You are offline. Only offline games are available.');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Load offline games
+  useEffect(() => {
+    const loadOfflineGames = () => {
+      const games = offlineGameManager.getOfflineGames();
+      setOfflineGames(games);
+    };
+
+    loadOfflineGames();
+    // Refresh offline games every 5 seconds
+    const interval = setInterval(loadOfflineGames, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Initialize WebSocket connection only when online
   useEffect(() => {
     const initSocket = () => {
+      if (!isOnline || gameMode === 'offline') return;
+      
       const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
       const newSocket = io(backendUrl, {
         auth: {
@@ -91,7 +136,8 @@ const GamesInterface = ({ user, token, api }) => {
 
       newSocket.on('connect_error', (error) => {
         console.error('🎮 Games WebSocket connection error:', error);
-        setError('Failed to connect to game server');
+        setError('Failed to connect to game server. Switching to offline mode.');
+        setGameMode('offline');
       });
 
       // Game-specific events
@@ -110,7 +156,7 @@ const GamesInterface = ({ user, token, api }) => {
       return newSocket;
     };
 
-    if (token) {
+    if (token && isOnline && gameMode !== 'offline') {
       const socketConnection = initSocket();
       
       // Fetch initial game rooms
@@ -122,9 +168,11 @@ const GamesInterface = ({ user, token, api }) => {
         }
       };
     }
-  }, [token]);
+  }, [token, isOnline, gameMode]);
 
   const fetchGameRooms = async () => {
+    if (!isOnline || gameMode === 'offline') return;
+    
     setIsLoading(true);
     try {
       const response = await fetch(`${api}/games/rooms`, {
@@ -137,11 +185,13 @@ const GamesInterface = ({ user, token, api }) => {
         const rooms = await response.json();
         setGameRooms(rooms);
       } else {
-        setError('Failed to fetch game rooms');
+        setError('Failed to fetch game rooms. Using offline mode.');
+        setGameMode('offline');
       }
     } catch (error) {
       console.error('Failed to fetch game rooms:', error);
-      setError('Failed to connect to game server');
+      setError('Failed to connect to game server. Using offline mode.');
+      setGameMode('offline');
     } finally {
       setIsLoading(false);
     }
@@ -165,7 +215,6 @@ const GamesInterface = ({ user, token, api }) => {
   const handleGameEnded = (result) => {
     setActiveGame(null);
     setGameState(null);
-    // Show result notification
     alert(`🎮 Game ended! ${result.message}`);
   };
 
@@ -178,18 +227,59 @@ const GamesInterface = ({ user, token, api }) => {
   };
 
   const handlePlayerJoined = (data) => {
-    // Update room data when player joins
     fetchGameRooms();
   };
 
   const handlePlayerLeft = (data) => {
-    // Update room data when player leaves
     fetchGameRooms();
   };
 
+  // Start offline game
+  const startOfflineGame = (gameType) => {
+    try {
+      const { gameId, gameState: newGameState } = offlineGameManager.createOfflineGame(
+        gameType, 
+        user?.display_name || user?.username || 'Player'
+      );
+      
+      setActiveGame(gameType);
+      setGameState(newGameState);
+      setCurrentOfflineGame(gameId);
+      setGameMode('offline');
+    } catch (error) {
+      console.error('Failed to start offline game:', error);
+      setError('Failed to start offline game');
+    }
+  };
+
+  // Continue offline game
+  const continueOfflineGame = (gameId) => {
+    try {
+      const savedGame = offlineGameManager.getGameState(gameId);
+      if (savedGame) {
+        setActiveGame(savedGame.gameType);
+        setGameState(savedGame);
+        setCurrentOfflineGame(gameId);
+        setGameMode('offline');
+      }
+    } catch (error) {
+      console.error('Failed to continue offline game:', error);
+      setError('Failed to continue offline game');
+    }
+  };
+
+  // Create online room
   const createGameRoom = async () => {
     if (!newRoomName.trim()) {
       setError('Please enter a room name');
+      return;
+    }
+
+    if (!isOnline || gameMode === 'offline') {
+      // Start offline game instead
+      startOfflineGame(selectedGameType);
+      setShowCreateRoom(false);
+      setNewRoomName('');
       return;
     }
 
@@ -214,20 +304,27 @@ const GamesInterface = ({ user, token, api }) => {
         setShowCreateRoom(false);
         setNewRoomName('');
         setCurrentRoom(room.roomId);
-        // Join the room automatically
         joinGameRoom(room.roomId);
       } else {
-        setError('Failed to create game room');
+        setError('Failed to create game room. Starting offline game instead.');
+        startOfflineGame(selectedGameType);
+        setShowCreateRoom(false);
+        setNewRoomName('');
       }
     } catch (error) {
       console.error('Failed to create game room:', error);
-      setError('Failed to create game room');
+      setError('Network error. Starting offline game instead.');
+      startOfflineGame(selectedGameType);
+      setShowCreateRoom(false);
+      setNewRoomName('');
     } finally {
       setIsLoading(false);
     }
   };
 
   const joinGameRoom = async (roomId) => {
+    if (!isOnline) return;
+    
     setIsLoading(true);
     try {
       const response = await fetch(`${api}/games/rooms/${roomId}/join`, {
@@ -242,7 +339,6 @@ const GamesInterface = ({ user, token, api }) => {
         const roomData = await response.json();
         setCurrentRoom(roomId);
         
-        // Emit socket event to join room
         if (socket) {
           socket.emit('join_game_room', { roomId });
         }
@@ -257,17 +353,23 @@ const GamesInterface = ({ user, token, api }) => {
     }
   };
 
-  const leaveGameRoom = () => {
+  const leaveGame = () => {
     if (currentRoom && socket) {
       socket.emit('leave_game_room', { roomId: currentRoom });
       setCurrentRoom(null);
-      setActiveGame(null);
-      setGameState(null);
     }
+    
+    if (currentOfflineGame) {
+      setCurrentOfflineGame(null);
+    }
+    
+    setActiveGame(null);
+    setGameState(null);
+    setGameMode('auto');
   };
 
   const startGame = async () => {
-    if (!currentRoom) return;
+    if (!currentRoom || !isOnline) return;
 
     try {
       const response = await fetch(`${api}/games/rooms/${currentRoom}/start`, {
@@ -278,7 +380,6 @@ const GamesInterface = ({ user, token, api }) => {
       });
 
       if (response.ok) {
-        // Game will start via WebSocket event
         console.log('Game starting...');
       } else {
         setError('Failed to start game');
@@ -290,7 +391,15 @@ const GamesInterface = ({ user, token, api }) => {
   };
 
   const makeGameMove = (move) => {
-    if (socket && currentRoom) {
+    if (currentOfflineGame) {
+      // Offline game move
+      const currentState = offlineGameManager.getGameState(currentOfflineGame);
+      // Update the state and trigger re-render
+      const newState = { ...currentState, ...move };
+      offlineGameManager.updateGameState(currentOfflineGame, newState);
+      setGameState(newState);
+    } else if (socket && currentRoom) {
+      // Online game move
       socket.emit('game_move', {
         roomId: currentRoom,
         move,
@@ -305,7 +414,8 @@ const GamesInterface = ({ user, token, api }) => {
     const gameProps = {
       gameState,
       onMove: makeGameMove,
-      currentUser: user
+      currentUser: user,
+      mode: currentOfflineGame ? 'offline' : 'online'
     };
 
     switch (activeGame) {
@@ -322,6 +432,11 @@ const GamesInterface = ({ user, token, api }) => {
     }
   };
 
+  const deleteOfflineGame = (gameId) => {
+    offlineGameManager.deleteOfflineGame(gameId);
+    setOfflineGames(offlineGameManager.getOfflineGames());
+  };
+
   const filteredRooms = gameRooms.filter(room => 
     room.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
     room.gameType.toLowerCase().includes(searchFilter.toLowerCase())
@@ -332,6 +447,11 @@ const GamesInterface = ({ user, token, api }) => {
     game.category.toLowerCase().includes(searchFilter.toLowerCase())
   );
 
+  const filteredOfflineGames = offlineGames.filter(game =>
+    game.playerName.toLowerCase().includes(searchFilter.toLowerCase()) ||
+    game.gameType.toLowerCase().includes(searchFilter.toLowerCase())
+  );
+
   if (activeGame) {
     return (
       <div className="games-active-session h-full flex flex-col">
@@ -339,9 +459,14 @@ const GamesInterface = ({ user, token, api }) => {
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-bold text-gray-900 flex items-center">
               🎮 {availableGames.find(g => g.id === activeGame)?.name}
+              {currentOfflineGame && (
+                <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                  📱 Offline
+                </span>
+              )}
             </h2>
             <button
-              onClick={leaveGameRoom}
+              onClick={leaveGame}
               className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
             >
               Leave Game
@@ -363,14 +488,33 @@ const GamesInterface = ({ user, token, api }) => {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-gray-900 flex items-center">
             🎮 Games Hub
+            {!isOnline && (
+              <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">
+                📶 Offline
+              </span>
+            )}
           </h2>
-          <button
-            onClick={() => setShowCreateRoom(true)}
-            className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors flex items-center space-x-2"
-          >
-            <span>➕</span>
-            <span>Create Room</span>
-          </button>
+          <div className="flex space-x-2">
+            {/* Mode Toggle */}
+            {isOnline && (
+              <select
+                value={gameMode}
+                onChange={(e) => setGameMode(e.target.value)}
+                className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
+              >
+                <option value="auto">Auto Mode</option>
+                <option value="online">Online Only</option>
+                <option value="offline">Offline Only</option>
+              </select>
+            )}
+            <button
+              onClick={() => setShowCreateRoom(true)}
+              className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors flex items-center space-x-2"
+            >
+              <span>➕</span>
+              <span>{(!isOnline || gameMode === 'offline') ? 'Start Game' : 'Create Room'}</span>
+            </button>
+          </div>
         </div>
 
         {/* Search */}
@@ -432,77 +576,144 @@ const GamesInterface = ({ user, token, api }) => {
           </div>
         )}
 
-        {/* Active Game Rooms */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            🏠 Active Game Rooms ({filteredRooms.length})
-          </h3>
-          
-          {isLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
-              <div className="text-gray-600 mt-2">Loading...</div>
-            </div>
-          ) : filteredRooms.length === 0 ? (
-            <div className="text-center py-8 bg-white rounded-lg border-2 border-dashed border-gray-300">
-              <div className="text-4xl mb-2">🎯</div>
-              <div className="text-gray-600">No game rooms found</div>
-              <div className="text-sm text-gray-500 mt-1">Create a room to start playing!</div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredRooms.map(room => {
-                const gameInfo = availableGames.find(g => g.id === room.gameType);
-                const isFull = room.currentPlayers >= room.maxPlayers;
-                
-                return (
-                  <div
-                    key={room.roomId}
-                    className={`room-card bg-white border rounded-lg p-4 transition-all ${
-                      isFull ? 'border-gray-300 opacity-60' : 'border-gray-300 hover:border-purple-500 hover:shadow-md cursor-pointer'
-                    }`}
-                    onClick={() => !isFull && joinGameRoom(room.roomId)}
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <div className="font-semibold text-gray-900">{room.name}</div>
-                        <div className="text-sm text-gray-600 flex items-center mt-1">
-                          <span className="text-lg mr-1">{gameInfo?.icon}</span>
-                          {gameInfo?.name}
+        {/* Offline Games (Saved Games) */}
+        {(gameMode === 'offline' || !isOnline || offlineGames.length > 0) && (
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              📱 Offline Games ({filteredOfflineGames.length})
+            </h3>
+            
+            {filteredOfflineGames.length === 0 ? (
+              <div className="text-center py-8 bg-white rounded-lg border-2 border-dashed border-gray-300">
+                <div className="text-4xl mb-2">🎯</div>
+                <div className="text-gray-600">No offline games found</div>
+                <div className="text-sm text-gray-500 mt-1">Start a new offline game to play without internet!</div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredOfflineGames.map(game => {
+                  const gameInfo = availableGames.find(g => g.id === game.gameType);
+                  const isFinished = game.status === 'finished' || game.winner || game.gameWon || game.gameLost;
+                  
+                  return (
+                    <div
+                      key={game.gameId}
+                      className="offline-game-card bg-white border rounded-lg p-4 hover:border-purple-500 hover:shadow-md transition-all cursor-pointer"
+                      onClick={() => continueOfflineGame(game.gameId)}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <div className="font-semibold text-gray-900 flex items-center">
+                            <span className="text-lg mr-2">{gameInfo?.icon}</span>
+                            {gameInfo?.name}
+                          </div>
+                          <div className="text-sm text-gray-600 mt-1">
+                            Player: {game.playerName}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className={`px-2 py-1 rounded text-xs font-medium ${
+                            isFinished ? 'bg-gray-100 text-gray-700' : 'bg-green-100 text-green-700'
+                          }`}>
+                            {isFinished ? 'Finished' : 'In Progress'}
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteOfflineGame(game.gameId);
+                            }}
+                            className="text-red-500 hover:text-red-700 text-xs"
+                          >
+                            🗑️
+                          </button>
                         </div>
                       </div>
-                      <div className={`px-2 py-1 rounded text-xs font-medium ${
-                        room.status === 'waiting' ? 'bg-yellow-100 text-yellow-700' :
-                        room.status === 'playing' ? 'bg-green-100 text-green-700' :
-                        'bg-gray-100 text-gray-700'
-                      }`}>
-                        {room.status}
+                      
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span>📱 Offline</span>
+                        <span>{new Date(game.createdAt).toLocaleDateString()}</span>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <div className="flex items-center space-x-4">
-                        <span>👥 {room.currentPlayers}/{room.maxPlayers}</span>
-                        <span>⏱️ {gameInfo?.duration}</span>
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          gameInfo?.difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
-                          gameInfo?.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Active Game Rooms (Online Only) */}
+        {isOnline && gameMode !== 'offline' && (
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              🏠 Active Game Rooms ({filteredRooms.length})
+            </h3>
+            
+            {isLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+                <div className="text-gray-600 mt-2">Loading...</div>
+              </div>
+            ) : filteredRooms.length === 0 ? (
+              <div className="text-center py-8 bg-white rounded-lg border-2 border-dashed border-gray-300">
+                <div className="text-4xl mb-2">🎯</div>
+                <div className="text-gray-600">No game rooms found</div>
+                <div className="text-sm text-gray-500 mt-1">Create a room to start playing online!</div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredRooms.map(room => {
+                  const gameInfo = availableGames.find(g => g.id === room.gameType);
+                  const isFull = room.currentPlayers >= room.maxPlayers;
+                  
+                  return (
+                    <div
+                      key={room.roomId}
+                      className={`room-card bg-white border rounded-lg p-4 transition-all ${
+                        isFull ? 'border-gray-300 opacity-60' : 'border-gray-300 hover:border-purple-500 hover:shadow-md cursor-pointer'
+                      }`}
+                      onClick={() => !isFull && joinGameRoom(room.roomId)}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <div className="font-semibold text-gray-900">{room.name}</div>
+                          <div className="text-sm text-gray-600 flex items-center mt-1">
+                            <span className="text-lg mr-1">{gameInfo?.icon}</span>
+                            {gameInfo?.name}
+                          </div>
+                        </div>
+                        <div className={`px-2 py-1 rounded text-xs font-medium ${
+                          room.status === 'waiting' ? 'bg-yellow-100 text-yellow-700' :
+                          room.status === 'playing' ? 'bg-green-100 text-green-700' :
+                          'bg-gray-100 text-gray-700'
                         }`}>
-                          {gameInfo?.difficulty}
-                        </span>
+                          {room.status}
+                        </div>
                       </div>
+                      
+                      <div className="flex items-center justify-between text-sm text-gray-600">
+                        <div className="flex items-center space-x-4">
+                          <span>👥 {room.currentPlayers}/{room.maxPlayers}</span>
+                          <span>⏱️ {gameInfo?.duration}</span>
+                          <span className={`px-2 py-1 rounded text-xs ${
+                            gameInfo?.difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
+                            gameInfo?.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {gameInfo?.difficulty}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {isFull && (
+                        <div className="text-xs text-red-500 mt-2">Room is full</div>
+                      )}
                     </div>
-                    
-                    {isFull && (
-                      <div className="text-xs text-red-500 mt-2">Room is full</div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Available Games */}
         <div>
@@ -523,7 +734,14 @@ const GamesInterface = ({ user, token, api }) => {
                 <div className="flex items-start space-x-3">
                   <div className="text-3xl">{game.icon}</div>
                   <div className="flex-1">
-                    <div className="font-semibold text-gray-900">{game.name}</div>
+                    <div className="font-semibold text-gray-900 flex items-center">
+                      {game.name}
+                      {game.offlineSupported && (
+                        <span className="ml-2 px-1 py-0.5 bg-green-100 text-green-700 text-xs rounded">
+                          📱
+                        </span>
+                      )}
+                    </div>
                     <div className="text-sm text-gray-600 mb-2">{game.description}</div>
                     <div className="flex items-center space-x-4 text-xs text-gray-500">
                       <span>👥 {game.minPlayers}-{game.maxPlayers} players</span>
@@ -547,13 +765,15 @@ const GamesInterface = ({ user, token, api }) => {
         </div>
       </div>
 
-      {/* Create Room Modal */}
+      {/* Create Room/Start Game Modal */}
       {showCreateRoom && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-gray-900">🎮 Create Game Room</h3>
+                <h3 className="text-xl font-bold text-gray-900">
+                  🎮 {(!isOnline || gameMode === 'offline') ? 'Start Offline Game' : 'Create Game Room'}
+                </h3>
                 <button
                   onClick={() => setShowCreateRoom(false)}
                   className="text-gray-500 hover:text-gray-700 text-xl"
@@ -563,18 +783,20 @@ const GamesInterface = ({ user, token, api }) => {
               </div>
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Room Name
-                  </label>
-                  <input
-                    type="text"
-                    value={newRoomName}
-                    onChange={(e) => setNewRoomName(e.target.value)}
-                    placeholder="Enter room name..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
+                {(isOnline && gameMode !== 'offline') && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Room Name
+                    </label>
+                    <input
+                      type="text"
+                      value={newRoomName}
+                      onChange={(e) => setNewRoomName(e.target.value)}
+                      placeholder="Enter room name..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -588,6 +810,7 @@ const GamesInterface = ({ user, token, api }) => {
                     {availableGames.map(game => (
                       <option key={game.id} value={game.id}>
                         {game.icon} {game.name}
+                        {(!isOnline || gameMode === 'offline') && game.offlineSupported ? ' (Offline)' : ''}
                       </option>
                     ))}
                   </select>
@@ -597,6 +820,11 @@ const GamesInterface = ({ user, token, api }) => {
                   <div className="text-sm text-gray-600">
                     {availableGames.find(g => g.id === selectedGameType)?.description}
                   </div>
+                  {(!isOnline || gameMode === 'offline') && (
+                    <div className="text-xs text-green-600 mt-1">
+                      📱 This game can be played offline against AI
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -609,10 +837,10 @@ const GamesInterface = ({ user, token, api }) => {
                 </button>
                 <button
                   onClick={createGameRoom}
-                  disabled={isLoading || !newRoomName.trim()}
+                  disabled={isLoading || (isOnline && gameMode !== 'offline' && !newRoomName.trim())}
                   className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:bg-gray-400 transition-colors"
                 >
-                  {isLoading ? 'Creating...' : 'Create Room'}
+                  {isLoading ? 'Starting...' : (!isOnline || gameMode === 'offline') ? 'Start Game' : 'Create Room'}
                 </button>
               </div>
             </div>
