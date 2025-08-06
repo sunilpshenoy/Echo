@@ -178,15 +178,18 @@ frontend:
 
   - task: "Offline Gaming Mode Switching"
     implemented: true
-    working: "NA"
+    working: true
     file: "GamesInterface.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Offline gaming functionality implemented with mode selector (Auto Mode, Online Only, Offline Only) and automatic fallback to offline mode when network is unavailable"
+        - working: true
+          agent: "testing"
+          comment: "✅ OFFLINE MODE SWITCHING WORKING: Successfully tested mode selector dropdown with three options (Auto Mode, Online Only, Offline Only). Switching to 'Offline Only' mode works correctly and changes the interface to show offline-focused features. Button text changes from 'Create Room' to 'Start Game' when in offline mode. Offline indicators (📱) appear throughout the interface. Mode switching is smooth and responsive."
 
   - task: "Offline Game Creation and Management"
     implemented: true
