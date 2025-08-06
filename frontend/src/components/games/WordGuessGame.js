@@ -1,27 +1,45 @@
 import React, { useState, useEffect } from 'react';
+import { offlineGameManager } from './OfflineGameManager';
 
-const WordGuessGame = ({ gameState, onMove, currentUser }) => {
+const WordGuessGame = ({ gameState, onMove, currentUser, mode = 'online' }) => {
   const [currentWord, setCurrentWord] = useState('');
   const [guessedLetters, setGuessedLetters] = useState([]);
   const [wrongGuesses, setWrongGuesses] = useState(0);
   const [gameStatus, setGameStatus] = useState('waiting');
   const [inputLetter, setInputLetter] = useState('');
   const [hint, setHint] = useState('');
+  const [isOffline, setIsOffline] = useState(mode === 'offline');
+  const [offlineGameId, setOfflineGameId] = useState(null);
+  const [gameWon, setGameWon] = useState(false);
+  const [gameLost, setGameLost] = useState(false);
 
   const maxWrongGuesses = 6;
 
   useEffect(() => {
-    if (gameState) {
+    if (isOffline && !offlineGameId) {
+      // Create new offline game
+      const { gameId, gameState: newGameState } = offlineGameManager.createOfflineGame('word-guess', currentUser?.display_name || 'Player');
+      setOfflineGameId(gameId);
+      setCurrentWord(newGameState.word);
+      setHint(newGameState.hint);
+      setGuessedLetters(newGameState.guessedLetters);
+      setWrongGuesses(newGameState.wrongGuesses);
+      setGameStatus('playing');
+      setGameWon(false);
+      setGameLost(false);
+    } else if (gameState) {
       setCurrentWord(gameState.word || '');
       setGuessedLetters(gameState.guessedLetters || []);
       setWrongGuesses(gameState.wrongGuesses || 0);
       setGameStatus(gameState.status || 'waiting');
       setHint(gameState.hint || '');
+      setGameWon(gameState.gameWon || false);
+      setGameLost(gameState.gameLost || false);
     }
-  }, [gameState]);
+  }, [gameState, isOffline, offlineGameId, currentUser]);
 
   const handleLetterGuess = (letter) => {
-    if (!letter || guessedLetters.includes(letter.toLowerCase()) || gameStatus !== 'playing') {
+    if (!letter || guessedLetters.includes(letter.toLowerCase()) || gameStatus !== 'playing' || gameWon || gameLost) {
       return;
     }
 
@@ -38,18 +56,36 @@ const WordGuessGame = ({ gameState, onMove, currentUser }) => {
 
     const gameOver = newWrongGuesses >= maxWrongGuesses;
     const won = wordCompleted && !gameOver;
+    const lost = gameOver && !wordCompleted;
 
-    onMove({
-      type: 'letter_guess',
-      letter: lowerLetter,
-      guessedLetters: newGuessedLetters,
-      wrongGuesses: newWrongGuesses,
-      gameOver: gameOver,
-      won: won,
-      isCorrect: isCorrect
-    });
-
+    setGuessedLetters(newGuessedLetters);
+    setWrongGuesses(newWrongGuesses);
+    setGameWon(won);
+    setGameLost(lost);
     setInputLetter('');
+
+    if (isOffline) {
+      // Update offline game state
+      offlineGameManager.updateGameState(offlineGameId, {
+        ...offlineGameManager.getGameState(offlineGameId),
+        guessedLetters: newGuessedLetters,
+        wrongGuesses: newWrongGuesses,
+        gameWon: won,
+        gameLost: lost,
+        status: won ? 'won' : lost ? 'lost' : 'playing'
+      });
+    } else {
+      // Online mode
+      onMove({
+        type: 'letter_guess',
+        letter: lowerLetter,
+        guessedLetters: newGuessedLetters,
+        wrongGuesses: newWrongGuesses,
+        gameOver: gameOver,
+        won: won,
+        isCorrect: isCorrect
+      });
+    }
   };
 
   const handleSubmit = (e) => {
@@ -58,9 +94,42 @@ const WordGuessGame = ({ gameState, onMove, currentUser }) => {
   };
 
   const startNewGame = () => {
-    onMove({
-      type: 'new_game'
-    });
+    if (isOffline) {
+      // Create new offline game
+      const { gameId, gameState: newGameState } = offlineGameManager.createOfflineGame('word-guess', currentUser?.display_name || 'Player');
+      setOfflineGameId(gameId);
+      setCurrentWord(newGameState.word);
+      setHint(newGameState.hint);
+      setGuessedLetters(newGameState.guessedLetters);
+      setWrongGuesses(newGameState.wrongGuesses);
+      setGameStatus('playing');
+      setGameWon(false);
+      setGameLost(false);
+    } else {
+      // Online mode
+      onMove({
+        type: 'new_game'
+      });
+    }
+  };
+
+  const toggleMode = () => {
+    setIsOffline(!isOffline);
+    if (!isOffline) {
+      // Switching to offline mode
+      const { gameId, gameState: newGameState } = offlineGameManager.createOfflineGame('word-guess', currentUser?.display_name || 'Player');
+      setOfflineGameId(gameId);
+      setCurrentWord(newGameState.word);
+      setHint(newGameState.hint);
+      setGuessedLetters(newGameState.guessedLetters);
+      setWrongGuesses(newGameState.wrongGuesses);
+      setGameStatus('playing');
+      setGameWon(false);
+      setGameLost(false);
+    } else {
+      // Switching to online mode
+      startNewGame();
+    }
   };
 
   const renderWord = () => {
@@ -68,14 +137,14 @@ const WordGuessGame = ({ gameState, onMove, currentUser }) => {
       .split('')
       .map((letter, index) => {
         const isGuessed = guessedLetters.includes(letter.toLowerCase());
-        const showLetter = isGuessed || letter === ' ';
+        const showLetter = isGuessed || letter === ' ' || gameLost; // Show all letters when game is lost
         
         return (
           <span
             key={index}
             className={`inline-block mx-1 text-2xl font-bold border-b-2 border-gray-400 pb-1 min-w-[2rem] text-center ${
               letter === ' ' ? 'border-transparent' : ''
-            }`}
+            } ${gameLost && !isGuessed ? 'text-red-500' : ''}`}
           >
             {showLetter ? letter.toUpperCase() : '_'}
           </span>
@@ -96,7 +165,7 @@ const WordGuessGame = ({ gameState, onMove, currentUser }) => {
     ];
 
     return (
-      <pre className="text-sm font-mono text-gray-700 bg-gray-50 p-4 rounded-lg">
+      <pre className={`text-sm font-mono bg-gray-50 p-4 rounded-lg ${gameLost ? 'text-red-700' : 'text-gray-700'}`}>
         {stages[Math.min(wrongGuesses, stages.length - 1)]}
       </pre>
     );
@@ -104,8 +173,8 @@ const WordGuessGame = ({ gameState, onMove, currentUser }) => {
 
   const getStatusMessage = () => {
     if (gameStatus === 'waiting') return '⏳ Waiting for game to start...';
-    if (gameStatus === 'won') return '🎉 Congratulations! You guessed the word!';
-    if (gameStatus === 'lost') return '💀 Game Over! The word was: ' + currentWord.toUpperCase();
+    if (gameWon) return '🎉 Congratulations! You guessed the word!';
+    if (gameLost) return '💀 Game Over! The word was: ' + currentWord.toUpperCase();
     
     const remainingGuesses = maxWrongGuesses - wrongGuesses;
     return `🎯 ${remainingGuesses} wrong guesses remaining`;
@@ -118,6 +187,20 @@ const WordGuessGame = ({ gameState, onMove, currentUser }) => {
       <div className="mb-6">
         <h3 className="text-xl font-bold text-gray-800 mb-2">🔤 Word Guessing Game</h3>
         <div className="text-lg text-gray-600">{getStatusMessage()}</div>
+        
+        {/* Mode Toggle */}
+        <div className="mt-2 flex justify-center">
+          <button
+            onClick={toggleMode}
+            className={`px-3 py-1 rounded-full text-sm transition-all ${
+              isOffline 
+                ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+            }`}
+          >
+            {isOffline ? '📖 Offline Mode' : '🌐 Online Mode'}
+          </button>
+        </div>
       </div>
 
       {/* Hangman Drawing */}
@@ -138,7 +221,7 @@ const WordGuessGame = ({ gameState, onMove, currentUser }) => {
       </div>
 
       {/* Letter Input */}
-      {gameStatus === 'playing' && (
+      {gameStatus === 'playing' && !gameWon && !gameLost && (
         <div className="mb-6">
           <form onSubmit={handleSubmit} className="flex justify-center space-x-2 mb-4">
             <input
@@ -217,7 +300,7 @@ const WordGuessGame = ({ gameState, onMove, currentUser }) => {
           🔄 New Game
         </button>
         
-        {gameState?.spectators?.length > 0 && (
+        {!isOffline && gameState?.spectators?.length > 0 && (
           <div className="text-sm text-gray-500 flex items-center">
             👥 {gameState.spectators.length} watching
           </div>
@@ -225,25 +308,26 @@ const WordGuessGame = ({ gameState, onMove, currentUser }) => {
       </div>
 
       {/* Game Stats */}
-      {gameState?.players && (
-        <div className="bg-gray-50 rounded-lg p-4">
-          <h4 className="font-semibold text-gray-700 mb-2">Game Stats</h4>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <div className="text-gray-600">Wrong Guesses</div>
-              <div className="text-lg font-bold text-red-600">{wrongGuesses}/{maxWrongGuesses}</div>
-            </div>
-            <div>
-              <div className="text-gray-600">Letters Guessed</div>
-              <div className="text-lg font-bold text-blue-600">{guessedLetters.length}</div>
+      <div className="bg-gray-50 rounded-lg p-4 mb-4">
+        <h4 className="font-semibold text-gray-700 mb-2">Game Stats</h4>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <div className="text-gray-600">Wrong Guesses</div>
+            <div className={`text-lg font-bold ${wrongGuesses >= maxWrongGuesses - 1 ? 'text-red-600' : 'text-blue-600'}`}>
+              {wrongGuesses}/{maxWrongGuesses}
             </div>
           </div>
+          <div>
+            <div className="text-gray-600">Letters Guessed</div>
+            <div className="text-lg font-bold text-blue-600">{guessedLetters.length}</div>
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Game Rules */}
       <div className="mt-4 text-xs text-gray-500 bg-blue-50 rounded-lg p-3">
         <strong>How to play:</strong> Guess letters to reveal the hidden word. You have {maxWrongGuesses} wrong guesses before the game ends!
+        {isOffline && <div className="mt-1"><strong>Offline Mode:</strong> Play with randomly selected words. No internet required!</div>}
       </div>
     </div>
   );
