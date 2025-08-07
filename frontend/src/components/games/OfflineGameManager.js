@@ -332,6 +332,163 @@ export class OfflineGameManager {
     ];
   }
 
+  // Create shuffled deck for card games
+  createShuffledDeck() {
+    const suits = ['♠', '♥', '♦', '♣'];
+    const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+    const deck = [];
+    
+    suits.forEach(suit => {
+      ranks.forEach(rank => {
+        let value = parseInt(rank) || 0;
+        if (rank === 'A') value = 11;
+        else if (['J', 'Q', 'K'].includes(rank)) value = 10;
+        
+        deck.push({
+          suit,
+          rank,
+          value,
+          id: `${suit}${rank}`,
+          faceUp: false
+        });
+      });
+    });
+
+    // Shuffle deck
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+
+    return deck;
+  }
+
+  // Initialize solitaire tableau
+  initializeSolitaireTableau() {
+    const tableau = [[], [], [], [], [], [], []];
+    const deck = this.createShuffledDeck();
+    let deckIndex = 0;
+
+    // Deal cards to tableau
+    for (let col = 0; col < 7; col++) {
+      for (let row = 0; row <= col; row++) {
+        const card = { ...deck[deckIndex] };
+        card.faceUp = row === col; // Only top card is face up
+        tableau[col].push(card);
+        deckIndex++;
+      }
+    }
+
+    return tableau;
+  }
+
+  // Generate Sudoku puzzle
+  generateSudokuPuzzle(difficulty) {
+    // Simple Sudoku generation - this is a simplified version
+    const solution = this.generateCompleteSudoku();
+    const puzzle = JSON.parse(JSON.stringify(solution));
+    
+    const cellsToRemove = {
+      easy: 35,
+      medium: 45,
+      hard: 55,
+      expert: 64
+    };
+    
+    const positions = [];
+    for (let i = 0; i < 9; i++) {
+      for (let j = 0; j < 9; j++) {
+        positions.push([i, j]);
+      }
+    }
+    
+    // Randomly remove cells
+    for (let i = 0; i < cellsToRemove[difficulty]; i++) {
+      const randomIndex = Math.floor(Math.random() * positions.length);
+      const [row, col] = positions.splice(randomIndex, 1)[0];
+      puzzle[row][col] = 0;
+    }
+    
+    return { puzzle, solution };
+  }
+
+  // Generate complete Sudoku solution
+  generateCompleteSudoku() {
+    const grid = Array(9).fill().map(() => Array(9).fill(0));
+    this.fillSudokuGrid(grid);
+    return grid;
+  }
+
+  // Fill Sudoku grid using backtracking
+  fillSudokuGrid(grid) {
+    for (let row = 0; row < 9; row++) {
+      for (let col = 0; col < 9; col++) {
+        if (grid[row][col] === 0) {
+          const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+          // Shuffle for randomness
+          for (let i = numbers.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+          }
+          
+          for (const num of numbers) {
+            if (this.isValidSudoku(grid, row, col, num)) {
+              grid[row][col] = num;
+              if (this.fillSudokuGrid(grid)) {
+                return true;
+              }
+              grid[row][col] = 0;
+            }
+          }
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  // Check if number is valid in Sudoku position
+  isValidSudoku(grid, row, col, num) {
+    // Check row
+    for (let j = 0; j < 9; j++) {
+      if (grid[row][j] === num) return false;
+    }
+
+    // Check column
+    for (let i = 0; i < 9; i++) {
+      if (grid[i][col] === num) return false;
+    }
+
+    // Check 3x3 box
+    const boxRow = Math.floor(row / 3) * 3;
+    const boxCol = Math.floor(col / 3) * 3;
+    for (let i = boxRow; i < boxRow + 3; i++) {
+      for (let j = boxCol; j < boxCol + 3; j++) {
+        if (grid[i][j] === num) return false;
+      }
+    }
+
+    return true;
+  }
+
+  // Add random tile for 2048
+  addRandom2048Tile(grid) {
+    const emptyCells = [];
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 4; j++) {
+        if (grid[i][j] === 0) {
+          emptyCells.push([i, j]);
+        }
+      }
+    }
+
+    if (emptyCells.length > 0) {
+      const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+      const [row, col] = randomCell;
+      grid[row][col] = Math.random() < 0.9 ? 2 : 4;
+    }
+  }
+
   // Update game state
   updateGameState(gameId, newState) {
     this.gameStates.set(gameId, newState);
