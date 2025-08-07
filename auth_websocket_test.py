@@ -369,7 +369,7 @@ class AuthWebSocketTester:
         
         try:
             # Create authenticated WebSocket connection
-            websocket_url = f"{WEBSOCKET_URL}/games/auth_test_{self.user_id}"
+            websocket_url = f"{WEBSOCKET_URL}/ws/games/auth_test_{self.user_id}"
             
             start_time = time.time()
             websocket = await asyncio.wait_for(
