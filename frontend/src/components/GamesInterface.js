@@ -1062,124 +1062,129 @@ const GamesInterface = ({ user, token, api }) => {
 
       {/* Create Room/Start Game Modal */}
       {showCreateRoom && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <Card className="max-w-md w-full" padding="none">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                  🎮 {(!isOnline || gameMode === 'offline') ? 'Start Offline Game' : 'Create Game Room'}
-                </h3>
-                <button
-                  onClick={() => setShowCreateRoom(false)}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-xl transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
+        <Modal
+          isOpen={showCreateRoom}
+          onClose={() => setShowCreateRoom(false)}
+          size="lg"
+          title={`🎮 ${(!isOnline || gameMode === 'offline') ? 'Start Offline Game' : 'Create Game Room'}`}
+        >
+          <div className="space-y-6">
+            {(isOnline && gameMode !== 'offline') && (
+              <Input
+                label="Room Name"
+                placeholder="Enter room name..."
+                value={newRoomName}
+                onChange={(e) => setNewRoomName(e.target.value)}
+                error={!newRoomName.trim() && error}
+                errorText="Please enter a room name"
+                fullWidth
+                icon="🏠"
+              />
+            )}
 
-              <div className="space-y-4">
-                {(isOnline && gameMode !== 'offline') && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Room Name
-                    </label>
-                    <input
-                      type="text"
-                      value={newRoomName}
-                      onChange={(e) => setNewRoomName(e.target.value)}
-                      placeholder="Enter room name..."
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
-                    />
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Game Type
-                  </label>
-                  <div className="space-y-2">
-                    {availableGames.map(game => {
-                      const categoryStyle = gameCategoryColors[game.category] || gameCategoryColors.Strategy;
-                      const difficultyStyle = difficultyColors[game.difficulty] || difficultyColors.Easy;
-                      
-                      return (
-                        <button
-                          key={game.id}
-                          onClick={() => setSelectedGameType(game.id)}
-                          className={`w-full p-3 rounded-lg border-2 transition-all text-left ${
-                            selectedGameType === game.id
-                              ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                              : 'border-gray-200 dark:border-slate-600 hover:border-primary-300 dark:hover:border-primary-600'
-                          }`}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="text-2xl">{game.icon}</div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center space-x-2 mb-1">
-                                <h4 className="font-medium text-gray-900 dark:text-gray-100">
-                                  {game.name}
-                                </h4>
-                                {game.offlineSupported && (
-                                  <Badge variant="success" size="sm">📱</Badge>
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
-                                {game.description}
-                              </p>
-                              <div className="flex items-center space-x-2 mt-2">
-                                <Badge 
-                                  className={`${categoryStyle.bg} ${categoryStyle.text}`}
-                                  size="sm"
-                                >
-                                  {game.category}
-                                </Badge>
-                                <Badge 
-                                  className={`${difficultyStyle.bg} ${difficultyStyle.text}`}
-                                  size="sm"
-                                >
-                                  {game.difficulty}
-                                </Badge>
-                              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                Choose Game Type
+              </label>
+              <div className="grid grid-cols-1 gap-3 max-h-80 overflow-y-auto">
+                {availableGames.map(game => {
+                  const categoryStyle = gameCategoryColors[game.category] || gameCategoryColors.Strategy;
+                  const difficultyStyle = difficultyColors[game.difficulty] || difficultyColors.Easy;
+                  
+                  return (
+                    <div
+                      key={game.id}
+                      onClick={() => setSelectedGameType(game.id)}
+                      className={`
+                        p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer
+                        hover:shadow-md transform hover:-translate-y-0.5
+                        ${selectedGameType === game.id
+                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 shadow-glow'
+                          : 'border-gray-200 dark:border-slate-600 hover:border-primary-300 dark:hover:border-primary-600'
+                        }
+                        bg-white dark:bg-slate-700/50
+                      `}
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className="text-3xl">{game.icon}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                              {game.name}
+                            </h4>
+                            {game.offlineSupported && (
+                              <Badge variant="success" size="sm">📱</Badge>
+                            )}
+                            {selectedGameType === game.id && (
+                              <Badge variant="primary" size="sm">✓ Selected</Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            {game.description}
+                          </p>
+                          <div className="flex items-center space-x-2">
+                            <Badge 
+                              className={`${categoryStyle.bg} ${categoryStyle.text}`}
+                              size="sm"
+                            >
+                              {game.category}
+                            </Badge>
+                            <Badge 
+                              className={`${difficultyStyle.bg} ${difficultyStyle.text}`}
+                              size="sm"
+                            >
+                              {game.difficulty}
+                            </Badge>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              👥 {game.minPlayers}-{game.maxPlayers} • ⏱️ {game.duration}
                             </div>
                           </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {(!isOnline || gameMode === 'offline') && (
-                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
-                    <div className="text-sm text-green-700 dark:text-green-300">
-                      📱 This game will be played offline against AI opponents. No internet connection required!
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex space-x-3 mt-6">
-                <Button
-                  variant="secondary"
-                  size="md"
-                  fullWidth
-                  onClick={() => setShowCreateRoom(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="primary"
-                  size="md"
-                  fullWidth
-                  loading={isLoading}
-                  disabled={isOnline && gameMode !== 'offline' && !newRoomName.trim()}
-                  onClick={createGameRoom}
-                >
-                  {(!isOnline || gameMode === 'offline') ? 'Start Game' : 'Create Room'}
-                </Button>
+                  );
+                })}
               </div>
             </div>
-          </Card>
-        </div>
+
+            {(!isOnline || gameMode === 'offline') && (
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="text-2xl">📱</div>
+                  <div>
+                    <div className="text-sm font-medium text-green-800 dark:text-green-200">
+                      Offline Mode Active
+                    </div>
+                    <div className="text-xs text-green-700 dark:text-green-300">
+                      This game will be played offline against AI opponents. No internet connection required!
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex space-x-3 mt-8">
+            <Button
+              variant="secondary"
+              size="md"
+              fullWidth
+              onClick={() => setShowCreateRoom(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              fullWidth
+              loading={isLoading}
+              disabled={!selectedGameType || (isOnline && gameMode !== 'offline' && !newRoomName.trim())}
+              onClick={createGameRoom}
+            >
+              {(!isOnline || gameMode === 'offline') ? '🎮 Start Game' : '🚀 Create Room'}
+            </Button>
+          </div>
+        </Modal>
       )}
     </div>
   );
