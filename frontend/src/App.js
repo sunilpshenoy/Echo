@@ -69,37 +69,49 @@ const App = () => {
       const savedToken = localStorage.getItem('token');
       if (savedToken) {
         try {
+          // Set the token in axios defaults for all requests
+          axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
+          
           const response = await axios.get(`${API}/users/me`, {
-            headers: { Authorization: `Bearer ${savedToken}` },
-            timeout: 10000 // Increase timeout
+            timeout: 10000
           });
-          setUser(response.data);
+          
+          const userData = response.data;
+          setUser(userData);
           setToken(savedToken);
           
           // Check if user has completed profile setup
-          if (response.data.profile_completed) {
+          if (userData.profile_completed) {
             setCurrentStep('dashboard');
           } else {
             setCurrentStep('profile_setup');
           }
+          
+          console.log('✅ Token validation successful:', userData.user_id);
         } catch (error) {
-          console.error('Token validation failed:', error);
+          console.error('❌ Token validation failed:', error.response?.status, error.response?.data);
           
           // Try token refresh on 401 errors
           if (error.response?.status === 401 && retryCount < 2) {
+            console.log('🔄 Attempting token refresh...');
             const refreshSuccess = await refreshToken();
             if (refreshSuccess) {
+              console.log('✅ Token refresh successful, retrying auth check...');
               return checkAuth(retryCount + 1);
             }
           }
           
-          // Clear invalid token
+          // Clear invalid token and reset axios defaults
+          console.log('🧹 Clearing invalid token...');
           localStorage.removeItem('token');
+          delete axios.defaults.headers.common['Authorization'];
           setToken(null);
           setUser(null);
           setCurrentStep('auth');
         }
       } else {
+        console.log('📝 No token found, redirecting to auth...');
+        delete axios.defaults.headers.common['Authorization'];
         setCurrentStep('auth');
       }
       setIsLoading(false);
