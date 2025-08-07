@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Offline Games</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .log {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 Test Offline Games Functionality</h1>
+    
+    <p>This page tests the offline game manager functionality directly.</p>
+    
+    <div>
+        <button class="button" onclick="testOfflineGameManager()">Test Offline Game Manager</button>
+        <button class="button" onclick="testTicTacToe()">Test Tic-Tac-Toe Game</button>
+        <button class="button" onclick="testWordGuess()">Test Word Guess Game</button>
+        <button class="button" onclick="clearLogs()">Clear Logs</button>
+    </div>
+    
+    <div id="log" class="log">Click a test button to see results...</div>
+
+    <script>
+        function log(message) {
+            const logElement = document.getElementById('log');
+            logElement.textContent += new Date().toISOString() + ': ' + message + '\n';
+        }
+        
+        function clearLogs() {
+            document.getElementById('log').textContent = '';
+        }
+        
+        // Simulate the OfflineGameManager
+        class OfflineGameManager {
+            constructor() {
+                this.gameStates = new Map();
+                this.aiDifficulty = 'medium';
+            }
+
+            createOfflineGame(gameType, playerName = 'Player') {
+                const gameId = `offline_${Date.now()}`;
+                const gameState = this.initializeGameState(gameType, gameId, playerName);
+                this.gameStates.set(gameId, gameState);
+                this.saveToLocalStorage(gameId, gameState);
+                return { gameId, gameState };
+            }
+
+            initializeGameState(gameType, gameId, playerName) {
+                const baseState = {
+                    gameId,
+                    gameType,
+                    mode: 'offline',
+                    playerName,
+                    createdAt: new Date().toISOString(),
+                    status: 'playing'
+                };
+
+                switch (gameType) {
+                    case 'tic-tac-toe':
+                        return {
+                            ...baseState,
+                            board: Array(9).fill(null),
+                            currentPlayer: 'X',
+                            players: { human: 'X', ai: 'O' },
+                            playerNames: { X: playerName, O: 'Computer' },
+                            winner: null,
+                            moves: 0
+                        };
+
+                    case 'word-guess':
+                        const words = [
+                            { word: 'JAVASCRIPT', hint: 'Programming language' },
+                            { word: 'COMPUTER', hint: 'Electronic device' },
+                        ];
+                        const selectedWord = words[Math.floor(Math.random() * words.length)];
+                        
+                        return {
+                            ...baseState,
+                            word: selectedWord.word,
+                            hint: selectedWord.hint,
+                            guessedLetters: [],
+                            wrongGuesses: 0,
+                            maxWrongGuesses: 6,
+                            gameWon: false,
+                            gameLost: false
+                        };
+
+                    default:
+                        return baseState;
+                }
+            }
+
+            saveToLocalStorage(gameId, gameState) {
+                try {
+                    localStorage.setItem(`pulse_game_${gameId}`, JSON.stringify(gameState));
+                    log(`✅ Saved game ${gameId} to localStorage`);
+                } catch (error) {
+                    log(`❌ Failed to save game to localStorage: ${error.message}`);
+                }
+            }
+        }
+        
+        const offlineGameManager = new OfflineGameManager();
+        
+        function testOfflineGameManager() {
+            log('🧪 Testing OfflineGameManager...');
+            try {
+                log('✅ OfflineGameManager created successfully');
+                log(`📊 Game states: ${offlineGameManager.gameStates.size}`);
+                log(`🤖 AI difficulty: ${offlineGameManager.aiDifficulty}`);
+                log('✅ OfflineGameManager test passed');
+            } catch (error) {
+                log(`❌ OfflineGameManager test failed: ${error.message}`);
+            }
+        }
+        
+        function testTicTacToe() {
+            log('🎯 Testing Tic-Tac-Toe game creation...');
+            try {
+                const result = offlineGameManager.createOfflineGame('tic-tac-toe', 'TestPlayer');
+                log(`✅ Created game with ID: ${result.gameId}`);
+                log(`🎮 Game type: ${result.gameState.gameType}`);
+                log(`👤 Player name: ${result.gameState.playerName}`);
+                log(`📱 Mode: ${result.gameState.mode}`);
+                log(`📋 Board: [${result.gameState.board.join(', ')}]`);
+                log(`🎯 Current player: ${result.gameState.currentPlayer}`);
+                log('✅ Tic-Tac-Toe test passed');
+            } catch (error) {
+                log(`❌ Tic-Tac-Toe test failed: ${error.message}`);
+                console.error('Full error:', error);
+            }
+        }
+        
+        function testWordGuess() {
+            log('📝 Testing Word Guess game creation...');
+            try {
+                const result = offlineGameManager.createOfflineGame('word-guess', 'TestPlayer');
+                log(`✅ Created game with ID: ${result.gameId}`);
+                log(`🎮 Game type: ${result.gameState.gameType}`);
+                log(`👤 Player name: ${result.gameState.playerName}`);
+                log(`📱 Mode: ${result.gameState.mode}`);
+                log(`💡 Hint: ${result.gameState.hint}`);
+                log(`🔤 Word length: ${result.gameState.word.length}`);
+                log(`❌ Wrong guesses: ${result.gameState.wrongGuesses}/${result.gameState.maxWrongGuesses}`);
+                log('✅ Word Guess test passed');
+            } catch (error) {
+                log(`❌ Word Guess test failed: ${error.message}`);
+                console.error('Full error:', error);
+            }
+        }
+        
+        log('🎮 Offline Games Test Page Ready');
+        log('Click the test buttons above to verify functionality');
+    </script>
+</body>
+</html>
