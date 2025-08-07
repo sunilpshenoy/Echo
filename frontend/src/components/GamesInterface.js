@@ -613,6 +613,7 @@ const GamesInterface = ({ user, token, api }) => {
         <div className="flex-1 overflow-y-auto p-4">
           {renderActiveGame()}
         </div>
+        </div>
       </div>
     );
   }
