@@ -614,6 +614,8 @@ const GamesInterface = ({ user, token, api }) => {
           {renderActiveGame()}
         </div>
       </div>
+        </div>
+      </div>
     );
   }
 
