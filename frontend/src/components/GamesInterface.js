@@ -1380,7 +1380,7 @@ const GamesInterface = ({ user, token, api }) => {
               size="md"
               fullWidth
               loading={isLoading}
-              disabled={!selectedGameType || (isOnline && gameMode !== 'offline' && !newRoomName.trim())}
+              disabled={!selectedGameType || (isOnline && gameMode === 'online' && !newRoomName.trim())}
               onClick={createGameRoom}
             >
               {(!isOnline || gameMode === 'offline') ? '🎮 Start Game' : '🚀 Create Room'}
