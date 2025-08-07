@@ -268,7 +268,7 @@ class AuthWebSocketTester:
                     
                     start_time = time.time()
                     game_websocket = await asyncio.wait_for(
-                        websockets.connect(game_websocket_url, timeout=10),
+                        websockets.connect(game_websocket_url),
                         timeout=15.0
                     )
                     response_time = time.time() - start_time
