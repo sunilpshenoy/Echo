@@ -233,20 +233,66 @@ const GamesInterface = ({ user, token, api }) => {
         }, 30000); // Send heartbeat every 30 seconds
       });
 
-      newSocket.on('disconnect', () => {
-        console.log('🎮 Games WebSocket disconnected');
+      newSocket.on('connect_error', (error) => {
+        console.error('🎮 Games WebSocket connection error:', error);
+        
+        // Set specific error messages based on error type
+        if (error.message && error.message.includes('timeout')) {
+          setError('Game server connection timed out. You can still play offline games.');
+        } else if (error.message && error.message.includes('refused')) {
+          setError('Game server is currently unavailable. Offline games are available.');
+        } else {
+          setError('Failed to connect to game server. Switching to offline mode for now.');
+        }
+        
+        // Automatically switch to offline mode for better UX
+        setGameMode('offline');
+        
         if (heartbeatInterval) {
           clearInterval(heartbeatInterval);
         }
       });
 
-      newSocket.on('connect_error', (error) => {
-        console.error('🎮 Games WebSocket connection error:', error);
-        setError('Failed to connect to game server. Switching to offline mode.');
-        setGameMode('offline');
+      // Enhanced disconnect handling
+      newSocket.on('disconnect', (reason) => {
+        console.log('🎮 Games WebSocket disconnected:', reason);
+        
+        if (reason === 'ping timeout') {
+          setError('Connection to game server lost. Your offline games are still available.');
+        } else if (reason === 'server disconnect') {
+          setError('Server maintenance in progress. Offline mode activated.');
+        }
+        
         if (heartbeatInterval) {
           clearInterval(heartbeatInterval);
         }
+      });
+
+      // Connection timeout handling
+      newSocket.on('connect_timeout', () => {
+        console.warn('🎮 Games WebSocket connection timeout');
+        setError('Game server connection timed out. Offline games are ready to play!');
+        setGameMode('offline');
+      });
+
+      // Reconnection attempt handling
+      newSocket.on('reconnect_attempt', (attempt) => {
+        console.log(`🔄 Games WebSocket reconnection attempt ${attempt}`);
+        setError(`Reconnecting to game server... (attempt ${attempt})`);
+      });
+
+      // Successful reconnection
+      newSocket.on('reconnect', (attempt) => {
+        console.log(`✅ Games WebSocket reconnected after ${attempt} attempts`);
+        setError('');
+        setGameMode('auto'); // Return to auto mode
+      });
+
+      // Failed reconnection
+      newSocket.on('reconnect_failed', () => {
+        console.error('❌ Games WebSocket failed to reconnect');
+        setError('Unable to reconnect to game server. Offline mode remains active.');
+        setGameMode('offline');
       });
 
       // Handle heartbeat response
