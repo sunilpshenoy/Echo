@@ -6,6 +6,12 @@ import TicTacToeGame from './games/TicTacToeGame';
 import WordGuessGame from './games/WordGuessGame';
 import LudoGame from './games/LudoGame';
 import MafiaGame from './games/MafiaGame';
+import SimpleRacing from './games/SimpleRacing';
+import Solitaire from './games/Solitaire';
+import Sudoku from './games/Sudoku';
+import Game2048 from './games/Game2048';
+import Blackjack from './games/Blackjack';
+import Snake from './games/Snake';
 
 const GamesInterface = ({ user, token, api }) => {
   const { t } = useTranslation();
