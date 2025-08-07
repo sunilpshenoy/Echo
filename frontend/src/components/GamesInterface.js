@@ -913,51 +913,148 @@ const GamesInterface = ({ user, token, api }) => {
 
         {/* Available Games */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            🎲 Available Games
-          </h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredGames.map(game => (
-              <div
-                key={game.id}
-                className="game-card bg-white border border-gray-300 rounded-lg p-4 hover:border-purple-500 hover:shadow-md transition-all cursor-pointer"
-                onClick={() => {
-                  setSelectedGameType(game.id);
-                  setShowCreateRoom(true);
-                }}
-              >
-                <div className="flex items-start space-x-3">
-                  <div className="text-3xl">{game.icon}</div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900 flex items-center">
-                      {game.name}
-                      {game.offlineSupported && (
-                        <span className="ml-2 px-1 py-0.5 bg-green-100 text-green-700 text-xs rounded">
-                          📱
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-sm text-gray-600 mb-2">{game.description}</div>
-                    <div className="flex items-center space-x-4 text-xs text-gray-500">
-                      <span>👥 {game.minPlayers}-{game.maxPlayers} players</span>
-                      <span>⏱️ {game.duration}</span>
-                      <span className={`px-2 py-1 rounded ${
-                        game.difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
-                        game.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {game.difficulty}
-                      </span>
-                      <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                        {game.category}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center">
+              🎲 Available Games 
+              <Badge variant="primary" size="sm" className="ml-2">
+                {filteredGames.length}
+              </Badge>
+            </h3>
+            
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {categoryFilter !== 'all' && `${categoryFilter} • `}
+              {difficultyFilter !== 'all' && `${difficultyFilter} • `}
+              {filteredGames.length} games
+            </div>
           </div>
+          
+          {filteredGames.length === 0 ? (
+            <Card padding="xl" className="text-center">
+              <div className="text-4xl mb-2">🔍</div>
+              <div className="text-gray-600 dark:text-gray-400 mb-2">No games found</div>
+              <div className="text-sm text-gray-500 dark:text-gray-500">
+                Try adjusting your search or filters
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearchFilter('');
+                  setCategoryFilter('all');
+                  setDifficultyFilter('all');
+                }}
+                className="mt-3"
+              >
+                Clear Filters
+              </Button>
+            </Card>
+          ) : (
+            <div className={`${
+              viewMode === 'grid' 
+                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' 
+                : 'space-y-3'
+            }`}>
+              {filteredGames.map(game => {
+                const categoryStyle = gameCategoryColors[game.category] || gameCategoryColors.Strategy;
+                const difficultyStyle = difficultyColors[game.difficulty] || difficultyColors.Easy;
+                
+                return (
+                  <Card
+                    key={game.id}
+                    hover={true}
+                    className={`cursor-pointer transition-all duration-200 hover:scale-[1.02] ${
+                      viewMode === 'list' ? 'p-4' : ''
+                    }`}
+                    onClick={() => {
+                      setSelectedGameType(game.id);
+                      setShowCreateRoom(true);
+                    }}
+                  >
+                    {viewMode === 'grid' ? (
+                      <div className="p-4">
+                        {/* Game Icon and Status */}
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="text-4xl">{game.icon}</div>
+                          <div className="flex flex-col items-end space-y-1">
+                            {game.offlineSupported && (
+                              <Badge variant="success" size="sm">📱</Badge>
+                            )}
+                            <Badge 
+                              className={`${difficultyStyle.bg} ${difficultyStyle.text}`}
+                              size="sm"
+                            >
+                              {game.difficulty}
+                            </Badge>
+                          </div>
+                        </div>
+                        
+                        {/* Game Info */}
+                        <div className="space-y-2">
+                          <h4 className="font-bold text-lg text-gray-900 dark:text-gray-100">
+                            {game.name}
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {game.description}
+                          </p>
+                          
+                          {/* Game Stats */}
+                          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                            <span>👥 {game.minPlayers}-{game.maxPlayers}</span>
+                            <span>⏱️ {game.duration}</span>
+                          </div>
+                          
+                          {/* Category Badge */}
+                          <div className="pt-2">
+                            <Badge 
+                              className={`${categoryStyle.bg} ${categoryStyle.text}`}
+                              size="sm"
+                            >
+                              {game.category}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      /* List View */
+                      <div className="flex items-center space-x-4">
+                        <div className="text-3xl">{game.icon}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                              {game.name}
+                            </h4>
+                            {game.offlineSupported && (
+                              <Badge variant="success" size="sm">📱</Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                            {game.description}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge 
+                            className={`${categoryStyle.bg} ${categoryStyle.text}`}
+                            size="sm"
+                          >
+                            {game.category}
+                          </Badge>
+                          <Badge 
+                            className={`${difficultyStyle.bg} ${difficultyStyle.text}`}
+                            size="sm"
+                          >
+                            {game.difficulty}
+                          </Badge>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {game.minPlayers}-{game.maxPlayers} 👥
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
