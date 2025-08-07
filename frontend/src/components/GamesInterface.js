@@ -1038,7 +1038,7 @@ const GamesInterface = ({ user, token, api }) => {
                   <Card
                     key={game.id}
                     hover={true}
-                    className={`cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-lg transform-gpu ${
+                    className={`cursor-pointer game-card-hover transform-gpu category-${game.category.toLowerCase()} ${
                       viewMode === 'list' ? 'p-4' : ''
                     } bg-gradient-to-br from-white to-gray-50 dark:from-slate-800 dark:to-slate-700 border-0 shadow-soft hover:shadow-soft-lg`}
                     onClick={() => {
