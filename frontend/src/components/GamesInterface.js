@@ -592,51 +592,137 @@ const GamesInterface = ({ user, token, api }) => {
   }
 
   return (
-    <div className="games-interface h-full flex flex-col bg-gray-50">
+    <div className="games-interface h-full flex flex-col bg-gray-50 dark:bg-slate-900">
       {/* Header */}
-      <div className="flex-shrink-0 bg-white border-b p-4">
+      <div className="flex-shrink-0 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 p-4">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-900 flex items-center">
-            🎮 Games Hub
-            {!isOnline && (
-              <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">
-                📶 Offline
-              </span>
-            )}
-          </h2>
+          <div className="flex items-center space-x-4">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
+              🎮 Games Hub
+              {!isOnline && (
+                <Badge variant="warning" size="sm" className="ml-2">
+                  📶 Offline
+                </Badge>
+              )}
+            </h2>
+            
+            {/* Theme Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleTheme}
+              icon={isDark ? '☀️' : '🌙'}
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              {isDark ? 'Light' : 'Dark'}
+            </Button>
+          </div>
+          
           <div className="flex space-x-2">
+            {/* View Mode Toggle */}
+            <div className="flex bg-gray-100 dark:bg-slate-700 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded-md transition-colors ${
+                  viewMode === 'grid'
+                    ? 'bg-white dark:bg-slate-600 text-gray-900 dark:text-gray-100 shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                }`}
+              >
+                ⊞
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded-md transition-colors ${
+                  viewMode === 'list'
+                    ? 'bg-white dark:bg-slate-600 text-gray-900 dark:text-gray-100 shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                }`}
+              >
+                ☰
+              </button>
+            </div>
+
             {/* Mode Toggle */}
             {isOnline && (
               <select
                 value={gameMode}
                 onChange={(e) => setGameMode(e.target.value)}
-                className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
+                className="px-3 py-1 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
               >
                 <option value="auto">Auto Mode</option>
                 <option value="online">Online Only</option>
                 <option value="offline">Offline Only</option>
               </select>
             )}
-            <button
+            
+            <Button
+              variant="primary"
+              size="md"
               onClick={() => setShowCreateRoom(true)}
-              className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors flex items-center space-x-2"
+              icon="➕"
             >
-              <span>➕</span>
-              <span>{(!isOnline || gameMode === 'offline') ? 'Start Game' : 'Create Room'}</span>
-            </button>
+              {(!isOnline || gameMode === 'offline') ? 'Start Game' : 'Create Room'}
+            </Button>
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search games or rooms..."
-            value={searchFilter}
-            onChange={(e) => setSearchFilter(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
-          <div className="absolute left-3 top-2.5 text-gray-400">🔍</div>
+        {/* Search and Filters */}
+        <div className="space-y-4">
+          {/* Search */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search games or rooms..."
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
+            />
+            <div className="absolute left-3 top-2.5 text-gray-400">🔍</div>
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap gap-3">
+            {/* Category Filter */}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Category:</span>
+              <div className="flex flex-wrap gap-1">
+                {gameCategories.map(category => (
+                  <button
+                    key={category}
+                    onClick={() => setCategoryFilter(category)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                      categoryFilter === category
+                        ? 'bg-primary-500 text-white'
+                        : 'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-slate-600'
+                    }`}
+                  >
+                    {category === 'all' ? 'All' : category}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Difficulty Filter */}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Difficulty:</span>
+              <div className="flex flex-wrap gap-1">
+                {gameDifficulties.map(difficulty => (
+                  <button
+                    key={difficulty}
+                    onClick={() => setDifficultyFilter(difficulty)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                      difficultyFilter === difficulty
+                        ? 'bg-primary-500 text-white'
+                        : 'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-slate-600'
+                    }`}
+                  >
+                    {difficulty === 'all' ? 'All' : difficulty}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
