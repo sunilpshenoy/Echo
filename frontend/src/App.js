@@ -5,6 +5,7 @@ import AuthScreen from './components/AuthScreen';
 import ProfileSetup from './components/ProfileSetup';
 import Dashboard from './components/Dashboard';
 import ErrorBoundary from './components/ErrorBoundary';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import './i18n';
 
