@@ -609,8 +609,12 @@ class ConnectionManager:
             if connection_id in self.active_connections:
                 websocket = self.active_connections[connection_id]
                 try:
-                    await websocket.send_text(message)
-                except:
+                    await asyncio.wait_for(websocket.send_text(message), timeout=5.0)
+                except asyncio.TimeoutError:
+                    logging.warning(f"WebSocket send timeout for user {user_id}")
+                    self.disconnect(connection_id, user_id)
+                except Exception as e:
+                    logging.error(f"WebSocket send error for user {user_id}: {str(e)}")
                     self.disconnect(connection_id, user_id)
     
     async def broadcast_to_chat(self, message: str, chat_id: str, sender_id: str):
