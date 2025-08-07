@@ -536,20 +536,25 @@ const GamesInterface = ({ user, token, api }) => {
     setOfflineGames(offlineGameManager.getOfflineGames());
   };
 
-  const filteredRooms = gameRooms.filter(room => 
-    room.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
-    room.gameType.toLowerCase().includes(searchFilter.toLowerCase())
-  );
-
-  const filteredGames = availableGames.filter(game =>
-    game.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
-    game.category.toLowerCase().includes(searchFilter.toLowerCase())
-  );
+  const filteredGames = availableGames.filter(game => {
+    const matchesSearch = game.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
+                         game.category.toLowerCase().includes(searchFilter.toLowerCase()) ||
+                         game.description.toLowerCase().includes(searchFilter.toLowerCase());
+    
+    const matchesCategory = categoryFilter === 'all' || game.category === categoryFilter;
+    
+    const matchesDifficulty = difficultyFilter === 'all' || game.difficulty === difficultyFilter;
+    
+    return matchesSearch && matchesCategory && matchesDifficulty;
+  });
 
   const filteredOfflineGames = offlineGames.filter(game =>
     game.playerName.toLowerCase().includes(searchFilter.toLowerCase()) ||
     game.gameType.toLowerCase().includes(searchFilter.toLowerCase())
   );
+
+  const gameCategories = ['all', ...new Set(availableGames.map(game => game.category))];
+  const gameDifficulties = ['all', ...new Set(availableGames.map(game => game.difficulty))];
 
   if (activeGame) {
     return (
