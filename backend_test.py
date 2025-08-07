@@ -379,7 +379,120 @@ class PulseGamesBackendTester:
                      f"{len(supported_games)}/{len(expected_games)} games supported ({coverage:.1f}%)", 
                      0)
 
-    def test_game_initialization(self):
+    def test_multiplayer_game_flow(self):
+        """Test complete multiplayer game flow"""
+        print("\n👥 Testing Multiplayer Game Flow...")
+        
+        # Create second user
+        register_data2 = {
+            "username": "games_test_user2",
+            "email": "games_test_user2@example.com",
+            "password": "TestPassword123!",
+            "display_name": "Games Test User 2"
+        }
+        
+        session2 = requests.Session()
+        start_time = time.time()
+        try:
+            reg_response = session2.post(f"{BACKEND_URL}/register", json=register_data2)
+            response_time = time.time() - start_time
+            
+            if reg_response.status_code in [200, 201]:
+                self.log_test("Create Second User", True, "Second user registered", response_time)
+            elif "already exists" in reg_response.text.lower():
+                self.log_test("Create Second User", True, "Second user already exists", response_time)
+            else:
+                self.log_test("Create Second User", False, f"Registration failed: {reg_response.text}", response_time)
+                return
+                
+        except Exception as e:
+            self.log_test("Create Second User", False, f"Error: {str(e)}", time.time() - start_time)
+            return
+        
+        # Login second user
+        login_data2 = {
+            "email": "games_test_user2@example.com",
+            "password": "TestPassword123!"
+        }
+        
+        start_time = time.time()
+        try:
+            login_response2 = session2.post(f"{BACKEND_URL}/login", json=login_data2)
+            response_time = time.time() - start_time
+            
+            if login_response2.status_code == 200:
+                data2 = login_response2.json()
+                token2 = data2.get("access_token")
+                user_data2 = data2.get("user", {})
+                user_id2 = user_data2.get("user_id")
+                
+                session2.headers.update({"Authorization": f"Bearer {token2}"})
+                self.log_test("Login Second User", True, f"Second user logged in: {user_id2}", response_time)
+            else:
+                self.log_test("Login Second User", False, f"Login failed: {login_response2.text}", response_time)
+                return
+                
+        except Exception as e:
+            self.log_test("Login Second User", False, f"Error: {str(e)}", time.time() - start_time)
+            return
+        
+        # Create a multiplayer room
+        room_data = {
+            "name": "Multiplayer Test Room",
+            "gameType": "tic-tac-toe",
+            "maxPlayers": 2,
+            "isPrivate": False
+        }
+        
+        start_time = time.time()
+        try:
+            response = self.session.post(f"{BACKEND_URL}/games/rooms/create", json=room_data)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                room = response.json()
+                multiplayer_room_id = room.get("room_id")
+                self.log_test("Create Multiplayer Room", True, f"Room created: {multiplayer_room_id}", response_time)
+            else:
+                self.log_test("Create Multiplayer Room", False, f"Failed: {response.text}", response_time)
+                return
+                
+        except Exception as e:
+            self.log_test("Create Multiplayer Room", False, f"Error: {str(e)}", time.time() - start_time)
+            return
+        
+        # Second user joins the room
+        start_time = time.time()
+        try:
+            join_response = session2.post(f"{BACKEND_URL}/games/rooms/{multiplayer_room_id}/join")
+            response_time = time.time() - start_time
+            
+            if join_response.status_code == 200:
+                join_data = join_response.json()
+                self.log_test("Second User Join Room", True, f"Status: {join_data.get('status')}", response_time)
+            else:
+                self.log_test("Second User Join Room", False, f"Failed: {join_response.text}", response_time)
+                return
+                
+        except Exception as e:
+            self.log_test("Second User Join Room", False, f"Error: {str(e)}", time.time() - start_time)
+            return
+        
+        # Start the game with 2 players
+        start_time = time.time()
+        try:
+            start_response = self.session.post(f"{BACKEND_URL}/games/rooms/{multiplayer_room_id}/start")
+            response_time = time.time() - start_time
+            
+            if start_response.status_code == 200:
+                game_data = start_response.json()
+                game_state = game_data.get("game_state", {})
+                self.log_test("Start Multiplayer Game", True, f"Game started with {len(game_state.get('players', {}))} players", response_time)
+            else:
+                self.log_test("Start Multiplayer Game", False, f"Failed: {start_response.text}", response_time)
+                
+        except Exception as e:
+            self.log_test("Start Multiplayer Game", False, f"Error: {str(e)}", time.time() - start_time)
         """Test Game State Initialization"""
         print("\n🎲 Testing Game State Initialization...")
         
