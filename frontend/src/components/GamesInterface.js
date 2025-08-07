@@ -563,6 +563,30 @@ const GamesInterface = ({ user, token, api }) => {
   const gameCategories = ['all', ...new Set(availableGames.map(game => game.category))];
   const gameDifficulties = ['all', ...new Set(availableGames.map(game => game.difficulty))];
 
+  // Helper functions for icons
+  const getCategoryIcon = (category) => {
+    const icons = {
+      Strategy: '🧠',
+      Word: '📝',
+      Action: '⚡',
+      Cards: '🃏',
+      Puzzle: '🧩',
+      Board: '🎲',
+      Social: '👥',
+      Arcade: '🎮'
+    };
+    return icons[category] || '🎯';
+  };
+
+  const getDifficultyIcon = (difficulty) => {
+    const icons = {
+      Easy: '🟢',
+      Medium: '🟡',
+      Hard: '🔴'
+    };
+    return icons[difficulty] || '⚪';
+  };
+
   if (activeGame) {
     return (
       <div className="games-active-session h-full flex flex-col bg-gray-50 dark:bg-slate-900">
