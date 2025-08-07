@@ -9657,7 +9657,7 @@ def initialize_mafia_game(players: list):
         "status": "playing"
     }
 
-# WebSocket for real-time gaming
+# WebSocket for real-time gaming with timeout handling
 @app.websocket("/ws/games/{room_id}")
 async def game_websocket_endpoint(websocket: WebSocket, room_id: str):
     await websocket.accept()
@@ -9667,22 +9667,56 @@ async def game_websocket_endpoint(websocket: WebSocket, room_id: str):
         game_connections[room_id] = []
     game_connections[room_id].append(websocket)
     
+    # Heartbeat configuration
+    last_heartbeat = time.time()
+    heartbeat_interval = 30  # Send heartbeat every 30 seconds
+    timeout_threshold = 60  # Disconnect if no response for 60 seconds
+    
     try:
         while True:
-            data = await websocket.receive_json()
-            
-            # Handle different game actions
-            if data["type"] == "game_move":
-                await handle_game_move(room_id, data, websocket)
-            elif data["type"] == "chat_message":
-                await handle_game_chat(room_id, data, websocket)
-            
+            try:
+                # Wait for message with timeout
+                data = await asyncio.wait_for(websocket.receive_json(), timeout=heartbeat_interval)
+                last_heartbeat = time.time()
+                
+                if data.get("type") == "pong":
+                    # Update heartbeat timestamp
+                    last_heartbeat = time.time()
+                    continue
+                elif data["type"] == "game_move":
+                    await handle_game_move(room_id, data, websocket)
+                elif data["type"] == "chat_message":
+                    await handle_game_chat(room_id, data, websocket)
+                    
+            except asyncio.TimeoutError:
+                # Send heartbeat ping
+                current_time = time.time()
+                if current_time - last_heartbeat > timeout_threshold:
+                    # Connection timed out
+                    break
+                
+                try:
+                    await websocket.send_json({
+                        "type": "ping",
+                        "timestamp": current_time
+                    })
+                except:
+                    # Connection is broken
+                    break
+                    
     except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        logging.error(f"Game WebSocket error for room {room_id}: {str(e)}")
+    finally:
         # Remove connection
         if room_id in game_connections:
-            game_connections[room_id].remove(websocket)
-            if not game_connections[room_id]:
-                del game_connections[room_id]
+            try:
+                game_connections[room_id].remove(websocket)
+                if not game_connections[room_id]:
+                    del game_connections[room_id]
+            except ValueError:
+                pass  # Connection already removed
 
 async def handle_game_move(room_id: str, data: dict, websocket: WebSocket):
     """Handle game moves and update game state"""
