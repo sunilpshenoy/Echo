@@ -88,6 +88,89 @@ export class OfflineGameManager {
           maxAccusations: 3
         };
 
+      case 'racing':
+        return {
+          ...baseState,
+          cars: [
+            { id: 'player', name: playerName, position: 0, speed: 0, emoji: '🏎️', isPlayer: true },
+            { id: 'ai1', name: 'Lightning', position: 0, speed: 0, emoji: '🚗', isAI: true },
+            { id: 'ai2', name: 'Thunder', position: 0, speed: 0, emoji: '🚙', isAI: true },
+            { id: 'ai3', name: 'Bolt', position: 0, speed: 0, emoji: '🚕', isAI: true }
+          ],
+          raceDistance: 100,
+          raceStarted: false,
+          raceFinished: false,
+          winner: null,
+          countdown: 0
+        };
+
+      case 'solitaire':
+        return {
+          ...baseState,
+          tableau: this.initializeSolitaireTableau(),
+          foundations: [[], [], [], []],
+          waste: [],
+          stock: this.createShuffledDeck(),
+          moves: 0,
+          score: 0,
+          gameWon: false
+        };
+
+      case 'sudoku':
+        const difficulty = 'medium';
+        const puzzle = this.generateSudokuPuzzle(difficulty);
+        return {
+          ...baseState,
+          grid: puzzle.puzzle,
+          initialGrid: puzzle.puzzle,
+          solution: puzzle.solution,
+          difficulty,
+          timer: 0,
+          hints: 3,
+          gameWon: false
+        };
+
+      case '2048':
+        const initialGrid = Array(4).fill().map(() => Array(4).fill(0));
+        this.addRandom2048Tile(initialGrid);
+        this.addRandom2048Tile(initialGrid);
+        return {
+          ...baseState,
+          grid: initialGrid,
+          score: 0,
+          bestScore: parseInt(localStorage.getItem('pulse_2048_best') || 0),
+          gameOver: false,
+          gameWon: false
+        };
+
+      case 'blackjack':
+        return {
+          ...baseState,
+          playerHand: [],
+          dealerHand: [],
+          deck: this.createShuffledDeck(),
+          gamePhase: 'betting',
+          playerScore: 0,
+          dealerScore: 0,
+          gameResult: '',
+          playerMoney: parseInt(localStorage.getItem('pulse_blackjack_money') || 1000),
+          currentBet: 0,
+          showDealerCard: false
+        };
+
+      case 'snake':
+        return {
+          ...baseState,
+          snake: [{ x: 10, y: 10 }],
+          food: { x: 15, y: 15 },
+          direction: { x: 0, y: 1 },
+          score: 0,
+          highScore: parseInt(localStorage.getItem('pulse_snake_high') || 0),
+          gameRunning: false,
+          gameOver: false,
+          speed: 150
+        };
+
       default:
         return baseState;
     }
