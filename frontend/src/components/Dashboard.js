@@ -14,6 +14,7 @@ import SimpleMarketplace from './SimpleMarketplace';
 import SmartProfileManager from './SmartProfileManager';
 import ContextualProfileSetup from './ContextualProfileSetup';
 import GamesInterface from './GamesInterface';
+import GamesErrorBoundary from './GamesErrorBoundary';
 
 const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const { t } = useTranslation();
