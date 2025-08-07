@@ -616,11 +616,13 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
             )}
             
             {activeTab === 'games' && (
-              <GamesInterface 
-                user={user}
-                token={token}
-                api={api}
-              />
+              <GamesErrorBoundary>
+                <GamesInterface 
+                  user={user}
+                  token={token}
+                  api={api}
+                />
+              </GamesErrorBoundary>
             )}
             
             {activeTab === 'teams' && (
