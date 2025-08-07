@@ -501,6 +501,18 @@ const GamesInterface = ({ user, token, api }) => {
         return <TicTacToeGame {...gameProps} />;
       case 'word-guess':
         return <WordGuessGame {...gameProps} />;
+      case 'racing':
+        return <SimpleRacing {...gameProps} />;
+      case 'solitaire':
+        return <Solitaire {...gameProps} />;
+      case 'blackjack':
+        return <Blackjack {...gameProps} />;
+      case 'sudoku':
+        return <Sudoku {...gameProps} />;
+      case '2048':
+        return <Game2048 {...gameProps} />;
+      case 'snake':
+        return <Snake {...gameProps} />;
       case 'ludo':
         return <LudoGame {...gameProps} />;
       case 'mafia':
