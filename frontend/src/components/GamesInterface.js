@@ -1155,6 +1155,7 @@ const GamesInterface = ({ user, token, api }) => {
             </div>
           )}
         </div>
+        </div>
       </div>
 
       {/* Create Room/Start Game Modal */}
