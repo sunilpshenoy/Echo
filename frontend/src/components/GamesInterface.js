@@ -772,19 +772,25 @@ const GamesInterface = ({ user, token, api }) => {
 
       {/* Error Display */}
       {error && (
-        <div className="flex-shrink-0 bg-red-50 border-l-4 border-red-500 p-4">
-          <div className="text-red-700">{error}</div>
-          <button
-            onClick={() => setError('')}
-            className="text-red-500 hover:text-red-700 ml-2"
-          >
-            ✕
-          </button>
+        <div className="flex-shrink-0 bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 border-l-4 border-red-500 p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="text-red-500 text-xl">⚠️</div>
+              <div className="text-red-700 dark:text-red-300 font-medium">{error}</div>
+            </div>
+            <button
+              onClick={() => setError('')}
+              className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200 ml-4 text-xl transition-colors"
+            >
+              ✕
+            </button>
+          </div>
         </div>
       )}
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
+        <div className="max-w-7xl mx-auto space-y-8">
         {/* Game Invitations */}
         {gameInvitations.length > 0 && (
           <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
