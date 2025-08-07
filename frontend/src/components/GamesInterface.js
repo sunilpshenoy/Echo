@@ -572,27 +572,41 @@ const GamesInterface = ({ user, token, api }) => {
     setOfflineGames(offlineGameManager.getOfflineGames());
   };
 
-  const filteredRooms = gameRooms.filter(room => 
-    room.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
-    room.gameType.toLowerCase().includes(searchFilter.toLowerCase())
-  );
+  const filteredRooms = gameRooms.filter(room => {
+    if (!searchFilter) return true;
+    const searchLower = searchFilter.toLowerCase();
+    return (
+      (room.name || '').toLowerCase().includes(searchLower) ||
+      (room.gameType || '').toLowerCase().includes(searchLower)
+    );
+  });
 
   const filteredGames = availableGames.filter(game => {
-    const matchesSearch = game.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
-                         game.category.toLowerCase().includes(searchFilter.toLowerCase()) ||
-                         game.description.toLowerCase().includes(searchFilter.toLowerCase());
+    if (!game) return false;
     
-    const matchesCategory = categoryFilter === 'all' || game.category === categoryFilter;
+    let matchesSearch = true;
+    if (searchFilter) {
+      const searchLower = searchFilter.toLowerCase();
+      matchesSearch = (game.name || '').toLowerCase().includes(searchLower) ||
+                     (game.category || '').toLowerCase().includes(searchLower) ||
+                     (game.description || '').toLowerCase().includes(searchLower);
+    }
     
-    const matchesDifficulty = difficultyFilter === 'all' || game.difficulty === difficultyFilter;
+    const matchesCategory = categoryFilter === 'all' || (game.category === categoryFilter);
+    
+    const matchesDifficulty = difficultyFilter === 'all' || (game.difficulty === difficultyFilter);
     
     return matchesSearch && matchesCategory && matchesDifficulty;
   });
 
-  const filteredOfflineGames = offlineGames.filter(game =>
-    game.playerName.toLowerCase().includes(searchFilter.toLowerCase()) ||
-    game.gameType.toLowerCase().includes(searchFilter.toLowerCase())
-  );
+  const filteredOfflineGames = offlineGames.filter(game => {
+    if (!game || !searchFilter) return !searchFilter;
+    const searchLower = searchFilter.toLowerCase();
+    return (
+      (game.playerName || '').toLowerCase().includes(searchLower) ||
+      (game.gameType || '').toLowerCase().includes(searchLower)
+    );
+  });
 
   const gameCategories = ['all', ...new Set(availableGames.map(game => game.category))];
   const gameDifficulties = ['all', ...new Set(availableGames.map(game => game.difficulty))];
