@@ -406,18 +406,26 @@ const GamesInterface = ({ user, token, api }) => {
   // Start offline game
   const startOfflineGame = (gameType) => {
     try {
+      console.log('🎮 Starting offline game with type:', gameType);
+      console.log('🎮 User data:', user);
+      console.log('🎮 Current game mode:', gameMode);
+      
       const { gameId, gameState: newGameState } = offlineGameManager.createOfflineGame(
         gameType, 
         user?.display_name || user?.username || 'Player'
       );
       
+      console.log('🎮 Created offline game:', { gameId, gameState: newGameState });
+      
       setActiveGame(gameType);
       setGameState(newGameState);
       setCurrentOfflineGame(gameId);
       setGameMode('offline');
+      
+      console.log('✅ Offline game started successfully');
     } catch (error) {
-      console.error('Failed to start offline game:', error);
-      setError('Failed to start offline game');
+      console.error('❌ Failed to start offline game:', error);
+      setError('Failed to start offline game: ' + error.message);
     }
   };
 
