@@ -422,7 +422,7 @@ class AuthWebSocketTester:
             room_id = room.get("room_id")
             
             # Connect to game WebSocket with resolved authentication and WebSocket issues
-            game_websocket_url = f"{WEBSOCKET_URL}/games/{room_id}"
+            game_websocket_url = f"{WEBSOCKET_URL}/ws/games/{room_id}"
             game_websocket = await asyncio.wait_for(
                 websockets.connect(game_websocket_url),
                 timeout=15.0
