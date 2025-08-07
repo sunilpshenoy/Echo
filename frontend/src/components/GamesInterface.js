@@ -1027,7 +1027,7 @@ const GamesInterface = ({ user, token, api }) => {
           ) : (
             <div className={`${
               viewMode === 'grid' 
-                ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6' 
+                ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:games-grid-2xl gap-4 sm:gap-6' 
                 : 'space-y-3'
             }`}>
               {filteredGames.map(game => {
