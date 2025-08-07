@@ -1283,9 +1283,6 @@ const GamesInterface = ({ user, token, api }) => {
           </div>
         </Modal>
       )}
-        </div>
-        </div>
-        </div>
     </div>
   );
 };
