@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../contexts/ThemeContext';
 import io from 'socket.io-client';
 import { offlineGameManager } from './games/OfflineGameManager';
+import { gameCategoryColors, difficultyColors } from '../styles/designSystem';
+import Button from './ui/Button';
+import Card from './ui/Card';
+import Badge from './ui/Badge';
 import TicTacToeGame from './games/TicTacToeGame';
 import WordGuessGame from './games/WordGuessGame';
 import LudoGame from './games/LudoGame';
