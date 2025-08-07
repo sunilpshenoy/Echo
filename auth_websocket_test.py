@@ -191,7 +191,7 @@ class AuthWebSocketTester:
         print("\n1️⃣ Testing WebSocket Connection Establishment...")
         
         try:
-            websocket_url = f"{WEBSOCKET_URL}/games/test_room_{self.user_id}"
+            websocket_url = f"{WEBSOCKET_URL}/ws/games/test_room_{self.user_id}"
             
             start_time = time.time()
             # Test connection with timeout
