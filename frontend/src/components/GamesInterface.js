@@ -536,6 +536,11 @@ const GamesInterface = ({ user, token, api }) => {
     setOfflineGames(offlineGameManager.getOfflineGames());
   };
 
+  const filteredRooms = gameRooms.filter(room => 
+    room.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
+    room.gameType.toLowerCase().includes(searchFilter.toLowerCase())
+  );
+
   const filteredGames = availableGames.filter(game => {
     const matchesSearch = game.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
                          game.category.toLowerCase().includes(searchFilter.toLowerCase()) ||
