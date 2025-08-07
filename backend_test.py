@@ -493,6 +493,8 @@ class PulseGamesBackendTester:
                 
         except Exception as e:
             self.log_test("Start Multiplayer Game", False, f"Error: {str(e)}", time.time() - start_time)
+
+    def test_game_initialization(self):
         """Test Game State Initialization"""
         print("\n🎲 Testing Game State Initialization...")
         
