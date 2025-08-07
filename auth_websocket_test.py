@@ -20,7 +20,7 @@ import hashlib
 
 # Configuration
 BACKEND_URL = "https://9b83238d-a27b-406f-8157-e448fada6ab0.preview.emergentagent.com/api"
-WEBSOCKET_URL = "wss://9b83238d-a27b-406f-8157-e448fada6ab0.preview.emergentagent.com/ws"
+WEBSOCKET_URL = "wss://9b83238d-a27b-406f-8157-e448fada6ab0.preview.emergentagent.com"
 
 class AuthWebSocketTester:
     def __init__(self):
