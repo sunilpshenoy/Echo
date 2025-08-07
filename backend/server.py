@@ -2520,7 +2520,7 @@ async def discover_channels(query: Optional[str] = None, category: Optional[str]
 # Enhanced messaging continues with existing functionality...
 # (All previous message, chat, contact, blocking functionality remains the same)
 
-# WebSocket endpoint with enhanced features
+# WebSocket endpoint with enhanced features and timeout handling
 @api_router.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: str):
     connection_id = await manager.connect(websocket, user_id)
@@ -2530,54 +2530,86 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
         {"$set": {"is_online": True, "last_seen": datetime.utcnow()}}
     )
     
+    # Heartbeat configuration
+    last_heartbeat = time.time()
+    heartbeat_interval = 30  # Send heartbeat every 30 seconds
+    timeout_threshold = 60  # Disconnect if no response for 60 seconds
+    
     try:
         while True:
-            data = await websocket.receive_text()
-            message_data = json.loads(data)
-            
-            if message_data["type"] == "typing":
-                await manager.broadcast_typing(
-                    message_data["chat_id"],
-                    user_id,
-                    message_data["is_typing"]
-                )
-            elif message_data["type"] == "join_voice_room":
-                room_id = message_data["room_id"]
-                if room_id not in manager.voice_rooms:
-                    manager.voice_rooms[room_id] = []
-                if user_id not in manager.voice_rooms[room_id]:
-                    manager.voice_rooms[room_id].append(user_id)
+            try:
+                # Wait for message with timeout
+                data = await asyncio.wait_for(websocket.receive_text(), timeout=heartbeat_interval)
+                message_data = json.loads(data)
+                last_heartbeat = time.time()
                 
-                await manager.broadcast_to_voice_room(
-                    json.dumps({
-                        "type": "user_joined_voice",
-                        "data": {"room_id": room_id, "user_id": user_id}
-                    }),
-                    room_id,
-                    user_id
-                )
-            elif message_data["type"] == "user_status":
-                manager.user_status[user_id] = {
-                    "status": message_data.get("status", "online"),
-                    "activity": message_data.get("activity"),
-                    "game": message_data.get("game")
-                }
-                
-                # Broadcast status to contacts
-                contacts = await db.contacts.find({"contact_user_id": user_id}).to_list(100)
-                for contact in contacts:
-                    await manager.send_personal_message(
-                        json.dumps({
-                            "type": "status_update",
-                            "data": {
-                                "user_id": user_id,
-                                "status": manager.user_status[user_id]
-                            }
-                        }),
-                        contact["user_id"]
+                if message_data["type"] == "pong":
+                    # Update heartbeat timestamp
+                    last_heartbeat = time.time()
+                    continue
+                elif message_data["type"] == "typing":
+                    await manager.broadcast_typing(
+                        message_data["chat_id"],
+                        user_id,
+                        message_data["is_typing"]
                     )
-            
+                elif message_data["type"] == "join_voice_room":
+                    room_id = message_data["room_id"]
+                    if room_id not in manager.voice_rooms:
+                        manager.voice_rooms[room_id] = []
+                    if user_id not in manager.voice_rooms[room_id]:
+                        manager.voice_rooms[room_id].append(user_id)
+                    
+                    await manager.broadcast_to_voice_room(
+                        json.dumps({
+                            "type": "user_joined_voice",
+                            "data": {"room_id": room_id, "user_id": user_id}
+                        }),
+                        room_id,
+                        user_id
+                    )
+                elif message_data["type"] == "user_status":
+                    manager.user_status[user_id] = {
+                        "status": message_data.get("status", "online"),
+                        "activity": message_data.get("activity"),
+                        "game": message_data.get("game")
+                    }
+                    
+                    # Broadcast status to contacts
+                    contacts = await db.contacts.find({"contact_user_id": user_id}).to_list(100)
+                    for contact in contacts:
+                        await manager.send_personal_message(
+                            json.dumps({
+                                "type": "status_update",
+                                "data": {
+                                    "user_id": user_id,
+                                    "status": manager.user_status[user_id]
+                                }
+                            }),
+                            contact["user_id"]
+                        )
+                
+            except asyncio.TimeoutError:
+                # Send heartbeat ping
+                current_time = time.time()
+                if current_time - last_heartbeat > timeout_threshold:
+                    # Connection timed out
+                    break
+                
+                try:
+                    await websocket.send_json({
+                        "type": "ping",
+                        "timestamp": current_time
+                    })
+                except:
+                    # Connection is broken
+                    break
+                    
     except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        logging.error(f"WebSocket error for user {user_id}: {str(e)}")
+    finally:
         manager.disconnect(connection_id, user_id)
         await db.users.update_one(
             {"user_id": user_id},
