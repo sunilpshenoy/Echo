@@ -7,6 +7,8 @@ import { gameCategoryColors, difficultyColors } from '../styles/designSystem';
 import Button from './ui/Button';
 import Card from './ui/Card';
 import Badge from './ui/Badge';
+import Input from './ui/Input';
+import Modal from './ui/Modal';
 import TicTacToeGame from './games/TicTacToeGame';
 import WordGuessGame from './games/WordGuessGame';
 import LudoGame from './games/LudoGame';
