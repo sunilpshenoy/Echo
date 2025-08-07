@@ -204,6 +204,8 @@ const GamesInterface = ({ user, token, api }) => {
 
   // Initialize WebSocket connection only when online
   useEffect(() => {
+    let heartbeatInterval;
+    
     const initSocket = () => {
       if (!isOnline || gameMode === 'offline') return;
       
@@ -212,22 +214,44 @@ const GamesInterface = ({ user, token, api }) => {
         auth: {
           token: token
         },
-        transports: ['websocket']
+        transports: ['websocket'],
+        timeout: 60000, // 60 second timeout
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionAttempts: 5
       });
 
       newSocket.on('connect', () => {
         console.log('🎮 Games WebSocket connected');
         setError('');
+        
+        // Start heartbeat
+        heartbeatInterval = setInterval(() => {
+          if (newSocket.connected) {
+            newSocket.emit('ping', { timestamp: Date.now() });
+          }
+        }, 30000); // Send heartbeat every 30 seconds
       });
 
       newSocket.on('disconnect', () => {
         console.log('🎮 Games WebSocket disconnected');
+        if (heartbeatInterval) {
+          clearInterval(heartbeatInterval);
+        }
       });
 
       newSocket.on('connect_error', (error) => {
         console.error('🎮 Games WebSocket connection error:', error);
         setError('Failed to connect to game server. Switching to offline mode.');
         setGameMode('offline');
+        if (heartbeatInterval) {
+          clearInterval(heartbeatInterval);
+        }
+      });
+
+      // Handle heartbeat response
+      newSocket.on('ping', (data) => {
+        newSocket.emit('pong', data);
       });
 
       // Game-specific events
@@ -253,11 +277,20 @@ const GamesInterface = ({ user, token, api }) => {
       fetchGameRooms();
 
       return () => {
+        if (heartbeatInterval) {
+          clearInterval(heartbeatInterval);
+        }
         if (socketConnection) {
           socketConnection.disconnect();
         }
       };
     }
+
+    return () => {
+      if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+      }
+    };
   }, [token, isOnline, gameMode]);
 
   const fetchGameRooms = async () => {
