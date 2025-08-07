@@ -142,9 +142,17 @@ const App = () => {
   
   // Authentication handlers
   const handleAuthSuccess = (userData, authToken) => {
+    console.log('🎉 Authentication successful for user:', userData.user_id);
+    
+    // Set user data and token in state
     setUser(userData);
     setToken(authToken);
+    
+    // Persist token in localStorage
     localStorage.setItem('token', authToken);
+    
+    // Set token in axios defaults for all future requests
+    axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
     
     // Always go to dashboard - profile setup is now optional for basic chat
     // Profile will be required only when accessing Groups or Premium tabs
