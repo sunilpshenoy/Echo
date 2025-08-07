@@ -1,0 +1,163 @@
+/* Games Interface Enhanced Styles */
+
+.games-interface {
+  /* Custom scrollbar styles */
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #6366f1 #f1f5f9;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-slate-800 rounded-full;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-primary-500 hover:bg-primary-600 rounded-full;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary-600;
+}
+
+/* Line clamp utilities for text truncation */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Animation for smooth loading */
+.games-grid-enter {
+  opacity: 0;
+  transform: scale(0.9) translateY(20px);
+}
+
+.games-grid-enter-active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
+}
+
+/* Enhanced hover effects */
+.game-card-hover {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.game-card-hover:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 640px) {
+  .games-interface .mobile-padding {
+    padding: 1rem;
+  }
+  
+  .games-interface .mobile-text-sm {
+    font-size: 0.875rem;
+  }
+  
+  .games-interface .mobile-hide {
+    display: none;
+  }
+}
+
+/* Filter button animations */
+.filter-button {
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.filter-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 0.3) 0%, 
+    rgba(168, 85, 247, 0.3) 100%);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.filter-button.active::before {
+  opacity: 1;
+}
+
+/* Loading animation improvements */
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 400% 100%;
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+
+.dark .shimmer {
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  background-size: 400% 100%;
+}
+
+/* Enhanced focus styles for accessibility */
+.games-interface button:focus-visible,
+.games-interface input:focus-visible,
+.games-interface select:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for theme switching */
+.games-interface * {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Game category specific styling */
+.category-strategy { border-left: 4px solid #3b82f6; }
+.category-word { border-left: 4px solid #10b981; }
+.category-action { border-left: 4px solid #ef4444; }
+.category-cards { border-left: 4px solid #8b5cf6; }
+.category-puzzle { border-left: 4px solid #f59e0b; }
+.category-board { border-left: 4px solid #6366f1; }
+.category-social { border-left: 4px solid #ec4899; }
+.category-arcade { border-left: 4px solid #f97316; }
+
+/* Responsive grid improvements */
+@media (min-width: 1536px) {
+  .games-grid-2xl {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
