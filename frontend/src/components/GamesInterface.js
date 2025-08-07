@@ -594,19 +594,27 @@ const GamesInterface = ({ user, token, api }) => {
   }
 
   return (
-    <div className="games-interface h-full flex flex-col bg-gray-50 dark:bg-slate-900">
+    <div className="games-interface h-full flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-900 dark:to-slate-800">
       {/* Header */}
-      <div className="flex-shrink-0 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 p-4">
-        <div className="flex justify-between items-center mb-4">
+      <div className="flex-shrink-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-slate-700 p-6">
+        <div className="flex justify-between items-center mb-6">
           <div className="flex items-center space-x-4">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
-              🎮 Games Hub
-              {!isOnline && (
-                <Badge variant="warning" size="sm" className="ml-2">
-                  📶 Offline
-                </Badge>
-              )}
-            </h2>
+            <div className="flex items-center space-x-3">
+              <div className="text-3xl">🎮</div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  Games Hub
+                </h2>
+                <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+                  <span>Discover & Play Games</span>
+                  {!isOnline && (
+                    <Badge variant="warning" size="sm">
+                      📶 Offline
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
             
             {/* Theme Toggle */}
             <Button
@@ -620,28 +628,28 @@ const GamesInterface = ({ user, token, api }) => {
             </Button>
           </div>
           
-          <div className="flex space-x-2">
+          <div className="flex items-center space-x-3">
             {/* View Mode Toggle */}
-            <div className="flex bg-gray-100 dark:bg-slate-700 rounded-lg p-1">
+            <div className="flex bg-gray-100 dark:bg-slate-700 rounded-xl p-1 shadow-inner">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-md transition-colors ${
+                className={`p-2.5 rounded-lg transition-all duration-200 ${
                   viewMode === 'grid'
-                    ? 'bg-white dark:bg-slate-600 text-gray-900 dark:text-gray-100 shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                    ? 'bg-white dark:bg-slate-600 text-gray-900 dark:text-gray-100 shadow-sm transform scale-105'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-white/50 dark:hover:bg-slate-600/50'
                 }`}
               >
-                ⊞
+                <span className="text-lg">⊞</span>
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`p-2 rounded-md transition-colors ${
+                className={`p-2.5 rounded-lg transition-all duration-200 ${
                   viewMode === 'list'
-                    ? 'bg-white dark:bg-slate-600 text-gray-900 dark:text-gray-100 shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                    ? 'bg-white dark:bg-slate-600 text-gray-900 dark:text-gray-100 shadow-sm transform scale-105'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-white/50 dark:hover:bg-slate-600/50'
                 }`}
               >
-                ☰
+                <span className="text-lg">☰</span>
               </button>
             </div>
 
@@ -650,11 +658,11 @@ const GamesInterface = ({ user, token, api }) => {
               <select
                 value={gameMode}
                 onChange={(e) => setGameMode(e.target.value)}
-                className="px-3 py-1 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
+                className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
               >
-                <option value="auto">Auto Mode</option>
-                <option value="online">Online Only</option>
-                <option value="offline">Offline Only</option>
+                <option value="auto">🔄 Auto Mode</option>
+                <option value="online">🌐 Online Only</option>
+                <option value="offline">📱 Offline Only</option>
               </select>
             )}
             
@@ -663,63 +671,73 @@ const GamesInterface = ({ user, token, api }) => {
               size="md"
               onClick={() => setShowCreateRoom(true)}
               icon="➕"
+              className="shadow-lg hover:shadow-xl"
             >
-              {(!isOnline || gameMode === 'offline') ? 'Start Game' : 'Create Room'}
+              {(!isOnline || gameMode === 'offline') ? '🎮 Start Game' : '🚀 Create Room'}
             </Button>
           </div>
         </div>
 
-        {/* Search and Filters */}
+        {/* Enhanced Search and Filters */}
         <div className="space-y-4">
           {/* Search */}
-          <div className="relative">
-            <input
+          <div className="relative max-w-md">
+            <Input
               type="text"
               placeholder="Search games or rooms..."
               value={searchFilter}
               onChange={(e) => setSearchFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
+              icon="🔍"
+              className="pr-12"
+              fullWidth
             />
-            <div className="absolute left-3 top-2.5 text-gray-400">🔍</div>
+            {searchFilter && (
+              <button
+                onClick={() => setSearchFilter('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                ✕
+              </button>
+            )}
           </div>
 
-          {/* Filters */}
-          <div className="flex flex-wrap gap-3">
+          {/* Enhanced Filters */}
+          <div className="flex flex-wrap gap-4">
             {/* Category Filter */}
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Category:</span>
-              <div className="flex flex-wrap gap-1">
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Category:</span>
+              <div className="flex flex-wrap gap-2">
                 {gameCategories.map(category => (
                   <button
                     key={category}
                     onClick={() => setCategoryFilter(category)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    className={`px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 transform hover:scale-105 ${
                       categoryFilter === category
-                        ? 'bg-primary-500 text-white'
-                        : 'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-slate-600'
+                        ? 'bg-primary-500 text-white shadow-md'
+                        : 'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-slate-600 shadow-sm'
                     }`}
                   >
-                    {category === 'all' ? 'All' : category}
+                    {category === 'all' ? '🎯 All' : `${getCategoryIcon(category)} ${category}`}
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Difficulty Filter */}
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Difficulty:</span>
-              <div className="flex flex-wrap gap-1">
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Difficulty:</span>
+              <div className="flex flex-wrap gap-2">
                 {gameDifficulties.map(difficulty => (
                   <button
                     key={difficulty}
                     onClick={() => setDifficultyFilter(difficulty)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    className={`px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 transform hover:scale-105 ${
                       difficultyFilter === difficulty
-                        ? 'bg-primary-500 text-white'
-                        : 'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-slate-600'
+                        ? 'bg-primary-500 text-white shadow-md'
+                        : 'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-slate-600 shadow-sm'
                     }`}
                   >
-                    {difficulty === 'all' ? 'All' : difficulty}
+                    {difficulty === 'all' ? '🎯 All' : `${getDifficultyIcon(difficulty)} ${difficulty}`}
                   </button>
                 ))}
               </div>
