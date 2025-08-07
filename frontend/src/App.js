@@ -165,9 +165,19 @@ const App = () => {
   };
   
   const handleLogout = () => {
+    console.log('👋 Logging out user...');
+    
+    // Clear state
     setUser(null);
     setToken(null);
+    
+    // Clear localStorage
     localStorage.removeItem('token');
+    
+    // Clear axios defaults
+    delete axios.defaults.headers.common['Authorization'];
+    
+    // Redirect to auth
     setCurrentStep('auth');
   };
 
