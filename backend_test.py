@@ -571,6 +571,7 @@ class PulseGamesBackendTester:
         self.test_games_hub_endpoints()
         self.test_game_room_management()
         self.test_games_collection_backend()
+        self.test_multiplayer_game_flow()
         self.test_game_initialization()
         self.test_offline_games_management()
         
