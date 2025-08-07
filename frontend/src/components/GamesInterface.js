@@ -20,6 +20,7 @@ import Snake from './games/Snake';
 
 const GamesInterface = ({ user, token, api }) => {
   const { t } = useTranslation();
+  const { theme, toggleTheme, isDark } = useTheme();
   const [activeGame, setActiveGame] = useState(null);
   const [gameState, setGameState] = useState(null);
   const [gameRooms, setGameRooms] = useState([]);
@@ -32,10 +33,13 @@ const GamesInterface = ({ user, token, api }) => {
   const [socket, setSocket] = useState(null);
   const [gameInvitations, setGameInvitations] = useState([]);
   const [searchFilter, setSearchFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [difficultyFilter, setDifficultyFilter] = useState('all');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [offlineGames, setOfflineGames] = useState([]);
   const [gameMode, setGameMode] = useState('auto'); // auto, online, offline
   const [currentOfflineGame, setCurrentOfflineGame] = useState(null);
+  const [viewMode, setViewMode] = useState('grid'); // grid, list
   const socketRef = useRef(null);
 
   const availableGames = [
