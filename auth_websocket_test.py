@@ -264,7 +264,7 @@ class AuthWebSocketTester:
                     room_id = room.get("room_id")
                     
                     # Connect to game-specific WebSocket
-                    game_websocket_url = f"{WEBSOCKET_URL}/games/{room_id}"
+                    game_websocket_url = f"{WEBSOCKET_URL}/ws/games/{room_id}"
                     
                     start_time = time.time()
                     game_websocket = await asyncio.wait_for(
