@@ -439,16 +439,18 @@ const GamesInterface = ({ user, token, api }) => {
 
   // Create online room
   const createGameRoom = async () => {
-    if (!newRoomName.trim()) {
-      setError('Please enter a room name');
-      return;
-    }
-
+    // For offline games, skip room name validation and start immediately
     if (!isOnline || gameMode === 'offline') {
-      // Start offline game instead
+      console.log('🎮 Starting offline game:', selectedGameType);
       startOfflineGame(selectedGameType);
       setShowCreateRoom(false);
       setNewRoomName('');
+      return;
+    }
+
+    // For online games, validate room name
+    if (!newRoomName.trim()) {
+      setError('Please enter a room name');
       return;
     }
 
