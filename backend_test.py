@@ -84,7 +84,8 @@ class PulseGamesBackendTester:
             if response.status_code == 200:
                 data = response.json()
                 self.token = data.get("access_token")
-                self.user_id = data.get("user_id")
+                user_data = data.get("user", {})
+                self.user_id = user_data.get("user_id")
                 
                 # Set authorization header for future requests
                 self.session.headers.update({"Authorization": f"Bearer {self.token}"})
