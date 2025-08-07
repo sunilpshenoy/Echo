@@ -957,45 +957,70 @@ const GamesInterface = ({ user, token, api }) => {
 
         {/* Available Games */}
         <div>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center">
-              🎲 Available Games 
-              <Badge variant="primary" size="sm" className="ml-2">
-                {filteredGames.length}
-              </Badge>
-            </h3>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-2 sm:space-y-0">
+            <div className="flex items-center space-x-3">
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 flex items-center">
+                🎲 Available Games 
+                <Badge variant="primary" size="sm" className="ml-3">
+                  {filteredGames.length}
+                </Badge>
+              </h3>
+            </div>
             
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              {categoryFilter !== 'all' && `${categoryFilter} • `}
-              {difficultyFilter !== 'all' && `${difficultyFilter} • `}
-              {filteredGames.length} games
+            <div className="flex items-center space-x-4 text-sm">
+              <div className="text-gray-500 dark:text-gray-400">
+                {categoryFilter !== 'all' && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs mr-2">
+                    {getCategoryIcon(categoryFilter)} {categoryFilter}
+                  </span>
+                )}
+                {difficultyFilter !== 'all' && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full bg-secondary-100 dark:bg-secondary-900/30 text-secondary-700 dark:text-secondary-300 text-xs mr-2">
+                    {getDifficultyIcon(difficultyFilter)} {difficultyFilter}
+                  </span>
+                )}
+                <span className="text-gray-600 dark:text-gray-300">
+                  {filteredGames.length} games available
+                </span>
+              </div>
             </div>
           </div>
           
           {filteredGames.length === 0 ? (
-            <Card padding="xl" className="text-center">
-              <div className="text-4xl mb-2">🔍</div>
-              <div className="text-gray-600 dark:text-gray-400 mb-2">No games found</div>
-              <div className="text-sm text-gray-500 dark:text-gray-500">
-                Try adjusting your search or filters
+            <Card padding="xl" className="text-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 border-2 border-dashed border-gray-300 dark:border-slate-600">
+              <div className="py-12">
+                <div className="text-6xl mb-4 opacity-50">🔍</div>
+                <h4 className="text-lg font-semibold text-gray-600 dark:text-gray-300 mb-2">No games found</h4>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                  Try adjusting your search criteria or explore different categories
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSearchFilter('');
+                      setCategoryFilter('all');
+                      setDifficultyFilter('all');
+                    }}
+                    className="animate-bounce-in"
+                  >
+                    🎯 Clear All Filters
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                  >
+                    {viewMode === 'grid' ? '☰ Switch to List' : '⊞ Switch to Grid'}
+                  </Button>
+                </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSearchFilter('');
-                  setCategoryFilter('all');
-                  setDifficultyFilter('all');
-                }}
-                className="mt-3"
-              >
-                Clear Filters
-              </Button>
             </Card>
           ) : (
             <div className={`${
               viewMode === 'grid' 
-                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' 
+                ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6' 
                 : 'space-y-3'
             }`}>
               {filteredGames.map(game => {
@@ -1006,92 +1031,116 @@ const GamesInterface = ({ user, token, api }) => {
                   <Card
                     key={game.id}
                     hover={true}
-                    className={`cursor-pointer transition-all duration-200 hover:scale-[1.02] ${
+                    className={`cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-lg transform-gpu ${
                       viewMode === 'list' ? 'p-4' : ''
-                    }`}
+                    } bg-gradient-to-br from-white to-gray-50 dark:from-slate-800 dark:to-slate-700 border-0 shadow-soft hover:shadow-soft-lg`}
                     onClick={() => {
                       setSelectedGameType(game.id);
                       setShowCreateRoom(true);
                     }}
                   >
                     {viewMode === 'grid' ? (
-                      <div className="p-4">
+                      <div className="p-5">
                         {/* Game Icon and Status */}
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="text-4xl">{game.icon}</div>
-                          <div className="flex flex-col items-end space-y-1">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="text-5xl drop-shadow-sm">{game.icon}</div>
+                          <div className="flex flex-col items-end space-y-2">
                             {game.offlineSupported && (
-                              <Badge variant="success" size="sm">📱</Badge>
+                              <Badge variant="success" size="sm" className="shadow-sm">
+                                📱 Offline
+                              </Badge>
                             )}
                             <Badge 
-                              className={`${difficultyStyle.bg} ${difficultyStyle.text}`}
+                              className={`${difficultyStyle.bg} ${difficultyStyle.text} shadow-sm`}
                               size="sm"
                             >
-                              {game.difficulty}
+                              {getDifficultyIcon(game.difficulty)} {game.difficulty}
                             </Badge>
                           </div>
                         </div>
                         
                         {/* Game Info */}
-                        <div className="space-y-2">
-                          <h4 className="font-bold text-lg text-gray-900 dark:text-gray-100">
-                            {game.name}
-                          </h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {game.description}
-                          </p>
+                        <div className="space-y-3">
+                          <div>
+                            <h4 className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-1">
+                              {game.name}
+                            </h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                              {game.description}
+                            </p>
+                          </div>
                           
                           {/* Game Stats */}
-                          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                            <span>👥 {game.minPlayers}-{game.maxPlayers}</span>
-                            <span>⏱️ {game.duration}</span>
+                          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-700/50 rounded-lg px-3 py-2">
+                            <div className="flex items-center space-x-1">
+                              <span>👥</span>
+                              <span>{game.minPlayers}-{game.maxPlayers}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <span>⏱️</span>
+                              <span>{game.duration}</span>
+                            </div>
                           </div>
                           
                           {/* Category Badge */}
-                          <div className="pt-2">
+                          <div className="pt-1">
                             <Badge 
-                              className={`${categoryStyle.bg} ${categoryStyle.text}`}
+                              className={`${categoryStyle.bg} ${categoryStyle.text} shadow-sm`}
                               size="sm"
                             >
-                              {game.category}
+                              {getCategoryIcon(game.category)} {game.category}
                             </Badge>
                           </div>
                         </div>
                       </div>
                     ) : (
-                      /* List View */
-                      <div className="flex items-center space-x-4">
-                        <div className="text-3xl">{game.icon}</div>
+                      /* Enhanced List View */
+                      <div className="flex items-center space-x-4 p-1">
+                        <div className="text-4xl flex-shrink-0">{game.icon}</div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 mb-2">
+                            <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-lg">
                               {game.name}
                             </h4>
-                            {game.offlineSupported && (
-                              <Badge variant="success" size="sm">📱</Badge>
-                            )}
+                            <div className="flex items-center space-x-2 mt-1 sm:mt-0">
+                              {game.offlineSupported && (
+                                <Badge variant="success" size="sm">📱</Badge>
+                              )}
+                              <Badge 
+                                className={`${difficultyStyle.bg} ${difficultyStyle.text}`}
+                                size="sm"
+                              >
+                                {getDifficultyIcon(game.difficulty)} {game.difficulty}
+                              </Badge>
+                            </div>
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-1">
                             {game.description}
                           </p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge 
-                            className={`${categoryStyle.bg} ${categoryStyle.text}`}
-                            size="sm"
-                          >
-                            {game.category}
-                          </Badge>
-                          <Badge 
-                            className={`${difficultyStyle.bg} ${difficultyStyle.text}`}
-                            size="sm"
-                          >
-                            {game.difficulty}
-                          </Badge>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            {game.minPlayers}-{game.maxPlayers} 👥
+                          <div className="flex items-center justify-between">
+                            <Badge 
+                              className={`${categoryStyle.bg} ${categoryStyle.text}`}
+                              size="sm"
+                            >
+                              {getCategoryIcon(game.category)} {game.category}
+                            </Badge>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-4">
+                              <span>👥 {game.minPlayers}-{game.maxPlayers}</span>
+                              <span>⏱️ {game.duration}</span>
+                            </div>
                           </div>
                         </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedGameType(game.id);
+                            setShowCreateRoom(true);
+                          }}
+                        >
+                          Play
+                        </Button>
                       </div>
                     )}
                   </Card>
