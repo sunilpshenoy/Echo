@@ -115,7 +115,7 @@ module.exports = {
     },
   },
   devServer: {
-    onAfterSetupMiddleware: (devServer) => {
+    setupMiddlewares: (middlewares, devServer) => {
       // SECURITY: Enhanced security headers and protections
       devServer.app.use((req, res, next) => {
         // Strict security headers
@@ -143,6 +143,8 @@ module.exports = {
         
         next();
       });
+      
+      return middlewares;
     },
     // SECURITY: Restrict to localhost only (CVE-2025-30359/30360 mitigation)
     host: '127.0.0.1', // Only bind to localhost
