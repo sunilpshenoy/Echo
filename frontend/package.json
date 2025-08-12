@@ -59,8 +59,7 @@
     "brace-expansion": "^2.0.2",
     "on-headers": "^1.1.0",
     "form-data": "^4.0.4",
-    "follow-redirects": "^1.15.9",
-    "follow-redirects/*": "^1.15.9"
+    "follow-redirects": "^1.15.9"
   },
   "browserslist": {
     "production": [
