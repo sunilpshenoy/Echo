@@ -1,5 +1,6 @@
 const WebpackObfuscator = require('webpack-obfuscator');
-const path = require('path');
+const { overrideDevServer } = require('customize-cra');
+const { addSecurityConfig } = require('./webpack.dev.override');
 
 module.exports = {
   webpack: {
@@ -114,51 +115,5 @@ module.exports = {
       return webpackConfig;
     },
   },
-  devServer: {
-    setupMiddlewares: (middlewares, devServer) => {
-      // SECURITY: Enhanced security headers and protections
-      devServer.app.use((req, res, next) => {
-        // Strict security headers
-        res.setHeader('X-Content-Type-Options', 'nosniff');
-        res.setHeader('X-Frame-Options', 'DENY');
-        res.setHeader('X-XSS-Protection', '1; mode=block');
-        res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-        
-        // Enhanced CSP for development security
-        res.setHeader('Content-Security-Policy', 
-          "default-src 'self'; " +
-          "script-src 'self' 'unsafe-eval' 'unsafe-inline' localhost:* 127.0.0.1:*; " +
-          "style-src 'self' 'unsafe-inline'; " +
-          "img-src 'self' data: https: http:; " +
-          "font-src 'self'; " +
-          "connect-src 'self' localhost:* 127.0.0.1:* ws://localhost:* ws://127.0.0.1:* wss://localhost:* wss://127.0.0.1:*; " +
-          "frame-ancestors 'none';"
-        );
-        
-        // SECURITY: Block non-localhost origins (CVE-2025-30360 mitigation)
-        const origin = req.headers.origin;
-        if (origin && !origin.includes('localhost') && !origin.includes('127.0.0.1')) {
-          return res.status(403).send('Access denied: Non-localhost origin blocked for security');
-        }
-        
-        next();
-      });
-      
-      return middlewares;
-    },
-    // SECURITY: Restrict to localhost only (CVE-2025-30359/30360 mitigation)
-    host: '127.0.0.1', // Only bind to localhost
-    port: 3000,
-    allowedHosts: ['localhost', '127.0.0.1'], // Only allow localhost connections
-    hot: true,
-    liveReload: true,
-    historyApiFallback: true,
-    client: {
-      overlay: {
-        errors: true,
-        warnings: false,
-      },
-      webSocketURL: 'ws://127.0.0.1:3000/ws', // Force localhost WebSocket
-    },
-  },
+  devServer: overrideDevServer(addSecurityConfig()),
 };
