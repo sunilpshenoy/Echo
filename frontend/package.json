@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "yarn start",
     "start": "DISABLE_ESLINT_PLUGIN=true craco start",
+    "start-secure": "DISABLE_ESLINT_PLUGIN=true HOST=127.0.0.1 PORT=3000 craco start",
     "build": "DISABLE_ESLINT_PLUGIN=true craco build",
     "test": "craco test",
     "eject": "react-scripts eject"
