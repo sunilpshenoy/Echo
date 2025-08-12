@@ -115,7 +115,7 @@ module.exports = {
     },
   },
   devServer: {
-    setupMiddlewares: (middlewares, devServer) => {
+    onAfterSetupMiddleware: (devServer) => {
       // Set security headers
       devServer.app.use((req, res, next) => {
         res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -125,8 +125,6 @@ module.exports = {
         res.setHeader('Content-Security-Policy', "default-src 'self' *; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' *; img-src 'self' data: https: http:; font-src 'self' *; connect-src 'self' https: http: ws: wss: *; frame-ancestors 'none';");
         next();
       });
-      
-      return middlewares;
     },
     host: '0.0.0.0',
     port: 3000,
