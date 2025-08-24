@@ -6,59 +6,90 @@ const addSecurityConfig = () => (config) => {
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
   const isPreviewMode = backendUrl && backendUrl.includes('emergentagent.com');
   
+  console.log('🔧 Webpack Dev Server Config:', { 
+    backendUrl, 
+    isPreviewMode,
+    nodeEnv: process.env.NODE_ENV 
+  });
+  
   if (isPreviewMode) {
     // PREVIEW MODE: Allow Expo preview access while maintaining security
+    console.log('🌐 Configuring for PREVIEW MODE');
     config.host = '0.0.0.0';
     config.port = 3000;
-    config.allowedHosts = 'all'; // Allow Expo preview hosts
-    config.disableHostCheck = true; // Required for Expo preview
+    config.allowedHosts = 'all'; // Allow all hosts for Expo preview
+    config.client = {
+      webSocketURL: 'auto', // Let webpack determine the correct WebSocket URL
+      overlay: { errors: true, warnings: false }
+    };
+    // CRITICAL: Disable host check for preview mode
+    config.historyApiFallback = {
+      disableDotRule: true,
+    };
   } else {
     // DEVELOPMENT MODE: Localhost-only access (CVE-2025-30359/30360 mitigation)
+    console.log('🏠 Configuring for DEVELOPMENT MODE');
     config.host = '127.0.0.1';
     config.port = 3000;
     config.allowedHosts = ['localhost', '127.0.0.1'];
+    config.client = {
+      webSocketURL: 'ws://127.0.0.1:3000/ws',
+      overlay: { errors: true, warnings: false }
+    };
   }
   
-  // SECURITY: Enhanced headers middleware
+  // SECURITY: Enhanced headers middleware with adaptive origin validation
   config.setupMiddlewares = (middlewares, devServer) => {
     devServer.app.use((req, res, next) => {
-      // Enhanced origin validation
       const origin = req.headers.origin;
       const host = req.headers.host;
+      const userAgent = req.headers['user-agent'] || '';
+      
+      console.log('🔍 Request Details:', { origin, host, userAgent: userAgent.substring(0, 50) });
       
       if (isPreviewMode) {
-        // PREVIEW MODE: Allow Expo and trusted domains
-        if (origin && !origin.includes('localhost') && 
-            !origin.includes('127.0.0.1') && 
-            !origin.includes('emergentagent.com') &&
-            !origin.includes('expo.dev') &&
-            !origin.includes('expo.io')) {
-          console.warn('Blocked untrusted origin in preview mode:', origin);
-          return res.status(403).send('Access denied: Untrusted origin blocked for security');
+        // PREVIEW MODE: Allow trusted domains and Expo
+        const trustedDomains = ['emergentagent.com', 'expo.dev', 'expo.io', 'localhost', '127.0.0.1'];
+        const isTrusted = trustedDomains.some(domain => 
+          (origin && origin.includes(domain)) || 
+          (host && host.includes(domain))
+        );
+        
+        if (origin && !isTrusted && !origin.includes('chrome-extension://')) {
+          console.warn('⚠️ Blocked untrusted origin in preview mode:', origin);
+          return res.status(403).send(`Access denied: Untrusted origin "${origin}" blocked for security`);
         }
       } else {
         // DEVELOPMENT MODE: Strict localhost-only
         if (origin && !origin.includes('localhost') && !origin.includes('127.0.0.1')) {
+          console.warn('⚠️ Blocked non-localhost origin in dev mode:', origin);
           return res.status(403).send('Access denied: Non-localhost origin blocked for security');
         }
       }
       
       // Security headers (always applied)
       res.setHeader('X-Content-Type-Options', 'nosniff');
-      res.setHeader('X-Frame-Options', isPreviewMode ? 'ALLOWALL' : 'DENY'); // Allow framing in preview
+      res.setHeader('X-Frame-Options', isPreviewMode ? 'ALLOWALL' : 'DENY');
       res.setHeader('X-XSS-Protection', '1; mode=block');
       res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+      
+      // Adaptive CORS headers
+      if (isPreviewMode) {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', '*');
+      }
       
       // Adaptive CSP based on mode
       if (isPreviewMode) {
         res.setHeader('Content-Security-Policy', 
-          "default-src 'self' https:; " +
-          "script-src 'self' 'unsafe-eval' 'unsafe-inline' https: localhost:* *.emergentagent.com; " +
+          "default-src 'self' https: data:; " +
+          "script-src 'self' 'unsafe-eval' 'unsafe-inline' https: *.emergentagent.com; " +
           "style-src 'self' 'unsafe-inline' https:; " +
           "img-src 'self' data: https: http:; " +
-          "font-src 'self' https:; " +
-          "connect-src 'self' https: http: ws: wss: localhost:* *.emergentagent.com; " +
-          "frame-ancestors https://expo.dev https://expo.io https://*.emergentagent.com;"
+          "font-src 'self' https: data:; " +
+          "connect-src 'self' https: http: ws: wss: *.emergentagent.com; " +
+          "frame-ancestors https://expo.dev https://expo.io https://*.emergentagent.com 'self';"
         );
       } else {
         res.setHeader('Content-Security-Policy', 
@@ -77,21 +108,6 @@ const addSecurityConfig = () => (config) => {
     
     return middlewares;
   };
-  
-  // SECURITY: Adaptive WebSocket restrictions
-  if (isPreviewMode) {
-    config.client = {
-      ...config.client,
-      overlay: { errors: true, warnings: false }
-      // Let webpack determine WebSocket URL automatically in preview mode
-    };
-  } else {
-    config.client = {
-      ...config.client,
-      webSocketURL: 'ws://127.0.0.1:3000/ws',
-      overlay: { errors: true, warnings: false }
-    };
-  }
   
   return config;
 };
