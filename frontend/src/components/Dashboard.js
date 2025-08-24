@@ -490,7 +490,8 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 relative">
+    <PremiumProvider user={user}>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 relative">
       
       {/* Main content with higher z-index */}
       <div className="relative z-10">
