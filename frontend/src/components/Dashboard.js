@@ -693,8 +693,8 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
               />
             )}
             
-            {activeTab === 'premium' && (
-              <DiscoverInterface 
+            {activeTab === 'premium' && loadedTabs.has('premium') && (
+              <LazyDiscoverInterface 
                 user={user}
                 token={token}
                 api={api}
