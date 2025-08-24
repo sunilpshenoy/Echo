@@ -22,11 +22,16 @@ import {
 
 const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const { t } = useTranslation();
+  
+  // Performance monitoring
+  useLoadingPerformance('Dashboard');
+  
   const [activeTab, setActiveTab] = useState('chats'); // Default to chats
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
   const [attemptedTab, setAttemptedTab] = useState(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [showSmartProfileManager, setShowSmartProfileManager] = useState(false);
+  const [loadedTabs, setLoadedTabs] = useState(new Set(['chats'])); // Track loaded tabs
   const [editProfileData, setEditProfileData] = useState({
     display_name: user?.display_name || user?.username || '',
     age: user?.age || '',
