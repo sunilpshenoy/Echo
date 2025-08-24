@@ -621,26 +621,72 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
               />
             )}
 
-            {activeTab === 'marketplace' && (
-              <SimpleMarketplace 
+            {activeTab === 'marketplace' && loadedTabs.has('marketplace') && (
+              <LazyMarketplaceInterface 
                 user={user}
                 token={token}
                 api={api}
               />
             )}
             
-            {activeTab === 'games' && (
-              <GamesErrorBoundary>
-                <GamesInterface 
-                  user={user}
-                  token={token}
-                  api={api}
-                />
-              </GamesErrorBoundary>
+            {activeTab === 'games' && loadedTabs.has('games') && (
+              <LazyGamesInterface 
+                user={user}
+                token={token}
+                api={api}
+              />
             )}
             
-            {activeTab === 'teams' && (
-              <GroupsHub 
+            {activeTab === 'teams' && loadedTabs.has('teams') && (
+              <LazyTeamsInterface 
+                user={user}
+                token={token}
+                api={api}
+              />
+            )}
+            
+            {activeTab === 'groups' && loadedTabs.has('groups') && (
+              <LazyGroupsHub 
+                user={user}
+                token={token}
+                api={api}
+              />
+            )}
+            
+            {activeTab === 'channels' && loadedTabs.has('channels') && (
+              <LazyChannelsInterface 
+                user={user}
+                token={token}
+                api={api}
+              />
+            )}
+            
+            {activeTab === 'trust' && loadedTabs.has('trust') && (
+              <LazyTrustSystem 
+                user={user}
+                token={token}
+                api={api}
+              />
+            )}
+            
+            {activeTab === 'themes' && loadedTabs.has('themes') && (
+              <LazyThemeCustomizer 
+                user={user}
+                token={token}
+                api={api}
+              />
+            )}
+            
+            {activeTab === 'discover' && loadedTabs.has('discover') && (
+              <LazyDiscoverInterface 
+                user={user}
+                token={token}
+                api={api}
+              />
+            )}
+            
+            {activeTab === 'group_discovery' && loadedTabs.has('group_discovery') && (
+              <LazyGroupDiscovery 
                 user={user}
                 token={token}
                 api={api}
