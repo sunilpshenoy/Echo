@@ -2,19 +2,23 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import ChatsInterface from './ChatsInterface';
-import TeamsInterface from './TeamsInterface';
-import GroupDiscovery from './GroupDiscovery';
-import DiscoverInterface from './DiscoverInterface';
-import TrustSystem from './TrustSystem';
 import LanguageSelector from './LanguageSelector';
-import ThemeCustomizer from './ThemeCustomizer';
-import GroupsHub from './GroupsHub';
-import ChannelsInterface from './ChannelsInterface';
-import SimpleMarketplace from './SimpleMarketplace';
 import SmartProfileManager from './SmartProfileManager';
 import ContextualProfileSetup from './ContextualProfileSetup';
-import GamesInterface from './GamesInterface';
-import GamesErrorBoundary from './GamesErrorBoundary';
+import { PremiumProvider } from './PremiumManager';
+import { 
+  LazyGamesInterface,
+  LazyMarketplaceInterface,
+  LazyTeamsInterface,
+  LazyGroupsHub,
+  LazyChannelsInterface,
+  LazyTrustSystem,
+  LazyThemeCustomizer,
+  LazyGroupDiscovery,
+  LazyDiscoverInterface,
+  ComponentSkeleton,
+  useLoadingPerformance
+} from './LazyComponents';
 
 const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
   const { t } = useTranslation();
