@@ -235,6 +235,11 @@ const App = () => {
             </ErrorBoundary>
           )}
         </div>
+        
+        {/* Performance Monitoring (Development Only) */}
+        <PerformanceMonitor />
+        <BundleAnalyzer />
+        <PerformanceOptimizer />
       </ErrorBoundary>
     </ThemeProvider>
   );
