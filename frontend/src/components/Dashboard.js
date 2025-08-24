@@ -134,10 +134,15 @@ const Dashboard = ({ user, token, api, onLogout, onUserUpdate }) => {
     return tabId === 'teams' || tabId === 'premium';
   };
 
-  // Handle tab selection with profile requirement check
+  // Handle tab selection with profile requirement check and lazy loading
   const handleTabSelection = (tabId) => {
+    // Mark tab as loaded for lazy loading
+    setLoadedTabs(prev => new Set(prev).add(tabId));
+    
     if (canAccessTab(tabId)) {
       setActiveTab(tabId);
+      // Performance tracking
+      console.log(`🚀 Loading tab: ${tabId}`);
     } else {
       // Show contextual profile setup
       setCurrentContext(tabId);
