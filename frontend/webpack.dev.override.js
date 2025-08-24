@@ -1,6 +1,4 @@
 // Security-focused webpack-dev-server override with Expo preview support
-const { overrideDevServer } = require('customize-cra');
-
 const addSecurityConfig = () => (config) => {
   // Get the backend URL to determine if we're in preview mode
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
@@ -22,7 +20,13 @@ const addSecurityConfig = () => (config) => {
       webSocketURL: 'auto', // Let webpack determine the correct WebSocket URL
       overlay: { errors: true, warnings: false }
     };
-    // CRITICAL: Disable host check for preview mode
+    // Enhanced CORS headers for preview
+    config.headers = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': '*',
+    };
+    // History API fallback configuration
     config.historyApiFallback = {
       disableDotRule: true,
     };
@@ -40,6 +44,10 @@ const addSecurityConfig = () => (config) => {
   
   // SECURITY: Enhanced headers middleware with adaptive origin validation
   config.setupMiddlewares = (middlewares, devServer) => {
+    if (!devServer.app) {
+      throw new Error('webpack-dev-server is not defined');
+    }
+    
     devServer.app.use((req, res, next) => {
       const origin = req.headers.origin;
       const host = req.headers.host;
