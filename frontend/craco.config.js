@@ -2,6 +2,12 @@ const WebpackObfuscator = require('webpack-obfuscator');
 const { overrideDevServer } = require('customize-cra');
 const { addSecurityConfig } = require('./webpack.dev.override');
 
+// Check if we're in preview mode
+const isPreviewMode = process.env.REACT_APP_BACKEND_URL && 
+                     process.env.REACT_APP_BACKEND_URL.includes('emergentagent.com');
+
+console.log('🔧 CRACO Config - Preview Mode:', isPreviewMode);
+
 module.exports = {
   webpack: {
     plugins: [
@@ -115,5 +121,21 @@ module.exports = {
       return webpackConfig;
     },
   },
-  devServer: overrideDevServer(addSecurityConfig()),
+  devServer: (devServerConfig, { env, paths, proxy, allowedHost }) => {
+    // Apply our security configuration
+    const securityConfig = addSecurityConfig()(devServerConfig);
+    
+    // Additional explicit overrides for preview mode
+    if (isPreviewMode) {
+      console.log('🌐 Applying explicit preview mode overrides');
+      securityConfig.allowedHosts = 'all';
+      securityConfig.headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': '*',
+        'Access-Control-Allow-Headers': '*',
+      };
+    }
+    
+    return securityConfig;
+  },
 };
