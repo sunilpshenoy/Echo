@@ -14,3 +14,7 @@ slowapi==0.1.9
 redis==6.2.0
 setuptools>=78.1.1
 urllib3>=2.5.0
+# Photo System Dependencies (Added for photo upload feature)
+boto3==1.28.85              # AWS S3 SDK
+google-cloud-vision==3.4.4  # Google Vision API for AI moderation
+Pillow==10.1.0              # Image processing
